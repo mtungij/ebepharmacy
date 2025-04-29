@@ -117,7 +117,7 @@ img {
                     </tr>
                 </tbody>
             </table>
-            <p class="centered"><i><b>God will heal you!</b></i>
+            <p class="centered"><i><b>feel better with us</b></i>
                 
                 
         </div>
