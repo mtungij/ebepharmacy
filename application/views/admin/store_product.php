@@ -52,9 +52,7 @@
             <tbody>
               <?php foreach ($store as $stores): ?>
             <tr>
-             <!--  <?php// if ($data_limit) {
-                  # code...
-              } ?> -->
+            
             <td><b><?php echo $stores->name; ?></b></td>
             <td><b><?php echo $stores->bland; ?></b></td>
             <td>

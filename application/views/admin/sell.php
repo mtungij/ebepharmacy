@@ -17,6 +17,9 @@ function updateCartItem(obj, rowid,item_id){
     });
 }
 </script>
+
+
+
 <div id="main-content">
 <div class="container-fluid">
 <br>
