@@ -1,0 +1,11 @@
+docker run -it -d \
+  --label traefik.http.routers.dnmpharmacy.rule=Host\(\`dnmpharmacy.phamasoft.com\`\) \
+  --label traefik.http.routers.dnmpharmacy.tls.certresolver=lets-encrypt \
+  --label traefik.http.routers.dnmpharmacy.tls=true \
+  --label traefik.http.routers.dnmpharmacy.service=dnmpharmacy-credit-http \
+  --label traefik.http.services.dnmpharmacy-credit-http.loadbalancer.server.port=80 \
+  --name dnmpharmacy \
+  --network web \
+  --restart always \
+  --expose 80 \
+  mikoposoft/pharmacyci3:old

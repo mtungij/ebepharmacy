@@ -263,13 +263,13 @@ class Seller extends CI_Controller {
        }
 
          $cartItems = $this->cart->contents();
-//           $shop = $this->queries->get_shop_infoData();
-//           $this->load->view('seller/recept_jumla',['cartItems'=>$cartItems,'shop'=>$shop,'customer'=>$customer]); 
-//           echo '<script type="text/javascript">window.print();  setTimeout(function(){
-//   window.location.href = document.referrer;
-// }, 2000);</script>';
+          $shop = $this->queries->get_shop_infoData();
+          $this->load->view('seller/recept_jumla',['cartItems'=>$cartItems,'shop'=>$shop,'customer'=>$customer]); 
+          echo '<script type="text/javascript">window.print();  setTimeout(function(){
+  window.location.href = document.referrer;
+}, 2000);</script>';
            $this->cart->destroy();
-       return redirect("cart_jumla/"); 
+       //return redirect("cart_jumla/"); 
     }
    
 //get sell now function
