@@ -207,14 +207,132 @@
   </section>
 
 
+<!-- Medicine Movement Chart Section -->
+<div class="row clearfix" style="margin-top: 30px;">
+<div class="col-lg-12">
+<div class="card">
+<div class="header">
+<h2>Medicine Movement <span class="text-muted" style="font-size: 14px;">(Last 30 Days)</span></h2>
+</div>
+
+<div class="body">
+    <div class="row">
+        <!-- Movement Summary Cards -->
+        <div class="col-md-4">
+            <div class="alert alert-success" style="text-align: center; padding: 20px;">
+                <h4 style="margin: 0; color: #27ae60;">Fast-Moving Medicines</h4>
+                <h2 style="margin: 10px 0 0 0; color: #27ae60;"><?php echo $medicine_movement_summary['fastMoving'] ?? 0; ?></h2>
+                <p style="margin: 5px 0 0 0; font-size: 12px;">High demand products</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="alert alert-warning" style="text-align: center; padding: 20px;">
+                <h4 style="margin: 0; color: #f39c12;">Slow-Moving Medicines</h4>
+                <h2 style="margin: 10px 0 0 0; color: #f39c12;"><?php echo $medicine_movement_summary['slowMoving'] ?? 0; ?></h2>
+                <p style="margin: 5px 0 0 0; font-size: 12px;">Low sales activity</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="alert alert-danger" style="text-align: center; padding: 20px;">
+                <h4 style="margin: 0; color: #e74c3c;">Dead Stock</h4>
+                <h2 style="margin: 10px 0 0 0; color: #e74c3c;"><?php echo $medicine_movement_summary['deadStock'] ?? 0; ?></h2>
+                <p style="margin: 5px 0 0 0; font-size: 12px;">No recent sales</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chart -->
+    <div class="row" style="margin-top: 30px;">
+        <div class="col-md-12">
+            <canvas id="medicineMovementChart" style="max-height: 300px;"></canvas>
+        </div>
+    </div>
+    
+    <!-- Fast-Moving Medicines Table -->
+    <div class="row" style="margin-top: 30px;">
+        <div class="col-md-6">
+            <h4>Top Fast-Moving Medicines</h4>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead class="thead-success">
+                        <tr>
+                            <th>Medicine Name</th>
+                            <th>Sold (30d)</th>
+                            <th>Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($fastmoving_medicines)): ?>
+                            <?php foreach ($fastmoving_medicines as $medicine): ?>
+                                <tr>
+                                    <td><?php echo $medicine->name; ?></td>
+                                    <td><span class="badge badge-success"><?php echo $medicine->total_sold; ?></span></td>
+                                    <td>
+                                        <?php if ($medicine->current_stock <= $medicine->stock_limit): ?>
+                                            <span class="badge badge-danger"><?php echo $medicine->current_stock; ?></span>
+                                        <?php else: ?>
+                                            <span class="badge badge-success"><?php echo $medicine->current_stock; ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No fast-moving medicines</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Slow-Moving Medicines Table -->
+        <div class="col-md-6">
+            <h4>Top Slow-Moving Medicines</h4>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead class="thead-warning">
+                        <tr>
+                            <th>Medicine Name</th>
+                            <th>Sold (30d)</th>
+                            <th>Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($slowmoving_medicines)): ?>
+                            <?php foreach ($slowmoving_medicines as $medicine): ?>
+                                <tr>
+                                    <td><?php echo $medicine->name; ?></td>
+                                    <td><span class="badge badge-warning"><?php echo $medicine->total_sold; ?></span></td>
+                                    <td>
+                                        <?php if ($medicine->current_stock <= $medicine->stock_limit): ?>
+                                            <span class="badge badge-danger"><?php echo $medicine->current_stock; ?></span>
+                                        <?php else: ?>
+                                            <span class="badge badge-success"><?php echo $medicine->current_stock; ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No slow-moving medicines</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 </div>
 </div>
+</div>
 
 
+<!-- End Medicine Movement Chart Section -->
 
-
-<div class="row clearfix">
 <div class="col-lg-12">
 <div class="card">
 <div class="header">
@@ -393,8 +511,66 @@
 <script src="<?php echo base_url() ?>assets/admin/js/chart.min.js"></script>
 <script src="<?php echo base_url() ?>assets/admin/js/App.js"></script>
 
-
-
+<script>
+// Medicine Movement Chart
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('medicineMovementChart');
+    if (ctx) {
+        var medicineMovementChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Fast-Moving', 'Slow-Moving', 'Dead Stock'],
+                datasets: [{
+                    data: [
+                        <?php echo $medicine_movement_summary['fastMoving'] ?? 0; ?>,
+                        <?php echo $medicine_movement_summary['slowMoving'] ?? 0; ?>,
+                        <?php echo $medicine_movement_summary['deadStock'] ?? 0; ?>
+                    ],
+                    backgroundColor: [
+                        '#27ae60',
+                        '#f39c12',
+                        '#e74c3c'
+                    ],
+                    borderColor: [
+                        '#229954',
+                        '#d68910',
+                        '#c0392b'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.parsed;
+                                label += ' medicine(s)';
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
 
 
 

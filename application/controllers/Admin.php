@@ -29,12 +29,17 @@ class Admin extends CI_Controller {
   $huduma_all = $this->queries->get_total_service_todayData();
   $inderect_expenses_all = $this->queries->get_total_indirect_expenses();
   $total_profit_all = $this->queries->get_total_profit();
+  
+  // Get medicine movement data
+  $fastmoving_medicines = $this->queries->get_fastmoving_medicines();
+  $slowmoving_medicines = $this->queries->get_slowmoving_medicines();
+  $medicine_movement_summary = $this->queries->get_medicine_movement_summary();
     //$total_sell = $this->queries->get_Yearly_monthsELL($year);
 		 // echo "<pre>";
 		 // print_r($datamonth);
 		 // echo "</pre>";
 		 //     exit();
-		$this->load->view('admin/index',['all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'total_matumiz'=>$total_matumiz,'total_sell_data'=>$total_sell_data,'mishahara_data'=>$mishahara_data,'my'=>$my,'total_huduma'=>$total_huduma,'years'=>$years,'datamonth'=>$datamonth,'today_indirect_exp'=>$today_indirect_exp,'all_matumiz_all'=>$all_matumiz_all,'all_sell_all'=>$all_sell_all,'mishahara_data_all'=>$mishahara_data_all,'huduma_all'=>$huduma_all,'huduma_all'=>$huduma_all,'inderect_expenses_all'=>$inderect_expenses_all,'total_profit_all'=>$total_profit_all]);
+		$this->load->view('admin/index',['all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'total_matumiz'=>$total_matumiz,'total_sell_data'=>$total_sell_data,'mishahara_data'=>$mishahara_data,'my'=>$my,'total_huduma'=>$total_huduma,'years'=>$years,'datamonth'=>$datamonth,'today_indirect_exp'=>$today_indirect_exp,'all_matumiz_all'=>$all_matumiz_all,'all_sell_all'=>$all_sell_all,'mishahara_data_all'=>$mishahara_data_all,'huduma_all'=>$huduma_all,'huduma_all'=>$huduma_all,'inderect_expenses_all'=>$inderect_expenses_all,'total_profit_all'=>$total_profit_all,'fastmoving_medicines'=>$fastmoving_medicines,'slowmoving_medicines'=>$slowmoving_medicines,'medicine_movement_summary'=>$medicine_movement_summary]);
 	}
 
 

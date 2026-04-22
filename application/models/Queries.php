@@ -1116,6 +1116,41 @@ public function get_product_tranding_data($from,$to){
     	  	
     	  }
 	}
+
+	// Get fast-moving medicines (high quantity sold in last 30 days)
+	public function get_fastmoving_medicines(){
+		$date_30_days_ago = date("Y-m-d", strtotime("-30 days"));
+		$today = date("Y-m-d");
+		$data = $this->db->query("SELECT p.id, p.name, SUM(CAST(s.quantity AS UNSIGNED)) AS total_sold, COALESCE(st.balance, 0) AS current_stock, p.stock_limit FROM tbl_sell s JOIN product p ON p.id = s.product_id LEFT JOIN tbl_store st ON p.id = st.product_id WHERE s.sell_day BETWEEN '$date_30_days_ago' AND '$today' GROUP BY s.product_id ORDER BY SUM(CAST(s.quantity AS UNSIGNED)) DESC LIMIT 10");
+		return $data->result();
+	}
+
+	// Get slow-moving medicines (low quantity sold in last 30 days)
+	public function get_slowmoving_medicines(){
+		$date_30_days_ago = date("Y-m-d", strtotime("-30 days"));
+		$today = date("Y-m-d");
+		$data = $this->db->query("SELECT p.id, p.name, COALESCE(SUM(CAST(s.quantity AS UNSIGNED)), 0) AS total_sold, COALESCE(st.balance, 0) AS current_stock, p.stock_limit FROM product p LEFT JOIN tbl_sell s ON p.id = s.product_id AND s.sell_day BETWEEN '$date_30_days_ago' AND '$today' LEFT JOIN tbl_store st ON p.id = st.product_id WHERE p.stat = 'open' GROUP BY p.id HAVING COALESCE(SUM(CAST(s.quantity AS UNSIGNED)), 0) <= 5 ORDER BY total_sold ASC LIMIT 10");
+		return $data->result();
+	}
+
+	// Get medicine movement summary for charts
+	public function get_medicine_movement_summary(){
+		$date_30_days_ago = date("Y-m-d", strtotime("-30 days"));
+		$today = date("Y-m-d");
+		$fastMoving = $this->db->query("SELECT COUNT(DISTINCT s.product_id) AS count FROM tbl_sell s WHERE s.sell_day BETWEEN '$date_30_days_ago' AND '$today'");
+		
+		// Slow moving - products with <= 5 units sold in 30 days
+		$slowMoving = $this->db->query("SELECT COUNT(*) AS count FROM (SELECT p.id FROM product p LEFT JOIN tbl_sell s ON p.id = s.product_id AND s.sell_day BETWEEN '$date_30_days_ago' AND '$today' WHERE p.stat = 'open' GROUP BY p.id HAVING COALESCE(SUM(CAST(s.quantity AS UNSIGNED)), 0) <= 5) AS slow_movers");
+		
+		// Dead stock - products not sold in 60 days with high stock
+		$deadStock = $this->db->query("SELECT COUNT(DISTINCT p.id) AS count FROM product p LEFT JOIN tbl_sell s ON p.id = s.product_id AND s.sell_day > DATE_SUB(CURDATE(), INTERVAL 60 DAY) WHERE p.stat = 'open' AND s.sell_id IS NULL");
+		
+		return [
+			'fastMoving' => $fastMoving->row()->count ?? 0,
+			'slowMoving' => $slowMoving->row()->count ?? 0,
+			'deadStock' => $deadStock->row()->count ?? 0
+		];
+	}
  	
  	
  }
