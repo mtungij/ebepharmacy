@@ -117,13 +117,14 @@
                     </button>
                 <?php echo form_close(); ?>
 
-                <div class="mt-5 text-center">
-                    <a href="https://wa.me/255747384847" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-sm font-medium text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300" aria-label="unahitaji msaada WhatsApp">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="w-5 h-5" fill="currentColor" aria-hidden="true">
+                <div class="mt-6 border-t border-gray-200 pt-5 dark:border-gray-700">
+                    <p class="text-center text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Support</p>
+                    <a href="https://wa.me/255747384847" target="_blank" rel="noopener noreferrer" class="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-sm font-semibold text-green-700 transition hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:border-green-900/60 dark:bg-green-900/20 dark:text-green-300 dark:hover:bg-green-900/35 dark:focus:ring-offset-gray-900" aria-label="Unahitaji msaada? Wasiliana WhatsApp">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="h-5 w-5" fill="currentColor" aria-hidden="true">
                             <path d="M19.11 17.24c-.27-.14-1.6-.79-1.85-.88-.25-.09-.43-.14-.61.14-.18.27-.7.88-.86 1.06-.16.18-.31.2-.58.07-.27-.14-1.12-.41-2.14-1.31-.79-.7-1.33-1.57-1.49-1.84-.16-.27-.02-.41.12-.54.12-.12.27-.31.41-.47.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.47-.07-.14-.61-1.47-.84-2.02-.22-.53-.45-.46-.61-.47h-.52c-.18 0-.47.07-.72.34-.25.27-.95.93-.95 2.27s.97 2.63 1.11 2.81c.14.18 1.9 2.9 4.61 4.07.64.28 1.14.45 1.53.58.64.2 1.22.17 1.68.1.51-.08 1.6-.65 1.82-1.27.22-.61.22-1.14.16-1.27-.07-.13-.25-.2-.52-.34z"/>
                             <path d="M16.03 3.2c-7.08 0-12.82 5.74-12.82 12.82 0 2.25.58 4.44 1.69 6.36L3.2 28.8l6.57-1.66c1.86 1.01 3.95 1.54 6.26 1.54h.01c7.08 0 12.82-5.74 12.82-12.82 0-3.43-1.34-6.66-3.77-9.08A12.76 12.76 0 0 0 16.03 3.2zm0 23.31h-.01a10.4 10.4 0 0 1-5.3-1.45l-.38-.22-3.9.98 1.04-3.8-.25-.39a10.39 10.39 0 0 1-1.61-5.57c0-5.76 4.68-10.44 10.44-10.44 2.79 0 5.41 1.09 7.38 3.06a10.38 10.38 0 0 1 3.05 7.38c0 5.76-4.68 10.45-10.45 10.45z"/>
                         </svg>
-                        unahitaji msaada
+                        Unahitaji msaada? Wasiliana nasi
                     </a>
                 </div>
             </div>
