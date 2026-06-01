@@ -1,10 +1,142 @@
 <?php include('incs/header.php'); ?>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
+<style>
+.evamo-passport-wrap {
+  width: 100%;
+  padding: 6px 6px 18px;
+}
 
+.evamo-passport-card {
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.evamo-passport-head {
+  background: linear-gradient(135deg, #0f766e, #0891b2);
+  color: #ffffff;
+  padding: 16px 20px;
+}
+
+.evamo-passport-logo-wrap {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.evamo-passport-logo {
+  width: 76px;
+  height: 76px;
+  border-radius: 999px;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  object-fit: cover;
+  box-shadow: 0 8px 18px rgba(2, 6, 23, 0.28);
+}
+
+.evamo-passport-head h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.evamo-passport-head p {
+  margin: 6px 0 0;
+  opacity: 0.92;
+  font-size: 13px;
+}
+
+.evamo-passport-body {
+  padding: 22px 20px;
+}
+
+.evamo-avatar-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 210px;
+  height: 210px;
+  border-radius: 999px;
+  border: 3px solid #ccfbf1;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.evamo-avatar-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.evamo-passport-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.evamo-passport-input {
+  min-height: 44px;
+}
+
+.evamo-passport-help {
+  display: block;
+  margin-top: 7px;
+  color: #64748b;
+}
+
+.evamo-passport-submit {
+  min-width: 220px;
+  min-height: 44px;
+  font-weight: 600;
+}
+
+@media (max-width: 991.98px) {
+  .evamo-passport-head h2 {
+    font-size: 21px;
+  }
+
+  .evamo-avatar-box {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .evamo-passport-wrap {
+    padding: 2px 0 14px;
+  }
+
+  .evamo-passport-card {
+    border-radius: 10px;
+  }
+
+  .evamo-passport-head {
+    padding: 14px 14px;
+  }
+
+  .evamo-passport-body {
+    padding: 16px 14px;
+  }
+
+  .evamo-avatar-box {
+    width: 160px;
+    height: 160px;
+  }
+
+  .evamo-passport-submit {
+    width: 100%;
+  }
+
+  .evamo-passport-logo {
+    width: 66px;
+    height: 66px;
+  }
+}
+</style>
 
 <div id="main-content">
 <div class="container-fluid">
-<br>
+<div class="evamo-passport-wrap">
 <?php if ($das = $this->session->flashdata('massage')): ?>
 <div class="row">
 <div class="col-md-12">
@@ -37,62 +169,39 @@
 <?php endif; ?>
 <div class="row clearfix">
 <div class="col-lg-12 col-md-12 col-sm-12">
-<div class="card">
-<div class="header">
-  <div class="row">
-    <div class="col-md-6">
-<h2>profile picture</h2>
+<div class="card evamo-passport-card">
+<div class="evamo-passport-head">
+<div class="evamo-passport-logo-wrap">
+  <img src="<?php echo base_url('assets/admin/img/afyasoft.jpg'); ?>" alt="Afyasoft logo" class="evamo-passport-logo">
 </div>
-   <div class="col-md-6">
-    <div class="pull-right">
-   <a href="<?php echo base_url("cashire/setting"); ?>" class="btn btn-info btn-sm"><i class="icon-arrow-left"></i></a>
-   </div>
+<h2>Upload Passport Picture</h2>
+<p>Please complete this step once to continue to your seller dashboard.</p>
+</div>
+<div class="evamo-passport-body">
+<?php echo form_open_multipart("seller/modify_profilepc/{$my->user_id}"); ?>
+<div class="row clearfix align-items-center">
+<div class="col-lg-4 col-md-4 col-sm-12 text-center" style="margin-bottom:14px;">
+  <div class="evamo-avatar-box">
+  <?php if ($my->img == TRUE) { ?>
+    <img src="<?php echo base_url().'assets/admin/img/'.$my->img; ?>" alt="Current profile picture">
+  <?php } else { ?>
+    <img src="<?php echo base_url() ?>assets/admin/img/wateja.png" alt="Default profile picture">
+  <?php } ?>
+  </div>
+</div>
+<div class="col-lg-8 col-md-8 col-sm-12">
+  <div class="form-group">
+    <label class="evamo-passport-label">Profile picture</label>
+    <input type="file" autocomplete="off" required name="img" class="form-control evamo-passport-input" accept="image/*" capture="environment" placeholder="Phone number">
+    <?php echo form_error("img"); ?>
+    <small class="evamo-passport-help">On small devices, camera opens first. Crop then submit automatically.</small>
+  </div>
+  <div style="margin-top:14px;">
+    <button type="submit" class="btn btn-primary evamo-passport-submit">Crop & Continue</button>
+  </div>
 </div>
 </div>
-</div>
-<div class="body">
-<?php echo form_open_multipart("cashire/modify_profilepc/{$my->user_id}"); ?>
-<div class="row clearfix">
-       <div class="col-sm-4">
-        <?php if ($my->img == TRUE) {
-         ?>
-        <img src="<?php echo base_url().'assets/admin/img/'.$my->img; ?>" class="rounded-circle user-photo" style="width:200px; height:200px">
-      <?php }elseif ($my->img == FALSE) {
-       ?>
-    <img src="<?php echo base_url() ?>assets/admin/img/wateja.png" class="rounded-circle user-photo" style="width:180px; height:180px">
-       <?php } ?>
-    </div>
-       <div class="col-sm-6">
-        <br><br>
-      <div class="form-group">
-        <span>profile picture</span>
-            <input type="file" autocomplete="off" required name="img" class="form-control evamo-passport-input" accept="image/*" capture="environment" placeholder="Phone number">
-            <?php echo form_error("img"); ?>
-            <small class="text-muted">On small devices, camera opens first. Crop then submit automatically.</small>
-        </div>
-    </div>
-        <div class="col-sm-3">
-     <!--  <div class="form-group">
-        <span>Privillage</span>
-        <select type="text" class="form-control" required name="role">
-          <option value="">Select privillage</option>
-          <option>admin</option>
-          <option>seller</option>
-        </select>
-        <?php //echo form_error("role"); ?>
-        </div> -->
-    </div>
-</div>
-
-<div class="row clearfix">                            
-    <div class="col-sm-12">
-    	<div class="text-center">
-        <button type="submit" class="btn btn-primary">Update</button>
-    <!--  <a href="<?php //echo base_url("admin/index"); ?>" class="btn btn-info"><i class="icon-arrow-left"></i></a> -->
-      </div>
-    </div>
-</div>
-<?php form_close(); ?>
+<?php echo form_close(); ?>
 </div>
 </div>
 </div>
@@ -170,7 +279,6 @@
   var cancelBtn = document.getElementById('evamo-crop-cancel');
   var cropper = null;
   var objectUrl = '';
-  var isSmall = window.matchMedia('(max-width: 767.98px)').matches;
 
   if (!input || !form || !modal || !image || !applyBtn || !cancelBtn || typeof Cropper === 'undefined') {
     return;
@@ -231,10 +339,7 @@
       dt.items.add(new File([blob], 'passport-' + Date.now() + '.jpg', { type: 'image/jpeg' }));
       input.files = dt.files;
       closeModal();
-
-      if (isSmall) {
-        form.submit();
-      }
+      form.submit();
     }, 'image/jpeg', 0.92);
   });
 
@@ -242,4 +347,3 @@
   modal.querySelector('.evamo-cropper-overlay').addEventListener('click', closeModal);
 })();
 </script>
-

@@ -2,20 +2,299 @@
 <?php include('incs/nav.php'); ?>
 <?php include('incs/side.php'); ?>
 <script src="<?php echo base_url('assets/admin/js/jquery.js'); ?>"></script>
+<style>
+#evamoQuantityWarningModal {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+#evamoQuantityWarningModal.hidden {
+    display: none;
+}
+
+#evamoQuantityWarningModal.flex {
+    display: flex;
+}
+
+.evamo-warning-card {
+    width: 100%;
+    max-width: 460px;
+    border-radius: 16px;
+    border: 1px solid var(--evamo-modal-border);
+    background: var(--evamo-modal-bg);
+    color: var(--evamo-modal-text);
+    box-shadow: 0 18px 45px rgba(2, 6, 23, 0.25);
+    overflow: hidden;
+}
+
+.evamo-warning-head,
+.evamo-warning-actions {
+    padding: 14px 18px;
+    border-color: var(--evamo-modal-border);
+}
+
+.evamo-warning-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--evamo-modal-border);
+}
+
+.evamo-warning-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    color: var(--evamo-modal-accent);
+}
+
+.evamo-warning-body {
+    padding: 16px 18px;
+}
+
+.evamo-warning-text {
+    margin: 0;
+    color: var(--evamo-modal-muted);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.evamo-warning-actions {
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid var(--evamo-modal-border);
+}
+
+.evamo-warning-close {
+    border: 0;
+    border-radius: 8px;
+    padding: 2px 8px;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--evamo-modal-muted);
+    background: transparent;
+}
+
+.evamo-warning-close:hover {
+    color: var(--evamo-modal-text);
+    background: var(--evamo-modal-soft);
+}
+
+.evamo-warning-ok {
+    border: 0;
+    border-radius: 10px;
+    padding: 9px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #ffffff;
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+    box-shadow: 0 8px 20px rgba(3, 105, 161, 0.28);
+}
+
+.evamo-warning-ok:hover {
+    filter: brightness(1.06);
+}
+
+:root {
+    --evamo-modal-bg: #ffffff;
+    --evamo-modal-text: #0f172a;
+    --evamo-modal-muted: #475569;
+    --evamo-modal-border: #dce5f0;
+    --evamo-modal-soft: #f1f5f9;
+    --evamo-modal-accent: #0f766e;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --evamo-modal-bg: #0f172a;
+        --evamo-modal-text: #e2e8f0;
+        --evamo-modal-muted: #94a3b8;
+        --evamo-modal-border: #1e293b;
+        --evamo-modal-soft: #1e293b;
+        --evamo-modal-accent: #2dd4bf;
+    }
+
+    #evamoQuantityWarningModal {
+        background: rgba(2, 6, 23, 0.72);
+    }
+
+    .evamo-warning-card {
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    .evamo-warning-title {
+        color: #2dd4bf;
+    }
+}
+</style>
 <script>
+var evamoQtyUpdateTimers = {};
+
+function showQuantityWarning(message){
+    var textNode = document.getElementById('evamo-quantity-warning-text');
+    if (textNode) {
+        textNode.textContent = message;
+    }
+    var modal = document.getElementById('evamoQuantityWarningModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        modal.setAttribute('aria-hidden', 'false');
+    }
+}
+
+function hideQuantityWarning(){
+    var modal = document.getElementById('evamoQuantityWarningModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+}
+
+function formatTsh(amount){
+    var value = Number(amount || 0);
+    return 'Tsh.' + value.toLocaleString('en-US') + '/=';
+}
+
+function recalculateCartTotals(){
+    var grandTotal = 0;
+    var totalItems = 0;
+
+    document.querySelectorAll('.evamo-cart-row').forEach(function(row){
+        var qtyInput = row.querySelector('.evamo-qty-input');
+        var qtyHidden = row.querySelector('.evamo-qty-hidden');
+        var rowTotalText = row.querySelector('.evamo-row-total-text');
+        var rowTotalHidden = row.querySelector('.evamo-row-total-hidden');
+
+        if(!qtyInput){
+            return;
+        }
+
+        var rawQty = qtyInput.value;
+        var qty = Number(rawQty || 0);
+        if (rawQty === '') {
+            qty = Number(qtyInput.getAttribute('data-old-qty') || 1);
+        } else if (!Number.isFinite(qty) || qty < 1) {
+            qty = 1;
+            qtyInput.value = 1;
+        }
+
+        var price = Number(qtyInput.getAttribute('data-price') || 0);
+        var subtotal = qty * price;
+        totalItems += qty;
+        grandTotal += subtotal;
+
+        if (qtyHidden) {
+            qtyHidden.value = qty;
+        }
+        if (rowTotalText) {
+            rowTotalText.textContent = formatTsh(subtotal);
+        }
+        if (rowTotalHidden) {
+            rowTotalHidden.value = subtotal;
+        }
+    });
+
+    var grandTotalText = document.getElementById('evamo-grand-total-text');
+    var grandTotalHidden = document.getElementById('evamo-grand-total-input');
+    if (grandTotalText) {
+        grandTotalText.textContent = formatTsh(grandTotal);
+    }
+    if (grandTotalHidden) {
+        grandTotalHidden.value = grandTotal;
+    }
+
+    var itemCountText = document.getElementById('evamo-item-count-text');
+    if (itemCountText) {
+        itemCountText.textContent = totalItems > 0 ? totalItems + ' Items' : 'Empty';
+    }
+}
+
+function scheduleCartItemUpdate(obj, rowid, item_id){
+    var maxStock = Number(obj.getAttribute('data-max-stock') || 0);
+    var rawQty = obj.value;
+    var nextQty = Number(rawQty || 0);
+
+    if (rawQty !== '' && maxStock > 0 && Number.isFinite(nextQty) && nextQty > maxStock) {
+        obj.value = 1;
+        obj.setAttribute('data-old-qty', 1);
+        recalculateCartTotals();
+        showQuantityWarning('Only ' + maxStock + ' item(s) available in stock. Quantity has been reset to 1.');
+        if (evamoQtyUpdateTimers[rowid]) {
+            clearTimeout(evamoQtyUpdateTimers[rowid]);
+        }
+        updateCartItem(obj, rowid, item_id);
+        return;
+    }
+
+    recalculateCartTotals();
+    if (evamoQtyUpdateTimers[rowid]) {
+        clearTimeout(evamoQtyUpdateTimers[rowid]);
+    }
+    evamoQtyUpdateTimers[rowid] = setTimeout(function(){
+        updateCartItem(obj, rowid, item_id);
+    }, 300);
+}
+
 /* Update item quantity */
 function updateCartItem(obj, rowid,item_id){
-     console.log();
-    $.get("<?php echo base_url('seller/updateItemQty/'); ?>",{rowid:rowid, qty:obj.value,item_id:item_id}, function(resp){
-        console.log("response",resp)
+    var rawQty = obj.value;
+    var oldQty = Number(obj.getAttribute('data-old-qty') || 1);
+    var maxStock = Number(obj.getAttribute('data-max-stock') || 0);
+
+    if (rawQty === '') {
+        return;
+    }
+
+    var normalizedQty = Number(rawQty);
+    if (!Number.isFinite(normalizedQty) || normalizedQty < 1) {
+        normalizedQty = 1;
+    }
+
+    if (maxStock > 0 && normalizedQty > maxStock) {
+        obj.value = 1;
+        obj.setAttribute('data-old-qty', 1);
+        recalculateCartTotals();
+        showQuantityWarning('Only ' + maxStock + ' item(s) available in stock. Quantity has been reset to 1.');
+        return;
+    }
+
+    obj.value = normalizedQty;
+
+    recalculateCartTotals();
+
+    $.get("<?php echo base_url('seller/updateItemQty/'); ?>",{rowid:rowid, qty:normalizedQty,item_id:item_id}, function(resp){
         if(resp == 'ok'){
-            location.reload();
+            obj.setAttribute('data-old-qty', normalizedQty);
+            recalculateCartTotals();
         }else{
-            document.querySelector("#cartp").value =(obj.value - 1) 
-            alert('The product is not enough.');
+            obj.value = 1;
+            obj.setAttribute('data-old-qty', 1);
+            recalculateCartTotals();
+            showQuantityWarning(maxStock > 0 ? 'Only ' + maxStock + ' item(s) available in stock. Quantity has been reset to 1.' : 'Selected quantity is not available. Quantity has been reset to 1.');
         }
     });
 }
+
+document.addEventListener('DOMContentLoaded', function(){
+    var okButton = document.getElementById('evamo-quantity-warning-ok');
+    var closeButton = document.getElementById('evamo-quantity-warning-close');
+    if (okButton) {
+        okButton.addEventListener('click', hideQuantityWarning);
+    }
+    if (closeButton) {
+        closeButton.addEventListener('click', hideQuantityWarning);
+    }
+    recalculateCartTotals();
+});
 </script>
 <div id="main-content">
 <div class="container-fluid">
@@ -138,11 +417,11 @@ function updateCartItem(obj, rowid,item_id){
 
     <div class="card">
 <div class="header">
-      <h2>Item List  <a href="<?php //echo base_url("cart/index") ?>" class="icon-menu"><i class=""></i>(<?php echo ($this->cart->total_items() > 0)?$this->cart->total_items().' Items':'Empty'; ?>)</a></b> </h2>
+      <h2>Item List  <a href="<?php //echo base_url("cart/index") ?>" class="icon-menu"><i class=""></i>(<span id="evamo-item-count-text"><?php echo ($this->cart->total_items() > 0)?$this->cart->total_items().' Items':'Empty'; ?></span>)</a></b> </h2>
 </div>
 <div class="body">
-    <div class="table-responsive">
-<table class="table table-hover js-basi-example dataTable table-custom">
+    <div class="table-responsive evamo-cart-table-wrap">
+<table class="table table-hover js-basi-example dataTable table-custom evamo-cart-table">
     <?php echo form_open("seller/sell"); ?>
             <thead class="thead-primary">
                 <tr>
@@ -158,50 +437,53 @@ function updateCartItem(obj, rowid,item_id){
             <?php foreach ($cartItems as $item):
                 $company_id = ""; 
                 ?>
-            <tr>
-            <td><b><?php echo $item['name']; ?></b></td>
-            <td>Tsh.<?php echo number_format($item['price']); ?>/=
+                        <tr class="evamo-cart-row">
+                        <td data-label="Name"><b><?php echo $item['name']; ?></b></td>
+                        <td data-label="Price(Tsh)">Tsh.<?php echo number_format($item['price']); ?>/=
               <input type="hidden" name="new_sell_price[]" value="<?php echo $item['price']; ?>">
               <input type="hidden" name="user_id[]" value="<?php echo $_SESSION['user_id']; ?>">
             </td>
-            <td>
+                        <td data-label="Quantity">
               <?php 
               $cart_id = $item["rowid"];
               $item_id = $item["id"];
                  ?>
-      <input type="number" value="<?php echo $item["qty"]; ?>" id='cartp'  onchange="updateCartItem(this, '<?php echo $cart_id; ?>','<?php echo $item_id; ?>')" min="1" class="form-control" style="width: 80px">
+            <input type="number" value="<?php echo $item["qty"]; ?>" data-old-qty="<?php echo $item["qty"]; ?>" data-max-stock="<?php echo isset($item['stock_balance']) ? $item['stock_balance'] : ''; ?>" data-price="<?php echo $item['price']; ?>" oninput="scheduleCartItemUpdate(this, '<?php echo $cart_id; ?>','<?php echo $item_id; ?>')" min="1" class="form-control evamo-qty-input" style="width: 80px">
      <!-- <select type="number" class="form-control" id='cartp' onchange="updateCartItem(this, '<?php echo $cart_id; ?>','<?php echo $item_id; ?>')" style="width: 80px">
        <option value="<?php echo $item["qty"]; ?>"><?php echo $item["qty"]; ?></option>
        <option value="0.25">Robo</option>
        <option value="0.5">Nusu</option>
        <option value="0.75">Robo tatu</option>
      </select> -->
-       <input type="hidden" name="quantity[]" value="<?php echo $item["qty"]; ?>">
+             <input type="hidden" name="quantity[]" value="<?php echo $item["qty"]; ?>" class="evamo-qty-hidden">
             </td> 
-            <td><?php echo 'Tsh.'.number_format($item["subtotal"]).'/='; ?>
-              <input type="hidden" name="total_sell_price[]" value="<?php echo $item["subtotal"]; ?>">
+                        <td data-label="Total(Tsh)"><span class="evamo-row-total-text"><?php echo 'Tsh.'.number_format($item["subtotal"]).'/='; ?></span>
+                            <input type="hidden" name="total_sell_price[]" value="<?php echo $item["subtotal"]; ?>" class="evamo-row-total-hidden">
             <input type="hidden" name="profit[]" value="<?php echo $item['subtotal'] - $item['buy_price'] * $item['qty']; ?>">
             <input type="hidden" name="product_id[]" value="<?php echo $item['id']; ?>">
             <input type="hidden" name="sell_status[]" value="retail">
             </td> 
            <!--  <td><?php //echo $item['subtotal'] - $item['buy_price'] * $item['qty']; ?></td> -->
-            <td><a href="<?php echo base_url('cart/removeItem/'.$item["rowid"]); ?>" class="btn btn-danger btn-sm"><i class=" icon-close"></i></a><?php //echo $products->p_name; ?></td>
+                        <td data-label="Action"><a href="<?php echo base_url('cart/removeItem/'.$item["rowid"]); ?>" class="btn btn-danger btn-sm"><i class=" icon-close"></i></a><?php //echo $products->p_name; ?></td>
               </tr>
     <?php endforeach; ?>
-              <tr>
+                            <tr class="evamo-cart-summary-row">
                 <th>Total</th>
                 <th></th>
                 <th></th>
                 <th><?php if($this->cart->total_items() > 0){ ?>
-                        <span><?php echo 'Tsh.'.number_format($this->cart->total()).'/='; ?>
-                        <input type="hidden" name="total_price" value="<?php echo $this->cart->total(); ?>">
+                                                <span id="evamo-grand-total-text"><?php echo 'Tsh.'.number_format($this->cart->total()).'/='; ?></span>
+                                                <input type="hidden" id="evamo-grand-total-input" name="total_price" value="<?php echo $this->cart->total(); ?>">
                     <?php } ?>
                   </th>
                 <th></th>
               </tr>
-              <tr>
-                  <input type="text" name="customer" class="form-control"required placeholder="Customer name" autocomplete="off">
+                            <tr class="evamo-cart-customer-row">
+                                <td colspan="5">
+                                    <input type="text" name="customer" autocomplete="off" placeholder="customer name" class="form-control evamo-cart-customer-input">
+                                </td>
               </tr>
+                            <tr class="evamo-cart-actions-row">
               <th></th>
               <th></th>
               <th><input type="submit" value="Sell" class="btn btn-info btn-sm"></th>
@@ -209,6 +491,7 @@ function updateCartItem(obj, rowid,item_id){
                   <!-- <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#addcontact"><i class="icon-printer">Recept</i></button> -->
               </th>
               <th></th>
+              </tr>
                   <?php endif; ?>
             <?php echo form_close(); ?>
             </tbody>
@@ -219,6 +502,24 @@ function updateCartItem(obj, rowid,item_id){
 
 </div>
 </div>
+
+<div class="hidden" id="evamoQuantityWarningModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="evamo-warning-card">
+        <div class="evamo-warning-head">
+            <h6 class="evamo-warning-title">Quantity warning</h6>
+            <button type="button" class="evamo-warning-close" id="evamo-quantity-warning-close" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+        <div class="evamo-warning-body">
+            <p id="evamo-quantity-warning-text" class="evamo-warning-text">Selected quantity is not available.</p>
+            </div>
+        <div class="evamo-warning-actions">
+            <button type="button" class="evamo-warning-ok" id="evamo-quantity-warning-ok">OK</button>
+            </div>
+        </div>
+</div>
+
 <script src="<?php echo base_url() ?>assets/admin/js/jquery.js"></script>
 <?php include 'incs/footer.php'; ?>
 
@@ -231,7 +532,7 @@ function updateCartItem(obj, rowid,item_id){
                 }
                  ?>
 <!-- Default Size -->
-<div class="modal fade" id="addcontact" tabindex="-1" role="dialog">
+<!-- <div class="modal fade" id="addcontact" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -254,7 +555,7 @@ function updateCartItem(obj, rowid,item_id){
             </form>
         </div>
     </div>
-</div>
+</div> -->
 
 
 

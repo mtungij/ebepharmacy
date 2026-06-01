@@ -1,0 +1,1552 @@
+/* Tailwind migration bridge: keeps legacy Bootstrap-like markup usable while Tailwind is adopted. */
+:root {
+  --primary-50: #ecfeff;
+  --primary-100: #cffafe;
+  --primary-200: #a5f3fc;
+  --primary-300: #67e8f9;
+  --primary-400: #22d3ee;
+  --primary-500: #06b6d4;
+  --primary-600: #0891b2;
+  --primary-700: #0e7490;
+  --primary-800: #155e75;
+  --primary-900: #164e63;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  color: #111827;
+  font-weight: 600;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.card .header h2,
+.block-header h1,
+.block-header h2,
+.block-header h3 {
+  color: var(--primary-700) !important;
+  font-weight: 800;
+}
+
+a {
+  color: var(--primary-600);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--primary-700);
+}
+
+.container,
+.container-fluid {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 0.75rem;
+  padding-left: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
+
+.row,
+.row.clearfix {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -0.75rem;
+  margin-left: -0.75rem;
+}
+
+[class*="col-"] {
+  position: relative;
+  width: 100%;
+  padding-right: 0.75rem;
+  padding-left: 0.75rem;
+}
+
+.col-12 {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+.col-6 {
+  flex: 0 0 50%;
+  max-width: 50%;
+}
+
+.col-4 {
+  flex: 0 0 33.333333%;
+  max-width: 33.333333%;
+}
+
+@media (min-width: 576px) {
+  .col-sm-3 {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+
+  .col-sm-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+
+  .col-sm-12 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 768px) {
+  .col-md-3 {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+
+  .col-md-4 {
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+  }
+
+  .col-md-5 {
+    flex: 0 0 41.666667%;
+    max-width: 41.666667%;
+  }
+
+  .col-md-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+
+  .col-md-7 {
+    flex: 0 0 58.333333%;
+    max-width: 58.333333%;
+  }
+
+  .col-md-12 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 992px) {
+  .col-lg-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+
+  .col-lg-12 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-control,
+textarea.form-control,
+select.form-control {
+  display: block;
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: #111827;
+  padding: 0.6rem 0.75rem;
+  line-height: 1.4;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus,
+textarea.form-control:focus,
+select.form-control:focus {
+  border-color: var(--primary-500);
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.18);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-block {
+  display: flex;
+  width: 100%;
+}
+
+.btn-sm {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+.btn-lg {
+  padding: 0.75rem 1.1rem;
+  font-size: 1rem;
+}
+
+.btn-primary,
+.btn-info {
+  background: var(--primary-700);
+  color: #ffffff;
+}
+
+.btn-primary:hover,
+.btn-info:hover {
+  background: var(--primary-800);
+  color: #ffffff;
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: #ffffff;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+  color: #ffffff;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+.btn-outline-primary {
+  border-color: var(--primary-600);
+  color: var(--primary-700);
+  background: transparent;
+}
+
+.btn-outline-primary:hover {
+  background: var(--primary-50);
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.85rem;
+  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.05);
+}
+
+.card .header {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.card .body,
+.card .card-body {
+  padding: 1rem;
+}
+
+.alert {
+  border-radius: 0.6rem;
+  border: 1px solid transparent;
+  padding: 0.7rem 0.9rem;
+}
+
+.alert-danger {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.alert-success {
+  background: var(--primary-50);
+  color: var(--primary-800);
+  border-color: var(--primary-200);
+}
+
+.badge {
+  display: inline-block;
+  border-radius: 9999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.badge-danger {
+  color: #ffffff;
+  background: #dc2626;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.55rem 0.6rem;
+  vertical-align: middle;
+}
+
+.table thead th {
+  background: #f8fafc;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+  margin-top: 0.9rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .pagination {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.dataTables_wrapper .dataTables_paginate .page-item {
+  margin: 0;
+}
+
+.dataTables_wrapper .dataTables_paginate .page-link,
+.dataTables_wrapper .dataTables_paginate .paginate_button > a,
+.dataTables_wrapper .dataTables_paginate .paginate_button > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.6rem;
+  min-height: 2.6rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #0f766e;
+  font-weight: 700;
+  font-size: 0.88rem;
+  line-height: 1;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.dataTables_wrapper .dataTables_paginate .page-link:hover,
+.dataTables_wrapper .dataTables_paginate .paginate_button > a:hover,
+.dataTables_wrapper .dataTables_paginate .paginate_button > span:hover {
+  background: var(--primary-50);
+  border-color: var(--primary-300);
+  color: var(--primary-800);
+  box-shadow: 0 12px 24px rgba(20, 184, 166, 0.16);
+  transform: translateY(-1px);
+}
+
+.dataTables_wrapper .dataTables_paginate .page-item.active .page-link,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current > a,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current > span,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+  border-color: var(--primary-700);
+  color: #ffffff !important;
+  box-shadow: 0 12px 24px rgba(13, 148, 136, 0.28);
+}
+
+.dataTables_wrapper .dataTables_paginate .page-item.disabled .page-link,
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled > a,
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled > span,
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+  background: #f8fafc;
+  border-color: #e5e7eb;
+  color: #94a3b8 !important;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.previous .page-link,
+.dataTables_wrapper .dataTables_paginate .paginate_button.next .page-link,
+.dataTables_wrapper .dataTables_paginate .paginate_button.previous > a,
+.dataTables_wrapper .dataTables_paginate .paginate_button.next > a,
+.dataTables_wrapper .dataTables_paginate .paginate_button.previous > span,
+.dataTables_wrapper .dataTables_paginate .paginate_button.next > span {
+  min-width: 5.8rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.previous .page-link::before,
+.dataTables_wrapper .dataTables_paginate .paginate_button.previous > a::before,
+.dataTables_wrapper .dataTables_paginate .paginate_button.previous > span::before {
+  content: "\2039";
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-right: 0.38rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.next .page-link::after,
+.dataTables_wrapper .dataTables_paginate .paginate_button.next > a::after,
+.dataTables_wrapper .dataTables_paginate .paginate_button.next > span::after {
+  content: "\203A";
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-left: 0.38rem;
+}
+
+@media (max-width: 768px) {
+  .dataTables_wrapper .dataTables_paginate {
+    width: 100%;
+  }
+
+  .dataTables_wrapper .dataTables_paginate .pagination {
+    justify-content: center !important;
+  }
+
+  .dataTables_wrapper .dataTables_paginate .page-link,
+  .dataTables_wrapper .dataTables_paginate .paginate_button > a,
+  .dataTables_wrapper .dataTables_paginate .paginate_button > span {
+    min-width: 2.35rem;
+    min-height: 2.35rem;
+    padding: 0.48rem 0.78rem;
+    font-size: 0.82rem;
+  }
+
+  .dataTables_wrapper .dataTables_paginate .paginate_button.previous .page-link,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.next .page-link,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.previous > a,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.next > a,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.previous > span,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.next > span {
+    min-width: 4.9rem;
+  }
+}
+
+.close {
+  color: #6b7280;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.close:hover {
+  color: #111827;
+}
+
+.theme-cyan .navbar,
+.theme-cyan .sidebar,
+.theme-cyan .card .header {
+  border-color: #c8f5ef;
+}
+
+/* Fallback states used by layout-fallback.js when Bootstrap plugin states are unavailable. */
+.dropdown {
+  position: relative;
+}
+
+.dropdown > .dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: auto;
+  z-index: 1000;
+}
+
+.dropdown-menu {
+  min-width: 11.5rem;
+  margin-top: 0.35rem;
+  padding: 0.35rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.7rem;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.14);
+  z-index: 1600;
+}
+
+.dropdown-menu .dropdown-item,
+.dropdown-menu > a {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem 0.62rem;
+  border-radius: 0.45rem;
+  color: #0f172a;
+  font-size: 0.86rem;
+  line-height: 1.25;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus,
+.dropdown-menu > a:hover,
+.dropdown-menu > a:focus {
+  background: #f3f4f6;
+  color: #0f172a;
+}
+
+.dropdown.show > .dropdown-menu,
+.dropdown > .dropdown-menu.show {
+  display: block;
+}
+
+.btn-group {
+  position: relative;
+}
+
+.btn-group > .dropdown-menu,
+.btn-group .dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: auto;
+  z-index: 1000;
+}
+
+.btn-group.show > .dropdown-menu,
+.btn-group.open > .dropdown-menu,
+.btn-group > .dropdown-menu.show,
+.btn-group .dropdown-menu.show {
+  display: block;
+}
+
+.table-responsive {
+  overflow-y: visible;
+}
+
+@media (max-width: 768px) {
+  .evamo-cart-table-wrap {
+    overflow-x: hidden;
+  }
+
+  .evamo-cart-table {
+    border: 0;
+  }
+
+  .evamo-cart-table thead {
+    display: none;
+  }
+
+  .evamo-cart-table tbody tr {
+    display: block;
+    margin-bottom: 0.65rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.65rem;
+    background: #ffffff;
+    padding: 0.45rem 0.5rem;
+  }
+
+  .evamo-cart-table tbody td,
+  .evamo-cart-table tbody th {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.65rem;
+    border: 0;
+    padding: 0.45rem 0.35rem;
+    white-space: normal;
+  }
+
+  .evamo-cart-table tbody td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #0e7490;
+    flex: 0 0 auto;
+  }
+
+  .evamo-cart-table tbody td input.form-control {
+    width: 100% !important;
+    max-width: 130px;
+  }
+
+  .evamo-cart-summary-row,
+  .evamo-cart-actions-row,
+  .evamo-cart-customer-row {
+    display: block !important;
+    border: 0 !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  .evamo-cart-summary-row th,
+  .evamo-cart-actions-row th,
+  .evamo-cart-customer-row td {
+    display: block !important;
+    width: 100% !important;
+    padding: 0.3rem 0 !important;
+    text-align: left;
+    border: 0 !important;
+  }
+
+  .evamo-cart-customer-input {
+    width: 100%;
+  }
+
+  .evamo-cart-actions-row .btn,
+  .evamo-cart-actions-row input[type="submit"] {
+    width: 100%;
+  }
+
+  html.evamo-dark .evamo-cart-table tbody tr {
+    background: #0f172a;
+    border-color: #334155;
+  }
+
+  html.evamo-dark .evamo-cart-table tbody td::before {
+    color: #a5f3fc;
+  }
+}
+
+.sidebar-nav .main-menu > li > ul,
+.sidebar-nav .evamo-main-menu > li > ul {
+  display: none;
+}
+
+.sidebar-nav .main-menu > li.active > ul,
+.sidebar-nav .main-menu > li > ul.in,
+.sidebar-nav .evamo-main-menu > li.active > ul,
+.sidebar-nav .evamo-main-menu > li > ul.in {
+  display: block;
+}
+
+/* Strong fallback for legacy metismenu collapse rules from main.css. */
+#left-sidebar .sidebar-nav .metismenu > li > ul.collapse {
+  display: none;
+}
+
+#left-sidebar .sidebar-nav .metismenu > li.active > ul,
+#left-sidebar .sidebar-nav .metismenu > li > ul.collapse.in {
+  display: block !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.sidebar-shop-header {
+  margin: 0.2rem 0.85rem 0.4rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid #d1f5fb;
+  border-radius: 0.65rem;
+  background: linear-gradient(135deg, #ecfeff, #f0fdfa);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.evamo-sidebar-close {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #0f172a;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.evamo-sidebar-close:hover {
+  background: #f3f4f6;
+}
+
+.sidebar-shop-meta {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding-right: 1.8rem;
+}
+
+.sidebar-shop-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 145, 178, 0.12);
+  color: #0e7490;
+  flex: 0 0 28px;
+}
+
+.sidebar-shop-icon .evamo-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.sidebar-shop-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0e7490;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-tab-switch {
+  margin: 0 1rem 0.45rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.sidebar-tab-btn {
+  border: 1px solid #bae6fd;
+  background: #f8fafc;
+  color: #0f172a;
+  border-radius: 0.55rem;
+  padding: 0.38rem 0.55rem;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sidebar-tab-btn.active {
+  background: var(--primary-600);
+  border-color: var(--primary-600);
+  color: #ffffff;
+}
+
+.sidebar-tab-pane {
+  display: none;
+}
+
+.sidebar-tab-pane.active {
+  display: block;
+}
+
+.evamo-topbar {
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  margin: 0 !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background: #ffffff !important;
+  z-index: 160 !important;
+}
+
+.evamo-topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 58px;
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
+}
+
+.evamo-topbar-left,
+.evamo-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.evamo-topbar-right {
+  margin-left: auto;
+  padding-left: 0.85rem;
+}
+
+.evamo-drawer-btn {
+  border: 0;
+  background: transparent;
+  border-radius: 0.5rem;
+  width: 40px;
+  height: 40px;
+  color: #4b5563;
+}
+
+.evamo-drawer-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.evamo-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-right: 0.65rem;
+}
+
+.evamo-brand-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  object-fit: cover;
+  border: 1px solid #bae6fd;
+}
+
+.evamo-brand-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.evamo-topbar-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.6rem;
+  padding: 0.35rem 0.55rem;
+  min-width: 220px;
+}
+
+.evamo-topbar-search i {
+  color: #6b7280;
+}
+
+.evamo-topbar-search input {
+  border: 0;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  color: #111827;
+  font-size: 0.85rem;
+}
+
+.evamo-icon-btn {
+  border: 0;
+  background: transparent;
+  border-radius: 0.5rem;
+  width: 38px;
+  height: 38px;
+  color: #6b7280;
+}
+
+.evamo-icon-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.evamo-theme-toggle {
+  position: relative;
+  overflow: hidden;
+}
+
+.evamo-theme-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  color: currentColor;
+}
+
+.evamo-theme-icon-sun {
+  display: none;
+}
+
+.evamo-theme-toggle.is-dark .evamo-theme-icon-moon {
+  display: none;
+}
+
+.evamo-theme-toggle.is-dark .evamo-theme-icon-sun {
+  display: block;
+}
+
+.evamo-nav-profile-toggle {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  border-radius: 0.55rem;
+}
+
+.evamo-nav-profile-toggle:hover {
+  background: #f3f4f6;
+}
+
+.evamo-nav-profile-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+.evamo-nav-profile-name {
+  font-weight: 600;
+  color: #111827;
+}
+
+.evamo-topbar-menu {
+  min-width: 250px;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.8rem;
+  padding: 0.35rem;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.14);
+}
+
+.evamo-topbar-menu li {
+  display: block;
+}
+
+.evamo-topbar-menu li a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.45rem;
+  color: #0f172a;
+  font-size: 0.86rem;
+}
+
+.evamo-topbar-menu li a:hover {
+  background: #f3f4f6;
+}
+
+.evamo-topbar-menu-title {
+  padding: 0.5rem 0.65rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #0891b2;
+}
+
+.evamo-apps-menu {
+  min-width: 290px;
+}
+
+.evamo-apps-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+  padding: 0.25rem;
+}
+
+.evamo-apps-grid a {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.55rem;
+  padding: 0.48rem 0.5rem;
+  color: #0f172a;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.evamo-apps-grid a i {
+  color: var(--primary-700);
+}
+
+.evamo-apps-grid a:hover {
+  background: var(--primary-50);
+  border-color: var(--primary-200);
+}
+
+#left-sidebar.evamo-sidebar {
+  top: 0 !important;
+  left: 0 !important;
+  margin-top: 0 !important;
+  height: 100vh !important;
+  width: 260px !important;
+  background: #ffffff !important;
+  border-right: 1px solid #e5e7eb;
+  z-index: 140;
+}
+
+#left-sidebar.evamo-sidebar .sidebar-scroll {
+  height: 100%;
+  padding-top: 58px;
+  overflow-y: auto;
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .main-menu,
+#left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu {
+  margin: 0;
+  padding: 0.25rem 0.6rem 1rem;
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li,
+#left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li {
+  padding-bottom: 0;
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li > a,
+#left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li > a {
+  border-left: 0;
+  border-radius: 0.55rem;
+  padding: 0.62rem 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .main-menu .evamo-icon,
+#left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu .evamo-icon,
+.evamo-sidebar-close .evamo-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  stroke-width: 1.9;
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li > a span,
+#left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li > a span {
+  font-weight: 500;
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li.active > a,
+#left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li > a:hover,
+#left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li.active > a,
+#left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li > a:hover {
+  color: var(--primary-800);
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li > a:hover,
+#left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li > a:hover {
+  background: var(--primary-50);
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li.active > a,
+#left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li.active > a {
+  background: var(--primary-100);
+  border-left: 3px solid var(--primary-700);
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li > ul a,
+#left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li > ul a {
+  padding: 0.45rem 0.8rem 0.45rem 2.1rem;
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li > ul a::before,
+#left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li > ul a::before {
+  left: 0.95rem;
+  color: #94a3b8;
+}
+
+/* Hard fallback: ensure submenu links in new admin menu class always render when opened. */
+#left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li > ul {
+  margin: 0.15rem 0 0.35rem;
+  padding: 0;
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li > ul > li {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li > ul > li > a {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: #334155 !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0.45rem !important;
+  margin: 0.2rem 0 !important;
+  min-height: 32px !important;
+  line-height: 1.35 !important;
+  font-size: 0.83rem !important;
+  font-weight: 600 !important;
+  position: relative !important;
+  z-index: 1 !important;
+  white-space: normal !important;
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li > ul > li > a:hover {
+  background: var(--primary-50) !important;
+  border-color: var(--primary-200) !important;
+  color: var(--primary-700) !important;
+}
+
+/* Hard fallback: ensure submenu links in new admin menu class always render when opened. */
+#left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li > ul {
+  margin: 0.15rem 0 0.35rem;
+  padding: 0;
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li > ul > li {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li > ul > li > a {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: #334155 !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0.45rem !important;
+  margin: 0.2rem 0 !important;
+  min-height: 32px !important;
+  line-height: 1.35 !important;
+  font-size: 0.83rem !important;
+  font-weight: 600 !important;
+  position: relative !important;
+  z-index: 1 !important;
+  white-space: normal !important;
+}
+
+#left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li > ul > li > a:hover {
+  background: var(--primary-50) !important;
+  border-color: var(--primary-200) !important;
+  color: var(--primary-700) !important;
+}
+
+@media (max-width: 1200px) {
+  .evamo-sidebar-close {
+    display: inline-flex;
+  }
+
+  #left-sidebar.evamo-sidebar {
+    left: 0 !important;
+    transform: translateX(-104%) !important;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: 170 !important;
+  }
+
+  body.offcanvas-active #left-sidebar.evamo-sidebar,
+  .offcanvas-active #left-sidebar.evamo-sidebar,
+  #left-sidebar.evamo-sidebar.evamo-open {
+    transform: translateX(0) !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    left: 0 !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .evamo-topbar-search {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .evamo-topbar-inner {
+    padding-left: 0.45rem;
+    padding-right: 0.45rem;
+  }
+
+  .evamo-topbar-right {
+    padding-left: 0.4rem;
+  }
+
+  .evamo-brand-name,
+  .evamo-nav-profile-name {
+    display: none;
+  }
+
+  .evamo-nav-profile-toggle {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  #left-sidebar.evamo-sidebar {
+    top: 58px !important;
+    height: calc(100vh - 58px) !important;
+  }
+
+  #left-sidebar.evamo-sidebar .sidebar-scroll {
+    padding-top: 0.2rem;
+  }
+}
+
+.offcanvas-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 150;
+}
+
+.offcanvas-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (min-width: 1201px) {
+  .offcanvas-overlay {
+    display: none;
+  }
+}
+
+@media (max-width: 1200px) {
+  body.offcanvas-active #left-sidebar,
+  .offcanvas-active #left-sidebar {
+    left: 0 !important;
+  }
+}
+
+html.evamo-dark body {
+  background: #0b1220;
+  color: #e5e7eb;
+}
+
+html.evamo-dark h1,
+html.evamo-dark h2,
+html.evamo-dark h3,
+html.evamo-dark h4,
+html.evamo-dark h5,
+html.evamo-dark h6,
+html.evamo-dark .card .header h2,
+html.evamo-dark .block-header h1,
+html.evamo-dark .block-header h2,
+html.evamo-dark .block-header h3 {
+  color: #e5e7eb !important;
+}
+
+html.evamo-dark #wrapper {
+  background: #0b1220;
+}
+
+html.evamo-dark .evamo-topbar {
+  background: #0f172a !important;
+  border-bottom-color: #1f2937 !important;
+}
+
+html.evamo-dark .evamo-brand-name,
+html.evamo-dark .evamo-nav-profile-name,
+html.evamo-dark .evamo-topbar-menu li a,
+html.evamo-dark .evamo-apps-grid a,
+html.evamo-dark .evamo-topbar-search input {
+  color: #e5e7eb;
+}
+
+html.evamo-dark .evamo-topbar-search {
+  background: #111827;
+  border-color: #1f2937;
+}
+
+html.evamo-dark .dataTables_wrapper .dataTables_paginate .page-link,
+html.evamo-dark .dataTables_wrapper .dataTables_paginate .paginate_button > a,
+html.evamo-dark .dataTables_wrapper .dataTables_paginate .paginate_button > span {
+  background: #111827;
+  border-color: #1f2937;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.3);
+}
+
+html.evamo-dark .dataTables_wrapper .dataTables_paginate .page-link:hover,
+html.evamo-dark .dataTables_wrapper .dataTables_paginate .paginate_button > a:hover,
+html.evamo-dark .dataTables_wrapper .dataTables_paginate .paginate_button > span:hover {
+  background: rgba(13, 148, 136, 0.16);
+  border-color: rgba(45, 212, 191, 0.4);
+  color: #ffffff;
+}
+
+html.evamo-dark .dataTables_wrapper .dataTables_paginate .page-item.active .page-link,
+html.evamo-dark .dataTables_wrapper .dataTables_paginate .paginate_button.current > a,
+html.evamo-dark .dataTables_wrapper .dataTables_paginate .paginate_button.current > span,
+html.evamo-dark .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  color: #ffffff !important;
+  border-color: rgba(45, 212, 191, 0.35);
+}
+
+html.evamo-dark .dataTables_wrapper .dataTables_paginate .page-item.disabled .page-link,
+html.evamo-dark .dataTables_wrapper .dataTables_paginate .paginate_button.disabled > a,
+html.evamo-dark .dataTables_wrapper .dataTables_paginate .paginate_button.disabled > span,
+html.evamo-dark .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+  background: #0f172a;
+  border-color: #1f2937;
+  color: #64748b !important;
+}
+
+html.evamo-dark .dataTables_wrapper,
+html.evamo-dark .dataTables_wrapper .dataTables_info,
+html.evamo-dark .dataTables_wrapper .dataTables_length,
+html.evamo-dark .dataTables_wrapper .dataTables_length label,
+html.evamo-dark .dataTables_wrapper .dataTables_filter,
+html.evamo-dark .dataTables_wrapper .dataTables_filter label,
+html.evamo-dark .dataTables_wrapper .dataTables_filter label small,
+html.evamo-dark .dataTables_wrapper .dataTables_length label small {
+  color: #ffffff;
+}
+
+html.evamo-dark .dataTables_wrapper .dataTables_filter input,
+html.evamo-dark .dataTables_wrapper .dataTables_length select {
+  background: #111827;
+  border-color: #1f2937;
+  color: #ffffff;
+}
+
+html.evamo-dark .dataTables_wrapper .dataTables_filter input::placeholder {
+  color: #cbd5e1;
+}
+
+html.evamo-dark .evamo-topbar-search i,
+html.evamo-dark .evamo-icon-btn,
+html.evamo-dark .evamo-drawer-btn {
+  color: #cbd5e1;
+}
+
+html.evamo-dark .evamo-icon-btn:hover,
+html.evamo-dark .evamo-drawer-btn:hover,
+html.evamo-dark .evamo-nav-profile-toggle:hover,
+html.evamo-dark .evamo-topbar-menu li a:hover {
+  background: #1f2937;
+  color: #f8fafc;
+}
+
+html.evamo-dark .evamo-theme-toggle {
+  border: 1px solid #334155;
+}
+
+html.evamo-dark .evamo-theme-toggle.is-dark {
+  background: transparent;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+html.evamo-dark #left-sidebar.evamo-sidebar,
+html.evamo-dark .sidebar {
+  background: #0f172a !important;
+  border-right-color: #1f2937;
+}
+
+html.evamo-dark #left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li > a,
+html.evamo-dark #left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li > a {
+  background: #111827;
+  border: 1px solid #1f2937;
+  color: #cbd5e1;
+}
+
+html.evamo-dark #left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li.active > a,
+html.evamo-dark #left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li > a:hover,
+html.evamo-dark #left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li.active > a,
+html.evamo-dark #left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li > a:hover {
+  color: #ccfbf1;
+}
+
+html.evamo-dark #left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li > a:hover,
+html.evamo-dark #left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li > a:hover {
+  background: rgba(13, 148, 136, 0.18);
+  border-color: rgba(45, 212, 191, 0.42);
+}
+
+html.evamo-dark #left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li.active > a,
+html.evamo-dark #left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li.active > a {
+  background: rgba(13, 148, 136, 0.26);
+  border-color: rgba(45, 212, 191, 0.5);
+  border-left: 3px solid #2dd4bf;
+}
+
+html.evamo-dark #left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li > ul > li > a,
+html.evamo-dark #left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li > ul > li > a {
+  background: #0f1a2e !important;
+  border-color: #223049 !important;
+  color: #cbd5e1 !important;
+}
+
+html.evamo-dark #left-sidebar.evamo-sidebar .sidebar-nav .main-menu > li > ul > li > a:hover,
+html.evamo-dark #left-sidebar.evamo-sidebar .sidebar-nav .evamo-main-menu > li > ul > li > a:hover {
+  background: rgba(13, 148, 136, 0.22) !important;
+  border-color: rgba(45, 212, 191, 0.52) !important;
+  color: #ccfbf1 !important;
+}
+
+html.evamo-dark .sidebar-shop-header {
+  background: linear-gradient(135deg, #0f172a, #111827);
+  border-color: #1f2937;
+}
+
+html.evamo-dark .sidebar-shop-icon {
+  background: rgba(103, 232, 249, 0.12);
+  color: #67e8f9;
+}
+
+html.evamo-dark .sidebar-shop-name {
+  color: #ccfbf1;
+}
+
+html.evamo-dark .sidebar-tab-btn {
+  background: #111827;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+html.evamo-dark .sidebar-tab-btn.active {
+  background: var(--primary-700);
+  border-color: var(--primary-500);
+  color: #ffffff;
+}
+
+html.evamo-dark .card,
+html.evamo-dark .evamo-topbar-menu,
+html.evamo-dark .dropdown-menu {
+  background: #0f172a;
+  border-color: #1f2937;
+  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.35);
+}
+
+html.evamo-dark .dropdown-menu .dropdown-item,
+html.evamo-dark .dropdown-menu > a {
+  color: #e2e8f0;
+}
+
+html.evamo-dark .dropdown-menu .dropdown-item:hover,
+html.evamo-dark .dropdown-menu .dropdown-item:focus,
+html.evamo-dark .dropdown-menu > a:hover,
+html.evamo-dark .dropdown-menu > a:focus {
+  background: rgba(13, 148, 136, 0.2);
+  color: #ccfbf1;
+}
+
+html.evamo-dark .evamo-apps-grid a {
+  border-color: #334155;
+}
+
+html.evamo-dark .evamo-apps-grid a i {
+  color: #5eead4;
+}
+
+html.evamo-dark .evamo-apps-grid a:hover {
+  background: rgba(13, 148, 136, 0.18);
+  border-color: rgba(45, 212, 191, 0.5);
+}
+
+html.evamo-dark .card .header,
+html.evamo-dark .table th,
+html.evamo-dark .table td {
+  border-color: #1f2937;
+}
+
+html.evamo-dark .table thead th {
+  background: #111827;
+  color: #e5e7eb;
+}
+
+html.evamo-dark .table tbody tr td,
+html.evamo-dark .table tbody tr th {
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+html.evamo-dark .form-control,
+html.evamo-dark textarea.form-control,
+html.evamo-dark select.form-control {
+  background: #111827;
+  border-color: #334155;
+  color: #e5e7eb;
+}
+
+html.evamo-dark .form-control::placeholder,
+html.evamo-dark textarea.form-control::placeholder {
+  color: #94a3b8;
+}
+
+html.evamo-dark .btn-secondary {
+  background: #374151;
+}
+
+html.evamo-dark .alert-success {
+  background: rgba(13, 148, 136, 0.18);
+  color: #99f6e4;
+  border-color: rgba(45, 212, 191, 0.45);
+}
+
+html.evamo-dark .alert-danger {
+  background: rgba(220, 38, 38, 0.16);
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+html.evamo-dark a {
+  color: #5eead4;
+}
+
+html.evamo-dark a:hover {
+  color: #2dd4bf;
+}
+
+/* Align legacy "theme-cyan" accents with the teal primary palette. */
+.theme-cyan ::selection,
+.theme-cyan .page-loader-wrapper,
+.theme-cyan:before,
+.theme-cyan:after,
+.theme-cyan #wrapper:before,
+.theme-cyan #wrapper:after,
+.theme-cyan .navbar-nav ul.menu-icon,
+.theme-cyan .fc .fc-view-container .fc-view.fc-basic-view > table > thead tr th.fc-widget-header,
+.table .thead-primary th,
+.testimonial4 blockquote.primary:after {
+  background: var(--primary-500) !important;
+  border-color: var(--primary-500) !important;
+}
+
+.theme-cyan #left-sidebar .nav-tabs .nav-link.active,
+.theme-cyan .blog-page .single_post .footer .stats li a:hover,
+.theme-cyan .sidebar-nav .metismenu > li i,
+.theme-cyan .sidebar-nav .metismenu > li.active > a,
+.badge-primary,
+.blockquote.blockquote-primary small,
+.text-primary {
+  color: var(--primary-600) !important;
+}
+
+.theme-cyan .sidebar-nav .metismenu > li.active > a {
+  border-left-color: var(--primary-600) !important;
+}
+
+.theme-cyan .fancy-checkbox input[type="checkbox"]:checked + span:before,
+.theme-cyan .chat-widget li.right .chat-info,
+.theme-cyan .auth-main .btn-primary {
+  background: var(--primary-600) !important;
+  border-color: var(--primary-600) !important;
+}
+
+.theme-cyan .chat-widget li.right .chat-info:before {
+  border-left-color: var(--primary-600) !important;
+}
+
+.blockquote.blockquote-primary,
+.testimonial2.primary .testimonial-section,
+.testimonial3.primary .testimonial-section {
+  border-color: var(--primary-600) !important;
+}
+
+.testimonial2.primary .testimonial-section::after,
+.testimonial3.primary .testimonial-section::after {
+  border-top-color: var(--primary-600) !important;
+}
+
+.badge-primary {
+  border-color: var(--primary-600) !important;
+}

@@ -34,12 +34,13 @@ class Admin extends CI_Controller {
   $fastmoving_medicines = $this->queries->get_fastmoving_medicines();
   $slowmoving_medicines = $this->queries->get_slowmoving_medicines();
   $medicine_movement_summary = $this->queries->get_medicine_movement_summary();
+  $zero_balance_medicines = $this->queries->get_zero_balance_medicines();
     //$total_sell = $this->queries->get_Yearly_monthsELL($year);
 		 // echo "<pre>";
 		 // print_r($datamonth);
 		 // echo "</pre>";
 		 //     exit();
-		$this->load->view('admin/index',['all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'total_matumiz'=>$total_matumiz,'total_sell_data'=>$total_sell_data,'mishahara_data'=>$mishahara_data,'my'=>$my,'total_huduma'=>$total_huduma,'years'=>$years,'datamonth'=>$datamonth,'today_indirect_exp'=>$today_indirect_exp,'all_matumiz_all'=>$all_matumiz_all,'all_sell_all'=>$all_sell_all,'mishahara_data_all'=>$mishahara_data_all,'huduma_all'=>$huduma_all,'huduma_all'=>$huduma_all,'inderect_expenses_all'=>$inderect_expenses_all,'total_profit_all'=>$total_profit_all,'fastmoving_medicines'=>$fastmoving_medicines,'slowmoving_medicines'=>$slowmoving_medicines,'medicine_movement_summary'=>$medicine_movement_summary]);
+		$this->load->view('admin/index',['all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'total_matumiz'=>$total_matumiz,'total_sell_data'=>$total_sell_data,'mishahara_data'=>$mishahara_data,'my'=>$my,'total_huduma'=>$total_huduma,'years'=>$years,'datamonth'=>$datamonth,'today_indirect_exp'=>$today_indirect_exp,'all_matumiz_all'=>$all_matumiz_all,'all_sell_all'=>$all_sell_all,'mishahara_data_all'=>$mishahara_data_all,'huduma_all'=>$huduma_all,'huduma_all'=>$huduma_all,'inderect_expenses_all'=>$inderect_expenses_all,'total_profit_all'=>$total_profit_all,'fastmoving_medicines'=>$fastmoving_medicines,'slowmoving_medicines'=>$slowmoving_medicines,'medicine_movement_summary'=>$medicine_movement_summary,'zero_balance_medicines'=>$zero_balance_medicines]);
 	}
 
 
@@ -49,19 +50,34 @@ class Admin extends CI_Controller {
     $user_id = $this->session->userdata('user_id');
 		 $admin = $this->queries->get_users();
      $my = $this->queries->get_mydata($user_id);
-		$this->load->view('admin/users',['admin'=>$admin,'my'=>$my]);
+     $privillage_map = $this->queries->get_privillage_map();
+    $this->load->view('admin/users',['admin'=>$admin,'my'=>$my,'privillage_map'=>$privillage_map]);
 	}
+
+  public function validate_seller_access($role){
+    $system_access = (array) $this->input->post('system_access');
+
+    if ($role === 'seller' && empty($system_access)) {
+      $this->form_validation->set_message('validate_seller_access', 'Select at least one System Access option for seller.');
+      return false;
+    }
+
+    return true;
+  }
 
 	public function create_admin(){
 		$this->form_validation->set_rules('full_name','Name','required');
 		$this->form_validation->set_rules('phone_number','Phone number','required');
-		$this->form_validation->set_rules('role','privillage','required');
-		$this->form_validation->set_rules('password','password','required');
+    $this->form_validation->set_rules('role','privillage','required|callback_validate_seller_access');
+    $this->form_validation->set_rules('password','password','required|min_length[4]');
+    $this->form_validation->set_rules('confirm_password','confirm password','required|matches[password]');
 		$this->form_validation->set_error_delimiters('<div class="text-danger">','</div>');
 		if ($this->form_validation->run() ) {
 			$data = $this->input->post();
+      $system_access = array_values(array_intersect((array) $this->input->post('system_access'), array('seller', 'product', 'store')));
       $data['full_name'] = $this->security->sanitize_filename($this->input->post('full_name'));
       $data['phone_number'] = $this->security->sanitize_filename($this->input->post('phone_number'));
+      unset($data['confirm_password'], $data['system_access']);
 			$data['password'] = sha1($this->input->post('password'));
       
     
@@ -70,10 +86,14 @@ class Admin extends CI_Controller {
 			// echo "</pre>";
 			//      exit();
 			$this->load->model('queries');
-			if ($this->queries->insert_admin($data)) {
+      $user_id = $this->queries->insert_admin($data);
+      if ($user_id) {
+        if ($data['role'] === 'seller' && !empty($system_access)) {
+          $this->queries->insert_user_privillages($user_id, $system_access);
+        }
         $action ="Register customer";
         //$this->insert_register_customer_activity($data['full_name'],$action);
-				$this->session->set_flashdata('massage','Users Registration successfully Password : 1234');
+        $this->session->set_flashdata('massage','Users registered successfully');
 			}else{
 				$this->session->set_flashdata('error','Failed');
 			}
@@ -127,6 +147,13 @@ class Admin extends CI_Controller {
 		$this->form_validation->set_error_delimiters('<div class="text-danger">','</div>');
 		if ($this->form_validation->run() ) {
 			$product = $this->input->post();
+      if ($this->db->field_exists('reason', 'product')) {
+        if (!isset($product['reason']) || trim((string)$product['reason']) === '') {
+          $product['reason'] = 'purchased';
+        }
+      } else {
+        unset($product['reason']);
+      }
 
 			//  echo "<pre>";
 			// print_r($product);
@@ -155,6 +182,8 @@ class Admin extends CI_Controller {
 			if ($product_id > 0) {
         $this->insert_store($product_id,$balance,$out_balance,$total_buy,$total_sell,$total_ju);
         $this->insert_product_main_store($product_id,$balance,$total_buy,$total_sell,$total_ju,$out_balance);
+        $movement_user_id = isset($product['user_id']) ? (int)$product['user_id'] : (int)$this->session->userdata('user_id');
+        $this->record_stock_movement($product_id, $balance, $movement_user_id, 'PURCHASED');
 
 				$this->session->set_flashdata('massage','Product saved successfully');
 			}else{
@@ -223,8 +252,12 @@ class Admin extends CI_Controller {
 
       //stock movement
       public function insert_stock_movement($product_id,$input_balance,$user_id){
-         $date = date("Y-m-d");
-  $this->db->query("INSERT INTO tbl_stock_movement (`product_id`, `product_qnty`,`user_id`,`date`,`mov_status`) VALUES ('$product_id', '$input_balance','$user_id','$date','STOCK TRANSFOR')"); 
+         $this->record_stock_movement($product_id, $input_balance, $user_id, 'STOCK TRANSFOR');
+      }
+
+      public function record_stock_movement($product_id, $quantity, $user_id, $status, $movement_date = null){
+        $movement_date = $movement_date ? $movement_date : date("Y-m-d");
+        $this->db->query("INSERT INTO tbl_stock_movement (`product_id`, `product_qnty`,`user_id`,`date`,`mov_status`) VALUES ('".(int)$product_id."', '".(int)$quantity."','".(int)$user_id."','".$movement_date."','".$this->db->escape_str($status)."')");
       }
     
 
@@ -324,6 +357,7 @@ class Admin extends CI_Controller {
      public function add_product_store(){
       $this->form_validation->set_rules('product_id','Product','required');
       $this->form_validation->set_rules('balance','quantity','required');
+      $this->form_validation->set_rules('reason','reason','required');
       $this->form_validation->set_error_delimiters('<div class="text-danger">','</div>');
 
       if ($this->form_validation->run()) {
@@ -331,6 +365,12 @@ class Admin extends CI_Controller {
         $this->load->model('queries');
         $product_id = $data['product_id'];
         $balance = $data['balance'];
+        $reason = isset($data['reason']) ? strtolower(trim((string)$data['reason'])) : '';
+
+        if (!in_array($reason, array('purchased', 'adjusted'), true)) {
+          $this->session->set_flashdata('error','Please select a valid reason');
+          return redirect("admin/product_add_Store");
+        }
 
         $product = $this->queries->get_product_safe($product_id);
         $buy_price = $product->buy_price;
@@ -351,6 +391,17 @@ class Admin extends CI_Controller {
 
        
       if ($this->update_main_stooProduct($product_id,$new_balance,$total_buy,$total_sell,$moved_product,$total_jusell)) {
+        $movement_status = ($reason === 'adjusted') ? 'ADJUSTED IN' : 'PURCHASED';
+        $movement_user_id = (int)$this->session->userdata('user_id');
+        $this->record_stock_movement($product_id, $balance, $movement_user_id, $movement_status);
+        if ($this->db->field_exists('reason', 'tbl_store')) {
+          $this->db->where('product_id', $product_id);
+          $this->db->update('tbl_store', array('reason' => $reason));
+        }
+        if ($this->db->field_exists('reason', 'product')) {
+          $this->db->where('id', $product_id);
+          $this->db->update('product', array('reason' => $reason));
+        }
         $this->session->set_flashdata('massage',$product_name.' Added successfully');
           }else{
           $this->session->set_flashdata('error','Failed');
@@ -389,6 +440,8 @@ class Admin extends CI_Controller {
         $total_jusell = $new_balance * $ju_sellprice; 
        
       if ($this->update_main_stooProduct($product_id,$new_balance,$total_buy,$total_sell,$moved_product,$total_jusell)) {
+        $movement_user_id = (int)$this->session->userdata('user_id');
+        $this->record_stock_movement($product_id, $balance, $movement_user_id, 'ADJUSTED OUT');
         $this->session->set_flashdata('massage',$product_name.' Adjust successfully');
           }else{
           $this->session->set_flashdata('error','Failed');
@@ -1218,11 +1271,38 @@ public function general_sells_product(){
     $this->form_validation->set_rules('phone_number','Phone number','required');
     $this->form_validation->set_error_delimiters('<div class="text-danger">','</div>');
     if ($this->form_validation->run() ) {
-      $data = $this->input->post();
-      //  echo "<pre>";
-      // print_r($data);
-      // echo "</pre>";
-      //      exit();
+      $data = [
+        'full_name' => $this->input->post('full_name', true),
+        'phone_number' => $this->input->post('phone_number', true),
+      ];
+
+      if (!empty($_FILES['img']['name'])) {
+        $uploadPath = FCPATH . 'assets/admin/img/';
+        if (!is_dir($uploadPath)) {
+          @mkdir($uploadPath, 0775, true);
+        }
+
+        if (!is_writable($uploadPath)) {
+          $this->session->set_flashdata('error', 'Upload destination is not writable: ' . $uploadPath);
+          return redirect('admin/setting');
+        }
+
+        $config['upload_path'] = $uploadPath;
+        $config['allowed_types'] = 'jpg|jpeg|png|gif|webp';
+        $config['encrypt_name'] = true;
+
+        $this->load->library('upload', $config);
+        $this->upload->initialize($config);
+
+        if ($this->upload->do_upload('img')) {
+          $uploadData = $this->upload->data();
+          $data['img'] = $uploadData['file_name'];
+        } else {
+          $this->session->set_flashdata('error', strip_tags($this->upload->display_errors()));
+          return redirect('admin/setting');
+        }
+      }
+
       $this->load->model('queries');
       if ($this->queries->update_mydata($data,$user_id)) {
         $this->session->set_flashdata('massage','Data Updated successfully');
@@ -1277,11 +1357,12 @@ public function general_sells_product(){
             
             //Storing insertion status message.
             if($data){
-                $this->session->set_flashdata('massage','Data updated successfully');
+              $this->session->set_flashdata('massage','welcome you are login');
+              return redirect('admin/index');
             }else{
                 $this->session->set_flashdata('error','Data failed!!');
+              return redirect('admin/profile_pc');
             }
-            return redirect('admin/profile_pc');
   }
 
   public function shop_info(){
@@ -1303,12 +1384,61 @@ public function general_sells_product(){
     $this->form_validation->set_rules('email','email','required');
     $this->form_validation->set_error_delimiters('<div class="text-danger">','</div>');
     if ($this->form_validation->run()) {
-        $data = $this->input->post();
-         // print_r($data);
-         //      exit();
         $this->load->model('queries');
+        $data = [
+          'shop_name' => $this->input->post('shop_name', true),
+          'po_box' => $this->input->post('po_box', true),
+          'location' => $this->input->post('location', true),
+          'phone' => $this->input->post('phone', true),
+          'email' => $this->input->post('email', true),
+        ];
+
+        $logoColumns = [];
+        foreach (['logo', 'shop_logo', 'image'] as $column) {
+          if ($this->db->field_exists($column, 'tbl_information')) {
+            $logoColumns[] = $column;
+          }
+        }
+
+        if (!empty($_FILES['logo']['name'])) {
+          if (empty($logoColumns)) {
+            $this->session->set_flashdata('error', 'No logo column found in tbl_information. Add a logo/shop_logo/image column first.');
+            return redirect('admin/shop_info');
+          }
+
+          $uploadPath = FCPATH . 'assets/admin/img/';
+          if (!is_dir($uploadPath)) {
+            @mkdir($uploadPath, 0775, true);
+          }
+          if (!is_writable($uploadPath)) {
+            $this->session->set_flashdata('error', 'Upload destination is not writable: ' . $uploadPath);
+            return redirect('admin/shop_info');
+          }
+
+          $config['upload_path'] = $uploadPath;
+          $config['allowed_types'] = 'jpg|jpeg|png|gif|webp';
+          $config['encrypt_name'] = true;
+
+          $this->load->library('upload', $config);
+          $this->upload->initialize($config);
+
+          if ($this->upload->do_upload('logo')) {
+            $uploadData = $this->upload->data();
+            $logoFile = $uploadData['file_name'];
+
+            foreach ($logoColumns as $column) {
+              $data[$column] = $logoFile;
+            }
+          } else {
+            $this->session->set_flashdata('error', strip_tags($this->upload->display_errors()));
+            return redirect('admin/shop_info');
+          }
+        }
+
         if ($this->queries->update_shop_info($id,$data)) {
           $this->session->set_flashdata('massage','Shop information updated successfully');
+        } else {
+          $this->session->set_flashdata('error','Shop information update failed');
         }
         return redirect('admin/shop_info');
     }
@@ -1548,6 +1678,8 @@ public function password_check($oldpass)
         $this->load->model('queries');
         // Fetch specific product by ID
         $product = $this->queries->getRows($proID);
+        $stockRow = $this->db->query("SELECT balance FROM tbl_store WHERE product_id = '".$product['id']."' LIMIT 1")->row_array();
+        $stockBalance = $stockRow ? (int) $stockRow['balance'] : 0;
         
         // Add product to the cart
         $data = array(
@@ -1561,6 +1693,7 @@ public function password_check($oldpass)
             'exp_date' => $product['exp_date'],
             'unit' => $product['unit'],
             'stock_limit' => $product['stock_limit'],
+            'stock_balance' => $stockBalance,
         );
         // echo "<pre>";
         // print_r($data);
@@ -1577,6 +1710,8 @@ public function password_check($oldpass)
         $this->load->model('queries');
         // Fetch specific product by ID
         $product = $this->queries->getRows($proID);
+        $stockRow = $this->db->query("SELECT balance FROM tbl_store WHERE product_id = '".$product['id']."' LIMIT 1")->row_array();
+        $stockBalance = $stockRow ? (int) $stockRow['balance'] : 0;
         
         // Add product to the cart
         $data = array(
@@ -1587,6 +1722,7 @@ public function password_check($oldpass)
             'buy_price' => $product['buy_price'],
             'name'    => $product['name'],
             'unit' => $product['unit'],
+            'stock_balance' => $stockBalance,
         );
         // echo "<pre>";
         // print_r($data);
@@ -1687,8 +1823,7 @@ public function password_check($oldpass)
       VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$sell_status[$i]."','$sell_day','$customer')");
    
          
-         $stock_id =  $this->db->query("INSERT INTO  tbl_stock_movement (`product_id`,`product_qnty`,`user_id`,`mov_status`,`date`) 
-      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$user_id[$i]."','SOLD','$date')");
+        $this->record_stock_movement($product_id[$i], $quantity[$i], $user_id[$i], 'SOLD', $date);
       // return  $this->db->insert_id();
       //  print_r($stock_id);
       //          exit();
@@ -1744,8 +1879,7 @@ public function password_check($oldpass)
           for($i=0; $i<count($product_id);$i++){
         $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`sell_status`,`sell_day`,`customer`) 
       VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$sell_status[$i]."','$sell_day','$customer')");
-    $stock_id =  $this->db->query("INSERT INTO  tbl_stock_movement (`product_id`,`product_qnty`,`user_id`,`mov_status`,`date`) 
-      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$user_id[$i]."','SOLD','$sell_day')");
+    $this->record_stock_movement($product_id[$i], $quantity[$i], $user_id[$i], 'SOLD', $sell_day);
           }
           
            for ($i=0; $i<count($product_id); $i++) { 
@@ -1812,6 +1946,136 @@ public function password_check($oldpass)
        //  print_r($trending_product);
        //        exit();
       $this->load->view('admin/product_movement',['my'=>$my,'product'=>$product,'data'=>$data,'privillage'=>$privillage,'trending_product'=>$trending_product]);
+    }
+
+    public function stock_balance_history(){
+      $this->load->model('queries');
+      $user_id = $this->session->userdata('user_id');
+      $my = $this->queries->get_mydata($user_id);
+      $privillage = $this->queries->get_userPrivillage($user_id);
+      $product_id = $this->input->get('product_id');
+      $selected_product_id = ($product_id !== null && $product_id !== '') ? (int)$product_id : null;
+
+      $product = $this->queries->get_store_product_available();
+
+      $this->load->view('admin/stock_balance_history',[
+        'my' => $my,
+        'privillage' => $privillage,
+        'product' => $product,
+        'selected_product_id' => $selected_product_id,
+      ]);
+    }
+
+    public function product_stock_history($product_id = null){
+      $this->load->model('queries');
+      $user_id = $this->session->userdata('user_id');
+      $my = $this->queries->get_mydata($user_id);
+      $privillage = $this->queries->get_userPrivillage($user_id);
+
+      $selected_product_id = (int)$product_id;
+      if ($selected_product_id <= 0) {
+        $this->session->set_flashdata('error', 'Invalid product selected');
+        return redirect('admin/stock_balance_history');
+      }
+
+      $from = trim((string)$this->input->get('from'));
+      $to = trim((string)$this->input->get('to'));
+      $from_date = preg_match('/^\d{4}-\d{2}-\d{2}$/', $from) ? $from : '';
+      $to_date = preg_match('/^\d{4}-\d{2}-\d{2}$/', $to) ? $to : '';
+
+      $product_data = $this->queries->get_product_safe($selected_product_id);
+      if (!$product_data) {
+        $this->session->set_flashdata('error', 'Product not found');
+        return redirect('admin/stock_balance_history');
+      }
+
+      $history = $this->queries->get_stock_balance_history($selected_product_id, $from_date, $to_date);
+      $totals = $this->queries->get_stock_movement_totals($selected_product_id, $from_date, $to_date);
+      $daily_summary = $this->queries->get_stock_movement_daily_summary($selected_product_id, $from_date, $to_date);
+
+      $opening_balance = 0;
+      if (!empty($totals)) {
+        $opening_balance = (int)$totals[0]->current_balance - (int)$totals[0]->net_movement;
+      }
+
+      $running_balance = $opening_balance;
+      for ($i = 0; $i < count($history); $i++) {
+        $status = strtoupper(trim((string)$history[$i]->mov_status));
+        $qty = (int)$history[$i]->product_qnty;
+        $is_out = in_array($status, array('SOLD', 'ADJUSTED OUT'), true);
+        $qty_in = $is_out ? 0 : $qty;
+        $qty_out = $is_out ? $qty : 0;
+
+        $running_balance += ($qty_in - $qty_out);
+        $history[$i]->qty_in = $qty_in;
+        $history[$i]->qty_out = $qty_out;
+        $history[$i]->running_balance = $running_balance;
+      }
+
+      $this->load->view('admin/product_stock_history',[
+        'my' => $my,
+        'privillage' => $privillage,
+        'product_data' => $product_data,
+        'history' => $history,
+        'daily_summary' => $daily_summary,
+        'from_date' => $from_date,
+        'to_date' => $to_date,
+      ]);
+    }
+
+    public function print_product_stock_history($product_id = null){
+      $this->load->model('queries');
+      $selected_product_id = (int)$product_id;
+      if ($selected_product_id <= 0) {
+        return redirect('admin/stock_balance_history');
+      }
+
+      $from = trim((string)$this->input->get('from'));
+      $to = trim((string)$this->input->get('to'));
+      $from_date = preg_match('/^\d{4}-\d{2}-\d{2}$/', $from) ? $from : '';
+      $to_date = preg_match('/^\d{4}-\d{2}-\d{2}$/', $to) ? $to : '';
+
+      $product_data = $this->queries->get_product_safe($selected_product_id);
+      if (!$product_data) {
+        return redirect('admin/stock_balance_history');
+      }
+
+      $shop = $this->queries->get_shop_infoData();
+      $history = $this->queries->get_stock_balance_history($selected_product_id, $from_date, $to_date);
+      $totals = $this->queries->get_stock_movement_totals($selected_product_id, $from_date, $to_date);
+      $daily_summary = $this->queries->get_stock_movement_daily_summary($selected_product_id, $from_date, $to_date);
+
+      $opening_balance = 0;
+      if (!empty($totals)) {
+        $opening_balance = (int)$totals[0]->current_balance - (int)$totals[0]->net_movement;
+      }
+
+      $running_balance = $opening_balance;
+      for ($i = 0; $i < count($history); $i++) {
+        $status = strtoupper(trim((string)$history[$i]->mov_status));
+        $qty = (int)$history[$i]->product_qnty;
+        $is_out = in_array($status, array('SOLD', 'ADJUSTED OUT'), true);
+        $qty_in = $is_out ? 0 : $qty;
+        $qty_out = $is_out ? $qty : 0;
+
+        $running_balance += ($qty_in - $qty_out);
+        $history[$i]->qty_in = $qty_in;
+        $history[$i]->qty_out = $qty_out;
+        $history[$i]->running_balance = $running_balance;
+      }
+
+      $mpdf = new \Mpdf\Mpdf(['mode' => 'utf-8', 'format' => 'A4-L', 'orientation' => 'L']);
+      $html = $this->load->view('admin/print_product_stock_history',[
+        'shop' => $shop,
+        'product_data' => $product_data,
+        'history' => $history,
+        'daily_summary' => $daily_summary,
+        'from_date' => $from_date,
+        'to_date' => $to_date,
+      ], true);
+      $mpdf->SetFooter('Generated By (0) 629364847 & (0) 748470181');
+      $mpdf->WriteHTML($html);
+      $mpdf->Output();
     }
 
 

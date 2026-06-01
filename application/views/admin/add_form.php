@@ -3,12 +3,206 @@
 <?php include('incs/side.php'); ?>
 
 <style>
-    .select2-container .select2-selection--single{
-    height:34px !important;
+.evamo-product-form-grid .form-group {
+    margin-bottom: 0;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
 }
-.select2-container--default .select2-selection--single{
-         border: 1px solid #ccc !important; 
-     border-radius: 0px !important; 
+
+.evamo-product-form-grid .form-group > span {
+    display: inline-block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    letter-spacing: 0.2px;
+}
+
+.evamo-product-form-grid .form-control {
+    border-radius: 8px;
+    border-color: #cbd5e1;
+}
+
+.evamo-product-form-grid .form-control:focus {
+    border-color: #0ea5a4;
+    box-shadow: 0 0 0 0.18rem rgba(14, 165, 164, 0.15);
+}
+
+.evamo-product-form-grid .select2-container--default .select2-selection--single {
+    height: 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.evamo-product-form-grid .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 36px;
+    color: #0f172a;
+}
+
+.evamo-product-form-grid .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+}
+
+.evamo-product-form-grid .select2-container--default.select2-container--open .select2-selection--single,
+.evamo-product-form-grid .select2-container--default .select2-selection--single:hover {
+    border-color: #0ea5a4;
+    box-shadow: 0 0 0 0.18rem rgba(14, 165, 164, 0.15);
+}
+
+.select2-dropdown {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field:focus {
+    border-color: #0ea5a4;
+    box-shadow: 0 0 0 0.16rem rgba(14, 165, 164, 0.14);
+    outline: none;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #0f766e;
+    color: #ffffff;
+}
+
+.select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: rgba(15, 118, 110, 0.12);
+    color: #115e59;
+}
+
+@media (prefers-color-scheme: dark) {
+    .evamo-product-form-grid .form-group {
+        background: #111827 !important;
+        border-color: #334155 !important;
+    }
+
+    .evamo-product-form-grid .form-group > span {
+        color: #cbd5e1 !important;
+        background: transparent !important;
+    }
+
+    .evamo-product-form-grid input,
+    .evamo-product-form-grid select,
+    .evamo-product-form-grid .form-control {
+        background: #0f172a !important;
+        border-color: #334155 !important;
+        color: #ffffff !important;
+    }
+
+    .evamo-product-form-grid .select2-container--default .select2-selection--single {
+        background: #0f172a !important;
+        border-color: #334155 !important;
+    }
+
+    .evamo-product-form-grid .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #ffffff !important;
+        background: transparent !important;
+    }
+
+    .evamo-product-form-grid .select2-container--default .select2-selection--single .select2-selection__placeholder {
+        color: #cbd5e1 !important;
+    }
+
+    .evamo-product-form-grid .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        border-color: #94a3b8 transparent transparent transparent;
+    }
+
+    .select2-dropdown {
+        background: #0f172a !important;
+        border-color: #334155 !important;
+    }
+
+    .select2-container--default .select2-search--dropdown .select2-search__field {
+        background: #0f172a !important;
+        border-color: #334155 !important;
+        color: #ffffff !important;
+    }
+
+    .select2-container--default .select2-results__option {
+        color: #e2e8f0 !important;
+        background: #0f172a !important;
+    }
+
+    .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: rgba(45, 212, 191, 0.2);
+        color: #99f6e4;
+    }
+
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #0d9488;
+        color: #ffffff;
+    }
+}
+
+html.evamo-dark .evamo-product-form-grid .form-group {
+    background: #111827 !important;
+    border-color: #334155 !important;
+}
+
+html.evamo-dark .evamo-product-form-grid .form-group > span {
+    color: #cbd5e1 !important;
+    background: transparent !important;
+}
+
+html.evamo-dark .evamo-product-form-grid input,
+html.evamo-dark .evamo-product-form-grid select,
+html.evamo-dark .evamo-product-form-grid .form-control {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #ffffff !important;
+}
+
+html.evamo-dark .evamo-product-form-grid .select2-container--default .select2-selection--single {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+}
+
+html.evamo-dark .evamo-product-form-grid .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #ffffff !important;
+    background: transparent !important;
+}
+
+html.evamo-dark .evamo-product-form-grid .select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #cbd5e1 !important;
+}
+
+html.evamo-dark .evamo-product-form-grid .select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: #94a3b8 transparent transparent transparent;
+}
+
+html.evamo-dark .select2-dropdown {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+}
+
+html.evamo-dark .select2-container--default .select2-search--dropdown .select2-search__field {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #ffffff !important;
+}
+
+html.evamo-dark .select2-container--default .select2-results__option {
+    color: #e2e8f0 !important;
+    background: #0f172a !important;
+}
+
+html.evamo-dark .select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: rgba(45, 212, 191, 0.2);
+    color: #99f6e4;
+}
+
+html.evamo-dark .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #0d9488;
+    color: #ffffff;
 }
 </style>
 <link rel="stylesheet" href="<?php echo base_url() ?>assets/admin/css/select2.min.css">
@@ -48,16 +242,26 @@
 <div class="body">
   
         <?php echo form_open_multipart("admin/add_product_store"); ?>
-<div class="row clearfix">
+<div class="row clearfix evamo-product-form-grid">
        <div class="col-sm-6">
         <div class="form-group">
            <span>Select Product</span>
-           <select type="number" class="form-control select2" name="product_id" id="product">
+           <select type="number" class="form-control select2 evamo-product-select" name="product_id" id="product">
                <option value="">Select Product</option>
                <?php foreach ($product as $store_products): ?>
                <option value="<?php echo $store_products->product_id; ?>"><?php echo $store_products->name; ?>(<?php echo $store_products->unit; ?>) - <?php echo $store_products->bland; ?> - (<?php echo $store_products->balance; ?>)</option>
                 <?php endforeach; ?>
            </select>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="form-group">
+            <span>Reason <span class="text-danger">*</span></span>
+            <select class="form-control" name="reason" required>
+                <option value="">Select reason</option>
+                <option value="purchased">Purchased</option>
+                <option value="adjusted">Adjusted</option>
+            </select>
         </div>
     </div>
                 <div class="col-6">
@@ -76,7 +280,7 @@
        <div class="col-sm-6">
         <div class="form-group">
         <span>Quantity </b> </span>
-            <input type="number" autocomplete="off" id="total_cont" required name="balance" class="form-control" placeholder="Quantity" required>
+            <input type="number" autocomplete="off" id="total_cont" required name="balance" class="form-control" placeholder="Quantity" readonly required>
             <?php echo form_error("quantity_product"); ?>
         </div>
     </div>
@@ -189,6 +393,10 @@ $('#district').html('<option value="">All</option>');
 </script>
 
 <script>
-    $('.select2').select2();
+    $('.select2').select2({
+        placeholder: 'Select Product',
+        allowClear: true,
+        width: '100%'
+    });
 </script>
 

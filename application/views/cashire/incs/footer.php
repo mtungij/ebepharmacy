@@ -14,6 +14,7 @@
 
 
 <script src="<?php echo base_url() ?>assets/admin/bundles/mainscripts.bundle.js"></script>
+<script src="<?php echo base_url() ?>assets/admin/js/layout-fallback.js?v=20260601g"></script>
 <script src="<?php echo base_url() ?>assets/admin/js/pages/tables/jquery-datatable.js"></script>
 </body>
 

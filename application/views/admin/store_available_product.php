@@ -58,6 +58,7 @@
             <thead class="thead-primary">
                 <tr>
                     <th>Product name</th>
+                    <th>Reason</th>
                     <th>Brand</th>
                     <th>All Product</th>
                     <th>Unit</th>
@@ -81,6 +82,7 @@
                     <th></th>
                     <th></th>
                     <th></th>
+                    <th></th>
                     <th><?php echo number_format($buy_price->total_buy); ?></th>
                     <th></th>
                     <td><b><?php echo number_format($sell_price->total_sell); ?></b></td>
@@ -98,6 +100,7 @@
                     <th></th>
                     <th></th>
                     <th></th>
+                          <th></th>
                     <th style="color:green;"><?php //echo number_format($sell_price->total_sell - $buy_price->total_buy); ?></th>
                     <td></b></td>
                     <td></b></td>
@@ -112,6 +115,7 @@
                   # code...
               //} ?> -->
             <td><?php echo $stores->name; ?></td>
+                        <td><?php echo (isset($stores->reason) && $stores->reason !== '') ? ucfirst($stores->reason) : 'Purchased'; ?></td>
             <td><?php echo $stores->bland; ?></td>
             <td><?php echo $stores->quantity_product + $stores->moved_qnty ; ?></td>
             <td><?php echo $stores->unit; ?></td>

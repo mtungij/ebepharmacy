@@ -3,6 +3,23 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Home extends CI_Controller {
 
+    private function get_passport_upload_route($role)
+    {
+        if ($role == 'admin') {
+            return 'admin/profile_pc';
+        }
+
+        if ($role == 'seller') {
+            return 'seller/passport_required';
+        }
+
+        if ($role == 'cashier') {
+            return 'cashire/profile_pc';
+        }
+
+        return 'home/index';
+    }
+
 	public function index()
 	{
         $this->load->model('queries');
@@ -34,6 +51,11 @@ if ($userexit->role == 'admin') {
    // exit();
     if ($userexit->status == 'open') {
 $this->session->set_userdata($sessionData);
+$passportRoute = $this->get_passport_upload_route($userexit->role);
+if (empty($userexit->img)) {
+    $this->session->set_flashdata('ms','Please upload passport first');
+    return redirect($passportRoute);
+}
 $this->session->set_flashdata('massage','Login Successfully');
 return redirect('admin/index');
 }elseif ($userexit->status == 'close') {
@@ -54,6 +76,11 @@ $this->session->set_flashdata('ms','Account closed');
     // print_r($sessionData);
 if ($userexit->status =='open') {
 $this->session->set_userdata($sessionData);
+$passportRoute = $this->get_passport_upload_route($userexit->role);
+if (empty($userexit->img)) {
+    $this->session->set_flashdata('ms','Please upload passport first');
+    return redirect($passportRoute);
+}
 $this->session->set_flashdata('massage','Login Successfully');
           return redirect("seller/index");
     }elseif($userexit->status == 'close'){
@@ -74,6 +101,11 @@ $this->session->set_flashdata('massage','account closed');
     //     exit();
 if ($userexit->status =='open') {
 $this->session->set_userdata($sessionData);
+$passportRoute = $this->get_passport_upload_route($userexit->role);
+if (empty($userexit->img)) {
+    $this->session->set_flashdata('ms','Please upload passport first');
+    return redirect($passportRoute);
+}
 $this->session->set_flashdata('massage','Login Successfully');
           return redirect("cashire/dashboard");
     }elseif($userexit->status == 'close'){

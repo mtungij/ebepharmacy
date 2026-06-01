@@ -231,7 +231,7 @@ function updateCartItem(obj, rowid,item_id){
                 }
                  ?>
 <!-- Default Size -->
-<div class="modal fade" id="addcontact" tabindex="-1" role="dialog">
+<!-- <div class="modal fade" id="addcontact" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -254,7 +254,7 @@ function updateCartItem(obj, rowid,item_id){
             </form>
         </div>
     </div>
-</div>
+</div> -->
 
 
 

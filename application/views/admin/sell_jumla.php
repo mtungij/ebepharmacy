@@ -3,19 +3,75 @@
 <?php include('incs/side.php'); ?>
 <script src="<?php echo base_url('assets/admin/js/jquery.js'); ?>"></script>
 <script>
+function formatTsh(amount){
+    var value = Number(amount || 0);
+    return 'Tsh.' + value.toLocaleString('en-US') + '/=';
+}
+
+function recalculateCartTotals(){
+    var grandTotal = 0;
+
+    document.querySelectorAll('.evamo-cart-row').forEach(function(row){
+        var qtyInput = row.querySelector('.evamo-qty-input');
+        var qtyHidden = row.querySelector('.evamo-qty-hidden');
+        var rowTotalText = row.querySelector('.evamo-row-total-text');
+        var rowTotalHidden = row.querySelector('.evamo-row-total-hidden');
+
+        if(!qtyInput){
+            return;
+        }
+
+        var qty = Number(qtyInput.value || 0);
+        if (!Number.isFinite(qty) || qty < 1) {
+            qty = 1;
+            qtyInput.value = 1;
+        }
+
+        var price = Number(qtyInput.getAttribute('data-price') || 0);
+        var subtotal = qty * price;
+        grandTotal += subtotal;
+
+        if (qtyHidden) {
+            qtyHidden.value = qty;
+        }
+        if (rowTotalText) {
+            rowTotalText.textContent = formatTsh(subtotal);
+        }
+        if (rowTotalHidden) {
+            rowTotalHidden.value = subtotal;
+        }
+    });
+
+    var grandTotalText = document.getElementById('evamo-grand-total-text');
+    var grandTotalHidden = document.getElementById('evamo-grand-total-input');
+    if (grandTotalText) {
+        grandTotalText.textContent = formatTsh(grandTotal);
+    }
+    if (grandTotalHidden) {
+        grandTotalHidden.value = grandTotal;
+    }
+}
+
 /* Update item quantity */
 function updateCartItem(obj, rowid,item_id){
-     console.log();
+        var oldQty = Number(obj.getAttribute('data-old-qty') || obj.value || 1);
+        recalculateCartTotals();
+
     $.get("<?php echo base_url('seller/updateItemQty/'); ?>",{rowid:rowid, qty:obj.value,item_id:item_id}, function(resp){
-        console.log("response",resp)
         if(resp == 'ok'){
-            location.reload();
+                        obj.setAttribute('data-old-qty', obj.value);
+                        recalculateCartTotals();
         }else{
-            document.querySelector("#cartp").value =(obj.value - 1) 
+                        obj.value = oldQty;
+                        recalculateCartTotals();
             alert('The product is not enough.');
         }
     });
 }
+
+document.addEventListener('DOMContentLoaded', function(){
+    recalculateCartTotals();
+});
 </script>
 <div id="main-content">
 <div class="container-fluid">
@@ -130,8 +186,8 @@ function updateCartItem(obj, rowid,item_id){
       <h2>Item List  <a href="<?php //echo base_url("cart/index") ?>" class="icon-menu"><i class=""></i>(<?php echo ($this->cart->total_items() > 0)?$this->cart->total_items().' Items':'Empty'; ?>)</a></b> </h2>
 </div>
 <div class="body">
-    <div class="table-responsive">
-<table class="table table-hover js-basi-example dataTable table-custom">
+    <div class="table-responsive evamo-cart-table-wrap">
+<table class="table table-hover js-basi-example dataTable table-custom evamo-cart-table">
     <?php echo form_open("admin/sell_jumla"); ?>
             <thead class="thead-primary">
                 <tr>
@@ -147,48 +203,53 @@ function updateCartItem(obj, rowid,item_id){
             <?php foreach ($cartItems as $item):
                 $company_id = ""; 
                 ?>
-            <tr>
-            <td><b><?php echo $item['name']; ?></b></td>
-            <td>Tsh.<?php echo number_format($item['ju_price']); ?>/=
+                        <tr class="evamo-cart-row">
+                        <td data-label="Name"><b><?php echo $item['name']; ?></b></td>
+                        <td data-label="Price(Tsh)">Tsh.<?php echo number_format($item['ju_price']); ?>/=
               <input type="hidden" name="new_sell_price[]" value="<?php echo $item['ju_price']; ?>">
               <input type="hidden" name="user_id[]" value="<?php echo $_SESSION['user_id']; ?>">
             </td>
-            <td>
+                        <td data-label="Quantity">
               <?php 
               $cart_id = $item["rowid"];
               $item_id = $item["id"];
                  ?>
-      <input type="number" value="<?php echo $item["qty"]; ?>" id='cartp'  onchange="updateCartItem(this, '<?php echo $cart_id; ?>','<?php echo $item_id; ?>')" min="1" class="form-control" style="width: 80px">
-       <input type="hidden" name="quantity[]" value="<?php echo $item["qty"]; ?>">
+            <input type="number" value="<?php echo $item["qty"]; ?>" data-old-qty="<?php echo $item["qty"]; ?>" data-price="<?php echo $item['ju_price']; ?>" onchange="updateCartItem(this, '<?php echo $cart_id; ?>','<?php echo $item_id; ?>')" min="1" class="form-control evamo-qty-input" style="width: 80px">
+             <input type="hidden" name="quantity[]" value="<?php echo $item["qty"]; ?>" class="evamo-qty-hidden">
             </td> 
-            <td><?php echo 'Tsh.'.number_format($item["sub"]).'/='; ?>
-              <input type="hidden" name="total_sell_price[]" value="<?php echo $item["sub"]; ?>">
+                                                <td data-label="Total(Tsh)"><span class="evamo-row-total-text"><?php echo 'Tsh.'.number_format($item["sub"]).'/='; ?></span>
+                            <input type="hidden" name="total_sell_price[]" value="<?php echo $item["sub"]; ?>" class="evamo-row-total-hidden">
             <input type="hidden" name="profit[]" value="<?php echo $item['sub'] - $item['buy_price'] * $item['qty']; ?>">
             <input type="hidden" name="product_id[]" value="<?php echo $item['id']; ?>">
             <input type="hidden" name="sell_status[]" value="whole">
             </td> 
            <!--  <td><?php //echo $item['subtotal'] - $item['buy_price'] * $item['qty']; ?></td> -->
-            <td><a href="<?php echo base_url('admin_cart_jumla/remove/'.$item["rowid"]); ?>" class="btn btn-danger btn-sm"><i class=" icon-close"></i></a><?php //echo $products->p_name; ?></td>
+                        <td data-label="Action"><a href="<?php echo base_url('admin_cart_jumla/remove/'.$item["rowid"]); ?>" class="btn btn-danger btn-sm"><i class=" icon-close"></i></a><?php //echo $products->p_name; ?></td>
               </tr>
     <?php endforeach; ?>
-              <tr>
+                            <tr class="evamo-cart-summary-row">
                 <th>Total</th>
                 <th></th>
                 <th></th>
                 <th><?php if($this->cart->total_items() > 0){ ?>
-                        <span><?php echo 'Tsh.'.number_format($this->cart->tota()).'/='; ?>
+                    <span id="evamo-grand-total-text"><?php echo 'Tsh.'.number_format($this->cart->tota()).'/='; ?></span>
+                    <input type="hidden" id="evamo-grand-total-input" name="total_price" value="<?php echo $this->cart->tota(); ?>">
                     <?php } ?>
                   </th>
                 <th></th>
               </tr>
-                <tr>
-            <input type="text" name="customer" autocomplete="off" placeholder="customer name" class="form-control" required>
+                                <tr class="evamo-cart-customer-row">
+                                <td colspan="5">
+                        <input type="text" name="customer" autocomplete="off" placeholder="customer name" class="form-control evamo-cart-customer-input" required>
+                                </td>
               </tr>
+                            <tr class="evamo-cart-actions-row">
               <th></th>
               <th></th>
               <th><input type="submit" value="Sell" class="btn btn-info btn-sm"></th>
               <th><!-- <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#addcontact"><i class="icon-printer">Recept</i></button> --></th>
               <th></th>
+                            </tr>
                   <?php endif; ?>
             <?php echo form_close(); ?>
             </tbody>

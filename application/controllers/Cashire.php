@@ -473,11 +473,12 @@ public function setting(){
             
             //Storing insertion status message.
             if($data){
-                $this->session->set_flashdata('massage','Data updated successfully');
+              $this->session->set_flashdata('massage','welcome you are login');
+              return redirect('cashire/dashboard');
             }else{
                 $this->session->set_flashdata('error','Data failed!!');
+              return redirect('cashire/profile_pc');
             }
-            return redirect('cashire/profile_pc');
   }
 
 

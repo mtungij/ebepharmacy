@@ -35,6 +35,7 @@
             <thead class="thead-primary">
                 <tr>
                     <th>Product name</th>
+                    <th>Reason</th>
                     <th>Brand</th>
                     <th>Balance</th>
                     <th>Expired status</th>
@@ -43,6 +44,7 @@
             <tfoot>
                 <tr>
                     <th>Product name</th>
+                    <th>Reason</th>
                     <th>Brand</th>
                     <th>Balance</th>
                     <th>Expire status</th>
@@ -54,6 +56,7 @@
             <tr>
             
             <td><b><?php echo $stores->name; ?></b></td>
+                        <td><b><?php echo (isset($stores->reason) && $stores->reason !== '') ? ucfirst($stores->reason) : 'Purchased'; ?></b></td>
             <td><b><?php echo $stores->bland; ?></b></td>
             <td>
               <?php if ($stores->balance <= $stores->stock_limit){

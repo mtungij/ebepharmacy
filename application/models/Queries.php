@@ -2,7 +2,11 @@
  class Queries extends CI_model{
  
    public function insert_admin($data){
-   	return $this->db->insert('tbl_user',$data);
+  if ($this->db->insert('tbl_user',$data)) {
+    return $this->db->insert_id();
+  }
+
+  return false;
    }
 
    public function get_users(){
@@ -692,6 +696,81 @@
    return $data->result();
  }
 
+ public function get_stock_balance_history($product_id = null, $from_date = '', $to_date = ''){
+  $where = array();
+  if ($product_id !== null) {
+    $where[] = "m.product_id = '".(int)$product_id."'";
+  }
+  if ($from_date !== '') {
+    $where[] = "m.date >= '".$this->db->escape_str($from_date)."'";
+  }
+  if ($to_date !== '') {
+    $where[] = "m.date <= '".$this->db->escape_str($to_date)."'";
+  }
+  $where_sql = count($where) ? ' WHERE '.implode(' AND ', $where) : '';
+
+  $sql = "SELECT m.id,m.product_id,p.name,p.unit,m.product_qnty,m.mov_status,m.date AS mov_date,s.balance AS current_balance,u.full_name
+          FROM tbl_stock_movement m
+          JOIN product p ON p.id = m.product_id
+          LEFT JOIN tbl_store s ON s.product_id = m.product_id
+          LEFT JOIN tbl_user u ON u.user_id = m.user_id".$where_sql." ORDER BY p.name ASC,m.date ASC,m.id ASC";
+  $data = $this->db->query($sql);
+  return $data->result();
+ }
+
+ public function get_stock_movement_totals($product_id = null, $from_date = '', $to_date = ''){
+  $where = array();
+  if ($product_id !== null) {
+    $where[] = "m.product_id = '".(int)$product_id."'";
+  }
+  if ($from_date !== '') {
+    $where[] = "m.date >= '".$this->db->escape_str($from_date)."'";
+  }
+  if ($to_date !== '') {
+    $where[] = "m.date <= '".$this->db->escape_str($to_date)."'";
+  }
+  $where_sql = count($where) ? ' WHERE '.implode(' AND ', $where) : '';
+
+  $sql = "SELECT m.product_id,
+                 COALESCE(s.balance,0) AS current_balance,
+                 SUM(CASE
+                       WHEN UPPER(TRIM(m.mov_status)) IN ('SOLD','ADJUSTED OUT') THEN -ABS(COALESCE(m.product_qnty,0))
+                       ELSE ABS(COALESCE(m.product_qnty,0))
+                     END) AS net_movement
+          FROM tbl_stock_movement m
+          LEFT JOIN tbl_store s ON s.product_id = m.product_id".$where_sql." GROUP BY m.product_id,s.balance";
+  $data = $this->db->query($sql);
+  return $data->result();
+ }
+
+ public function get_stock_movement_daily_summary($product_id = null, $from_date = '', $to_date = ''){
+  $where = array();
+  if ($product_id !== null) {
+    $where[] = "m.product_id = '".(int)$product_id."'";
+  }
+  if ($from_date !== '') {
+    $where[] = "m.date >= '".$this->db->escape_str($from_date)."'";
+  }
+  if ($to_date !== '') {
+    $where[] = "m.date <= '".$this->db->escape_str($to_date)."'";
+  }
+  $where_sql = count($where) ? ' WHERE '.implode(' AND ', $where) : '';
+
+  $sql = "SELECT m.date AS mov_date,
+                 SUM(CASE
+                       WHEN UPPER(TRIM(m.mov_status)) IN ('SOLD','ADJUSTED OUT') THEN 0
+                       ELSE ABS(COALESCE(m.product_qnty,0))
+                     END) AS total_in,
+                 SUM(CASE
+                       WHEN UPPER(TRIM(m.mov_status)) IN ('SOLD','ADJUSTED OUT') THEN ABS(COALESCE(m.product_qnty,0))
+                       ELSE 0
+                     END) AS total_out
+          FROM tbl_stock_movement m".$where_sql." GROUP BY m.date ORDER BY m.date ASC";
+
+  $data = $this->db->query($sql);
+  return $data->result();
+ }
+
  public function get_sum_buyPrice(){
   $data = $this->db->query("SELECT SUM(total_buy) AS total_buy FROM tbl_store");
   return $data->row();
@@ -897,6 +976,37 @@
  public function get_userPrivillage($user_id){
   $data = $this->db->query("SELECT * FROM tbl_privillage WHERE user_id = '$user_id'");
    return $data->result();
+ }
+
+ public function insert_user_privillages($user_id, $privillages){
+  if (empty($privillages)) {
+   return true;
+  }
+
+  $data = array();
+  foreach ($privillages as $privillage) {
+   $data[] = array(
+    'user_id' => $user_id,
+    'privillage' => $privillage,
+   );
+  }
+
+  return $this->db->insert_batch('tbl_privillage', $data);
+ }
+
+ public function get_privillage_map(){
+  $data = $this->db->query("SELECT user_id, privillage FROM tbl_privillage ORDER BY id ASC")->result();
+  $map = array();
+
+  foreach ($data as $row) {
+   if (!isset($map[$row->user_id])) {
+    $map[$row->user_id] = array();
+   }
+
+   $map[$row->user_id][] = $row->privillage;
+  }
+
+  return $map;
  }
 
 
@@ -1130,6 +1240,12 @@ public function get_product_tranding_data($from,$to){
 		$date_30_days_ago = date("Y-m-d", strtotime("-30 days"));
 		$today = date("Y-m-d");
 		$data = $this->db->query("SELECT p.id, p.name, COALESCE(SUM(CAST(s.quantity AS UNSIGNED)), 0) AS total_sold, COALESCE(st.balance, 0) AS current_stock, p.stock_limit FROM product p LEFT JOIN tbl_sell s ON p.id = s.product_id AND s.sell_day BETWEEN '$date_30_days_ago' AND '$today' LEFT JOIN tbl_store st ON p.id = st.product_id WHERE p.stat = 'open' GROUP BY p.id HAVING COALESCE(SUM(CAST(s.quantity AS UNSIGNED)), 0) <= 5 ORDER BY total_sold ASC LIMIT 10");
+		return $data->result();
+	}
+
+	// Get medicines with zero stock balance
+	public function get_zero_balance_medicines(){
+		$data = $this->db->query("SELECT p.id, p.name, COALESCE(st.balance, 0) AS current_stock, p.stock_limit FROM product p LEFT JOIN tbl_store st ON p.id = st.product_id WHERE p.stat = 'open' AND (st.balance = 0 OR st.balance IS NULL) ORDER BY p.name ASC");
 		return $data->result();
 	}
 

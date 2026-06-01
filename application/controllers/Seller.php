@@ -24,6 +24,8 @@ class Seller extends CI_Controller {
         $this->load->model('queries');
         // Fetch specific product by ID
         $product = $this->queries->getRows($proID);
+          $stockRow = $this->db->query("SELECT balance FROM tbl_store WHERE product_id = '".$product['id']."' LIMIT 1")->row_array();
+  $stockBalance = $stockRow ? (int) $stockRow['balance'] : 0;
         
         // Add product to the cart
         $data = array(
@@ -34,6 +36,7 @@ class Seller extends CI_Controller {
             'buy_price' => $product['buy_price'],
             'name'    => $product['name'],
             'unit' => $product['unit'],
+            'stock_balance' => $stockBalance,
         );
         // echo "<pre>";
         // print_r($data);
@@ -50,6 +53,8 @@ class Seller extends CI_Controller {
         $this->load->model('queries');
         // Fetch specific product by ID
         $product = $this->queries->getRows($proID);
+          $stockRow = $this->db->query("SELECT balance FROM tbl_store WHERE product_id = '".$product['id']."' LIMIT 1")->row_array();
+        $stockBalance = $stockRow ? (int) $stockRow['balance'] : 0;
         
         // Add product to the cart
         $data = array(
@@ -60,6 +65,7 @@ class Seller extends CI_Controller {
             'buy_price' => $product['buy_price'],
             'name'    => $product['name'],
             'unit' => $product['unit'],
+            'stock_balance' => $stockBalance,
         );
         // echo "<pre>";
         // print_r($data);
@@ -432,6 +438,14 @@ public function setting(){
     $this->load->view('seller/profile_pc',['my'=>$my,'privillage'=>$privillage]);
   }
 
+  public function passport_required(){
+    $this->load->model('queries');
+    $user_id = $this->session->userdata('user_id');
+    $my = $this->queries->get_mydata($user_id);
+    $privillage = $this->queries->get_userPrivillage($user_id);
+    $this->load->view('seller/passport_required',['my'=>$my,'privillage'=>$privillage]);
+  }
+
 
   public function modify_profilepc($user_id){
     if(!empty($_FILES['img']['name'])){
@@ -467,11 +481,12 @@ public function setting(){
             
             //Storing insertion status message.
             if($data){
-                $this->session->set_flashdata('massage','Data updated successfully');
+              $this->session->set_flashdata('massage','welcome you are login');
+              return redirect('seller/index');
             }else{
                 $this->session->set_flashdata('error','Data failed!!');
+              return redirect('seller/profile_pc');
             }
-            return redirect('seller/profile_pc');
   }
 
 
