@@ -160,8 +160,22 @@
     (function () {
         var deferredInstallPrompt = null;
         var installButtons = document.querySelectorAll('.evamo-install-app');
+        var isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+        var isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+
+        var setInstallButtonsHidden = function (hidden) {
+            installButtons.forEach(function (btn) {
+                btn.style.display = hidden ? 'none' : '';
+                btn.disabled = hidden;
+            });
+        };
 
         if (!installButtons.length) {
+            return;
+        }
+
+        if (isStandalone) {
+            setInstallButtonsHidden(true);
             return;
         }
 
@@ -169,18 +183,30 @@
             btn.addEventListener('click', async function () {
                 if (deferredInstallPrompt) {
                     deferredInstallPrompt.prompt();
-                    await deferredInstallPrompt.userChoice;
+                    var choiceResult = await deferredInstallPrompt.userChoice;
                     deferredInstallPrompt = null;
+                    if (choiceResult && choiceResult.outcome === 'accepted') {
+                        setInstallButtonsHidden(true);
+                    }
                     return;
                 }
 
-                alert('Install is not ready yet. On iPhone, open Share menu and tap Add to Home Screen.');
+                if (isIOS) {
+                    alert('On iPhone, open Share menu and tap Add to Home Screen.');
+                    return;
+                }
+
+                alert('Install is not ready yet in this browser session. In Chrome, refresh once and try again.');
             });
         });
 
         window.addEventListener('beforeinstallprompt', function (event) {
             event.preventDefault();
             deferredInstallPrompt = event;
+        });
+
+        window.addEventListener('appinstalled', function () {
+            setInstallButtonsHidden(true);
         });
     })();
     </script>

@@ -1,8 +1,10 @@
-const CACHE_NAME = 'afyasoft-shell-v1';
+const CACHE_NAME = 'afyasoft-shell-v2';
 const SHELL_ASSETS = [
   './',
   'manifest.webmanifest',
-  'assets/admin/img/afyasoft.jpg'
+  'assets/admin/img/afyasoft.jpg',
+  'assets/admin/img/afyasoft-192.png',
+  'assets/admin/img/afyasoft-512.png'
 ];
 
 self.addEventListener('install', (event) => {

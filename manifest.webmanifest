@@ -9,15 +9,15 @@
   "theme_color": "#0f766e",
   "icons": [
     {
-      "src": "assets/admin/img/afyasoft.jpg",
+      "src": "assets/admin/img/afyasoft-192.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/admin/img/afyasoft.jpg",
+      "src": "assets/admin/img/afyasoft-512.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     }
   ]

@@ -24,10 +24,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 */
 $env_base_url = getenv('APP_BASE_URL');
-$config['base_url'] = ($env_base_url !== FALSE && $env_base_url !== '')
-	? $env_base_url
-	: 'http://192.168.0.165:8083/';
-// $config['base_url'] = 'http://localhost:8083/';
+if ($env_base_url === FALSE || $env_base_url === '') {
+	exit('APP_BASE_URL is not set');
+}
+$config['base_url'] = $env_base_url;
 
 /*
 |--------------------------------------------------------------------------
