@@ -37,6 +37,59 @@
  */
 
 /*
+ * ---------------------------------------------------------------
+ * SIMPLE .ENV LOADER FOR CI3
+ * ---------------------------------------------------------------
+ */
+$dotenv_path = __DIR__.DIRECTORY_SEPARATOR.'.env';
+if (is_file($dotenv_path) && is_readable($dotenv_path))
+{
+	$dotenv_lines = file($dotenv_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+	if ($dotenv_lines !== FALSE)
+	{
+		foreach ($dotenv_lines as $dotenv_line)
+		{
+			$dotenv_line = trim($dotenv_line);
+
+			if ($dotenv_line === '' OR strpos($dotenv_line, '#') === 0)
+			{
+				continue;
+			}
+
+			if (strpos($dotenv_line, '=') === FALSE)
+			{
+				continue;
+			}
+
+			list($dotenv_name, $dotenv_value) = explode('=', $dotenv_line, 2);
+			$dotenv_name = trim($dotenv_name);
+			$dotenv_value = trim($dotenv_value);
+
+			if ($dotenv_name === '')
+			{
+				continue;
+			}
+
+			$first_char = substr($dotenv_value, 0, 1);
+			$last_char = substr($dotenv_value, -1);
+			if (($first_char === '"' AND $last_char === '"') OR ($first_char === "'" AND $last_char === "'"))
+			{
+				$dotenv_value = substr($dotenv_value, 1, -1);
+			}
+
+			if (getenv($dotenv_name) === FALSE)
+			{
+				putenv($dotenv_name.'='.$dotenv_value);
+			}
+
+			$_ENV[$dotenv_name] = $dotenv_value;
+			$_SERVER[$dotenv_name] = $dotenv_value;
+		}
+	}
+}
+
+/*
  *---------------------------------------------------------------
  * APPLICATION ENVIRONMENT
  *---------------------------------------------------------------
@@ -53,7 +106,14 @@
  *
  * NOTE: If you change these, also change the error_reporting() code below
  */
-	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
+	$ci_env = isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : getenv('CI_ENV');
+
+	if ($ci_env === FALSE OR $ci_env === '')
+	{
+		$ci_env = getenv('APP_ENV');
+	}
+
+	define('ENVIRONMENT', ($ci_env === FALSE OR $ci_env === '') ? 'development' : $ci_env);
 
 /*
  *---------------------------------------------------------------

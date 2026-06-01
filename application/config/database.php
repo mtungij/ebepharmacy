@@ -73,12 +73,17 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $active_group = 'default';
 $query_builder = TRUE;
 
+$db_hostname = getenv('DB_HOST');
+$db_username = getenv('DB_USER');
+$db_password = getenv('DB_PASS');
+$db_name = getenv('DB_NAME');
+
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => 'james',
-	'password' => 'phamasoft',
-	'database' => 'pharmacy',  
+	'hostname' => ($db_hostname !== FALSE && $db_hostname !== '') ? $db_hostname : 'localhost',
+	'username' => ($db_username !== FALSE && $db_username !== '') ? $db_username : 'james',
+	'password' => ($db_password !== FALSE) ? $db_password : 'phamasoft',
+	'database' => ($db_name !== FALSE && $db_name !== '') ? $db_name : 'pharmacy',  
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,
