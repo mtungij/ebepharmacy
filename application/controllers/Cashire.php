@@ -322,7 +322,7 @@ public function retail_sale(){
   $user_id = $this->session->userdata('user_id');
   $retail = $this->queries->get_sallesTodayRetail_cashire();
   $my = $this->queries->get_mydata($user_id);
-  $total_retail = $this->queries->get_today_salesreatil_cashire();
+  $total_retail = $this->queries->get_today_salesretail_cashire();
     //   echo "<pre>";
     // print_r($total_retail);
     // echo "</pre>";
@@ -568,7 +568,7 @@ public function password_check($oldpass)
   $this->load->model('queries');
   $user_id = $this->session->userdata('user_id');
   $my = $this->queries->get_mydata($user_id);
-  $total_retail = $this->queries->get_today_salesreatil_cashire();
+  $total_retail = $this->queries->get_today_salesretail_cashire();
   $retail = $this->queries->get_sallesTodayRetail_cashire();
   $shop = $this->queries->get_shop_infoData();
    // echo "<pre>";

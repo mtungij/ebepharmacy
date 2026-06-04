@@ -10,6 +10,8 @@ class Admin extends CI_Controller {
 		$all_salles = $this->queries->get_sallesTodayData();
 		$total_sell = $this->queries->get_today_salesData();
 		$total_profit = $this->queries->get_today_profit();
+    $today_retail_sales = $this->queries->get_today_salesretail_cashire();
+    $today_wholesale_sales = $this->queries->get_today_salesWhole_cashire();
     $total_matumiz = $this->queries->All_totalMatumizi();
     $total_sell_data = $this->queries->get_All_salesData();
     $mishahara_data = $this->queries->get_sumPayrol();
@@ -35,12 +37,30 @@ class Admin extends CI_Controller {
   $slowmoving_medicines = $this->queries->get_slowmoving_medicines();
   $medicine_movement_summary = $this->queries->get_medicine_movement_summary();
   $zero_balance_medicines = $this->queries->get_zero_balance_medicines();
+  $empty_products_count = $this->queries->get_empty_products_count();
+
+  // metric mode: 'skus' or 'units' (default skus)
+  $metric_mode = $this->input->post('metric_mode');
+  if ($metric_mode) {
+    // persist choice in session so it survives navigation
+    $this->session->set_userdata('metric_mode', $metric_mode);
+  } else {
+    $metric_mode = $this->session->userdata('metric_mode') ?: $this->input->get('metric_mode') ?: 'skus';
+  }
+
+  if ($metric_mode === 'units') {
+    $purchased_today_count = $this->queries->get_purchased_products_today_units_count();
+    $adjusted_today_count = $this->queries->get_adjusted_products_today_units_count();
+  } else {
+    $purchased_today_count = $this->queries->get_purchased_products_today_count();
+    $adjusted_today_count = $this->queries->get_adjusted_products_today_count();
+  }
     //$total_sell = $this->queries->get_Yearly_monthsELL($year);
 		 // echo "<pre>";
 		 // print_r($datamonth);
 		 // echo "</pre>";
 		 //     exit();
-		$this->load->view('admin/index',['all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'total_matumiz'=>$total_matumiz,'total_sell_data'=>$total_sell_data,'mishahara_data'=>$mishahara_data,'my'=>$my,'total_huduma'=>$total_huduma,'years'=>$years,'datamonth'=>$datamonth,'today_indirect_exp'=>$today_indirect_exp,'all_matumiz_all'=>$all_matumiz_all,'all_sell_all'=>$all_sell_all,'mishahara_data_all'=>$mishahara_data_all,'huduma_all'=>$huduma_all,'huduma_all'=>$huduma_all,'inderect_expenses_all'=>$inderect_expenses_all,'total_profit_all'=>$total_profit_all,'fastmoving_medicines'=>$fastmoving_medicines,'slowmoving_medicines'=>$slowmoving_medicines,'medicine_movement_summary'=>$medicine_movement_summary,'zero_balance_medicines'=>$zero_balance_medicines]);
+    $this->load->view('admin/index',['all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'today_retail_sales'=>$today_retail_sales,'today_wholesale_sales'=>$today_wholesale_sales,'total_matumiz'=>$total_matumiz,'total_sell_data'=>$total_sell_data,'mishahara_data'=>$mishahara_data,'my'=>$my,'total_huduma'=>$total_huduma,'years'=>$years,'datamonth'=>$datamonth,'today_indirect_exp'=>$today_indirect_exp,'all_matumiz_all'=>$all_matumiz_all,'all_sell_all'=>$all_sell_all,'mishahara_data_all'=>$mishahara_data_all,'huduma_all'=>$huduma_all,'huduma_all'=>$huduma_all,'inderect_expenses_all'=>$inderect_expenses_all,'total_profit_all'=>$total_profit_all,'fastmoving_medicines'=>$fastmoving_medicines,'slowmoving_medicines'=>$slowmoving_medicines,'medicine_movement_summary'=>$medicine_movement_summary,'zero_balance_medicines'=>$zero_balance_medicines,'empty_products_count'=>$empty_products_count,'purchased_today_count'=>$purchased_today_count,'adjusted_today_count'=>$adjusted_today_count,'metric_mode'=>$metric_mode]);
 	}
 
 

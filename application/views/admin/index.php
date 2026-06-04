@@ -9,6 +9,8 @@ $today_expense_total = (float) (is_object($total_matumiz) ? ($total_matumiz->mat
 $today_payroll_total = (float) (is_object($mishahara_data) ? ($mishahara_data->mishahara ?? 0) : 0);
 $today_indirect_total = (float) (is_object($today_indirect_exp) ? ($today_indirect_exp->total_paytoday ?? 0) : 0);
 $today_cashout_total = $today_expense_total + $today_payroll_total + $today_indirect_total;
+$today_retail_sales_total = (float) (is_object($today_retail_sales) ? ($today_retail_sales->Totalretail ?? 0) : 0);
+$today_wholesale_sales_total = (float) (is_object($today_wholesale_sales) ? ($today_wholesale_sales->Totalwhole ?? 0) : 0);
 
 $all_profit_total = (float) (is_object($total_profit_all) ? ($total_profit_all->total_profit ?? 0) : 0);
 $all_expense_total = (float) (is_object($all_matumiz_all) ? ($all_matumiz_all->matumiz ?? 0) : 0);
@@ -226,6 +228,32 @@ if (!empty($datamonth)) {
 .kpi-profit { background: linear-gradient(135deg, #0d9488, #2dd4bf); }
 .kpi-cashout { background: linear-gradient(135deg, #b45309, #f59e0b); }
 .kpi-gross { background: linear-gradient(135deg, #4338ca, #6366f1); }
+
+/* New KPI styles for Total/Empty/Purchased/Adjusted */
+.kpi-total-products { background: linear-gradient(135deg, #22c55e, #14b8a6); }
+.kpi-empty { background: linear-gradient(135deg, #f87171, #fca5a5); }
+.kpi-purchased-today { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+.kpi-adjusted-today { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+
+.kpi-card { transition: transform 180ms ease, box-shadow 180ms ease; }
+.kpi-card:hover { transform: translateY(-6px); box-shadow: 0 22px 40px rgba(15,23,42,0.18); }
+
+/* subtle large faded icon in corner */
+.kpi-card:after {
+  content: "";
+  position: absolute;
+  right: -18px;
+  bottom: -18px;
+  width: 120px;
+  height: 120px;
+  opacity: 0.08;
+  filter: blur(0.5px);
+  pointer-events: none;
+}
+.kpi-total-products:after { background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23ffffff" d="M3 3h18v4H3zM3 11h18v10H3z"/></svg>') center/contain no-repeat; }
+.kpi-empty:after { background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23ffffff" d="M3 3h18v4H3zM3 11h18v10H3z"/></svg>') center/contain no-repeat; }
+.kpi-purchased-today:after { background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23ffffff" d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>') center/contain no-repeat; }
+.kpi-adjusted-today:after { background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23ffffff" d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 10h4v2h-4v4h-2v-4H7v-2h4V8h2v4z"/></svg>') center/contain no-repeat; }
 
 .chart-grid {
   display: grid;
@@ -528,6 +556,15 @@ html.evamo-dark .trend-chip.down {
       </div>
 
       <div class="kpi-grid">
+        <div style="grid-column: 1 / -1; display:flex; justify-content:flex-end; margin-bottom:0.5rem;">
+          <?php echo form_open('admin/index', ['method' => 'post', 'style' => 'margin:0;']); ?>
+            <label style="margin-right:0.5rem; align-self:center;">Metrics:</label>
+            <select name="metric_mode" onchange="this.form.submit()" class="form-control" style="width:160px; display:inline-block;">
+              <option value="skus" <?php echo (isset($metric_mode) && $metric_mode === 'skus') ? 'selected' : ''; ?>>SKUs</option>
+              <option value="units" <?php echo (isset($metric_mode) && $metric_mode === 'units') ? 'selected' : ''; ?>>Units</option>
+            </select>
+          <?php echo form_close(); ?>
+        </div>
         <div class="kpi-card kpi-sales">
           <div class="kpi-label">Today Sales</div>
           <div class="kpi-value">Tsh <?php echo number_format($today_sales_total); ?></div>
@@ -536,7 +573,8 @@ html.evamo-dark .trend-chip.down {
               <span class="arrow"><?php echo $trend_data['sales']['up'] ? '▲' : '▼'; ?></span>
               <?php echo number_format(abs($trend_data['sales']['pct']), 1); ?>%
             </span>
-            <span class="meta">vs previous 7 days</span>
+            <span class="meta">Retail: Tsh <?php echo number_format($today_retail_sales_total); ?> · Wholesale: Tsh <?php echo number_format($today_wholesale_sales_total); ?></span>
+            <span class="meta">Sales type: wholesale and retail combined</span>
           </div>
         </div>
 
@@ -574,6 +612,30 @@ html.evamo-dark .trend-chip.down {
             </span>
             <span class="meta">products: <?php echo number_format($product_total); ?></span>
           </div>
+        </div>
+
+        <div class="kpi-card kpi-total-products">
+          <div class="kpi-label">Total Products</div>
+          <div class="kpi-value"><?php echo number_format((int) ($product_total ?? 0)); ?></div>
+          <div class="kpi-note"><span class="meta">All product SKUs</span></div>
+        </div>
+
+        <div class="kpi-card kpi-empty">
+          <div class="kpi-label">Empty Products</div>
+          <div class="kpi-value"><?php echo number_format((int) ($empty_products_count ?? 0)); ?></div>
+          <div class="kpi-note"><span class="meta">Products with zero balance</span></div>
+        </div>
+
+        <div class="kpi-card kpi-purchased-today">
+          <div class="kpi-label">Purchased Today (SKUs)</div>
+          <div class="kpi-value"><?php echo number_format((int) ($purchased_today_count ?? 0)); ?></div>
+          <div class="kpi-note"><span class="meta">Distinct products purchased today</span></div>
+        </div>
+
+        <div class="kpi-card kpi-adjusted-today">
+          <div class="kpi-label">Adjusted Today (SKUs)</div>
+          <div class="kpi-value"><?php echo number_format((int) ($adjusted_today_count ?? 0)); ?></div>
+          <div class="kpi-note"><span class="meta">Distinct products adjusted today</span></div>
         </div>
       </div>
 

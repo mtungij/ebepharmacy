@@ -434,23 +434,25 @@
     }
 
 
-    public function get_today_salesreatil($user_id){
+public function get_today_salesretail_user($user_id){
       $date = date("Y-m-d");
        $data = $this->db->query("SELECT SUM(total_sell_price) AS Totalretail FROM tbl_sell WHERE  user_id = '$user_id' AND sell_status = 'retail' AND created_at >= '$date'");
        return $data->row();
      }
 
-      public function get_today_salesreatil_cashire(){
+      public function get_today_salesreatil($user_id){
+        return $this->get_today_salesretail_user($user_id);
+      }
+
+      public function get_today_salesretail_cashire(){
       $date = date("Y-m-d");
        $data = $this->db->query("SELECT SUM(total_sell_price) AS Totalretail FROM tbl_sell WHERE sell_status = 'retail' AND created_at >= '$date'");
        return $data->row();
      }
 
-      public function get_today_salesWhole($user_id){
-      $date = date("Y-m-d");
-       $data = $this->db->query("SELECT SUM(total_sell_price) AS Totalwhole FROM tbl_sell WHERE  user_id = '$user_id' AND sell_status = 'whole' AND created_at >= '$date'");
-       return $data->row();
-     }
+      public function get_today_salesreatil_cashire(){
+        return $this->get_today_salesretail_cashire();
+      }
 
       public function get_today_salesWhole_cashire(){
       $date = date("Y-m-d");
@@ -683,6 +685,36 @@
   $date = date("Y-m-d");
   $data = $this->db->query("SELECT u.full_name,p.name,t.quantity AS trans_qnty,t.date AS trans_date FROM tbl_trans_recod t JOIN product p ON p.id = t.product_id JOIN tbl_user u ON u.user_id = t.user_id WHERE t.date = '$date'");
    return $data->result();
+ }
+
+ public function get_empty_products_count(){
+  $data = $this->db->query("SELECT COUNT(*) AS count FROM tbl_store WHERE balance = 0");
+  $row = $data->row();
+  return (int) ($row->count ?? 0);
+ }
+
+ public function get_purchased_products_today_count(){
+  $data = $this->db->query("SELECT COUNT(DISTINCT product_id) AS sku_purchased FROM tbl_stock_movement WHERE DATE(date) = CURDATE() AND UPPER(TRIM(mov_status)) = 'PURCHASED'");
+  $row = $data->row();
+  return (int) ($row->sku_purchased ?? 0);
+ }
+
+ public function get_adjusted_products_today_count(){
+  $data = $this->db->query("SELECT COUNT(DISTINCT product_id) AS sku_adjusted FROM tbl_stock_movement WHERE DATE(date) = CURDATE() AND UPPER(TRIM(mov_status)) LIKE 'ADJUSTED%'");
+  $row = $data->row();
+  return (int) ($row->sku_adjusted ?? 0);
+ }
+
+ public function get_purchased_products_today_units_count(){
+  $data = $this->db->query("SELECT COALESCE(SUM(product_qnty),0) AS total_purchased_units FROM tbl_stock_movement WHERE DATE(date) = CURDATE() AND UPPER(TRIM(mov_status)) = 'PURCHASED'");
+  $row = $data->row();
+  return (int) ($row->total_purchased_units ?? 0);
+ }
+
+ public function get_adjusted_products_today_units_count(){
+  $data = $this->db->query("SELECT COALESCE(SUM(product_qnty),0) AS total_adjusted_units FROM tbl_stock_movement WHERE DATE(date) = CURDATE() AND UPPER(TRIM(mov_status)) LIKE 'ADJUSTED%'");
+  $row = $data->row();
+  return (int) ($row->total_adjusted_units ?? 0);
  }
 
  public function get_previous_reportData($from,$to){

@@ -10,9 +10,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Afyasoft">
-    <link rel="icon" href="<?php echo base_url() ?>assets/admin/out/assets/images/traglogo.png" type="image/x-icon" />
+    <link rel="icon" href="<?php echo base_url('assets/admin/img/logoo.png'); ?>" type="image/x-icon" />
     <link rel="manifest" href="<?php echo base_url('manifest.webmanifest'); ?>">
-    <link rel="apple-touch-icon" href="<?php echo base_url('assets/admin/img/afyasoft.jpg'); ?>">
+    <link rel="apple-touch-icon" href="<?php echo base_url('assets/admin/img/logoo.png'); ?>">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>

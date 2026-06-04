@@ -316,7 +316,7 @@ public function retail_sale(){
   $user_id = $this->session->userdata('user_id');
   $retail = $this->queries->get_sallesTodayRetail($user_id);
   $my = $this->queries->get_mydata($user_id);
-  $total_retail = $this->queries->get_today_salesreatil($user_id);
+  $total_retail = $this->queries->get_today_salesretail_user($user_id);
   $privillage = $this->queries->get_userPrivillage($user_id);
     //   echo "<pre>";
     // print_r($total_retail);
@@ -579,7 +579,7 @@ public function password_check($oldpass)
   $user_id = $this->session->userdata('user_id');
   $retail = $this->queries->get_sallesTodayRetail($user_id);
   $my = $this->queries->get_mydata($user_id);
-  $total_retail = $this->queries->get_today_salesreatil($user_id);
+  $total_retail = $this->queries->get_today_salesretail_user($user_id);
   $shop = $this->queries->get_shop_infoData();
    // echo "<pre>";
    // print_r($shop);
