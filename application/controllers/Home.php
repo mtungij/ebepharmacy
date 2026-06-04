@@ -52,7 +52,7 @@ if ($userexit->role == 'admin') {
     if ($userexit->status == 'open') {
 $this->session->set_userdata($sessionData);
 $passportRoute = $this->get_passport_upload_route($userexit->role);
-if (empty($userexit->img)) {
+if (empty(trim($userexit->img ?? ''))) {
     $this->session->set_flashdata('ms','Please upload passport first');
     return redirect($passportRoute);
 }
@@ -77,7 +77,7 @@ $this->session->set_flashdata('ms','Account closed');
 if ($userexit->status =='open') {
 $this->session->set_userdata($sessionData);
 $passportRoute = $this->get_passport_upload_route($userexit->role);
-if (empty($userexit->img)) {
+if (empty(trim($userexit->img ?? ''))) {
     $this->session->set_flashdata('ms','Please upload passport first');
     return redirect($passportRoute);
 }
@@ -102,7 +102,7 @@ $this->session->set_flashdata('massage','account closed');
 if ($userexit->status =='open') {
 $this->session->set_userdata($sessionData);
 $passportRoute = $this->get_passport_upload_route($userexit->role);
-if (empty($userexit->img)) {
+if (empty(trim($userexit->img ?? ''))) {
     $this->session->set_flashdata('ms','Please upload passport first');
     return redirect($passportRoute);
 }

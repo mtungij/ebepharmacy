@@ -1324,7 +1324,8 @@ public function general_sells_product(){
 
 
   public function modify_profilepc($user_id){
-    if(!empty($_FILES['img']['name'])){
+    $img = null;
+    if (!empty($_FILES['img']['name'])) {
                 $config['upload_path'] = 'assets/admin/img/';
                 $config['allowed_types'] = 'jpg|jpeg|png|gif|pdf';
                 $config['file_name'] = $_FILES['img']['name'];
@@ -1333,20 +1334,20 @@ public function general_sells_product(){
                 $this->load->library('upload',$config);
                 $this->upload->initialize($config);
                 
-                if($this->upload->do_upload('img')){
+                if ($this->upload->do_upload('img')) {
                     $uploadData = $this->upload->data();
                     $img = $uploadData['file_name'];
-                }else{
-                    $img = '';
+                } else {
+                    $this->session->set_flashdata('error', strip_tags($this->upload->display_errors()));
+                    return redirect('admin/profile_pc');
                 }
-            }else{
-                $img = '';
             }
             
             //Prepare array of user data
-            $data = array(
-            'img' => $img,
-            );
+            $data = array();
+            if ($img !== null) {
+                $data['img'] = $img;
+            }
             //   echo "<pre>";
             // print_r($data);
             //  echo "</pre>";
