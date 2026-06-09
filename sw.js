@@ -1,10 +1,10 @@
-const CACHE_NAME = 'afyasoft-shell-v2';
+const CACHE_NAME = 'helixpos-shell-v3';
 const SHELL_ASSETS = [
   './',
   'manifest.webmanifest',
-  'assets/admin/img/afyasoft.jpg',
-  'assets/admin/img/afyasoft-192.png',
-  'assets/admin/img/afyasoft-512.png'
+  'assets/images/helixpos.png',
+  'assets/images/helixpos-192.png',
+  'assets/images/helixpos-512.png'
 ];
 
 self.addEventListener('install', (event) => {

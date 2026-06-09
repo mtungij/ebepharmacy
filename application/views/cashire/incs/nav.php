@@ -4,17 +4,8 @@
         : base_url().'assets/admin/img/wateja.png';
 
     $CI =& get_instance();
-    $shop_info = $CI->queries->get_shop_infoData();
-    $shop_name = !empty($shop_info->shop_name) ? $shop_info->shop_name : 'Sale Ezy';
-
-    $shop_logo = '';
-    if (!empty($shop_info->shop_logo)) {
-        $shop_logo = $shop_info->shop_logo;
-    } elseif (!empty($shop_info->logo)) {
-        $shop_logo = $shop_info->logo;
-    } elseif (!empty($shop_info->image)) {
-        $shop_logo = $shop_info->image;
-    }
+    $shop_name = 'helixPos';
+    $shop_logo_url = base_url('assets/images/helixpos.png');
 
     $low_stock_count = 0;
     $pending_order_count = 0;
@@ -50,11 +41,7 @@
         </button>
 
         <a href="javascript:;" class="evamo-brand">
-            <?php if (!empty($shop_logo)) { ?>
-            <img src="<?php echo base_url().'assets/admin/img/'.$shop_logo; ?>" alt="Logo" class="evamo-brand-logo">
-            <?php } else { ?>
-            <img src="<?php echo base_url() ?>assets/admin/img/wateja.png" alt="Logo" class="evamo-brand-logo">
-            <?php } ?>
+            <img src="<?php echo $shop_logo_url; ?>" alt="helixPos logo" class="evamo-brand-logo">
             <span class="evamo-brand-name"><?php echo $shop_name; ?></span>
         </a>
 

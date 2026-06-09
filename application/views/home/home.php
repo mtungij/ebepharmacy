@@ -4,15 +4,15 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Pharmacy Home</title>
+    <title>helixPos</title>
     <meta name="description" content="Pharmacy login page">
     <meta name="theme-color" content="#0f766e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Afyasoft">
-    <link rel="icon" href="<?php echo base_url('assets/admin/img/logoo.png'); ?>" type="image/x-icon" />
+    <meta name="apple-mobile-web-app-title" content="helixPos">
+    <link rel="icon" href="<?php echo base_url('assets/images/helixpos.png'); ?>" type="image/png" />
     <link rel="manifest" href="<?php echo base_url('manifest.webmanifest'); ?>">
-    <link rel="apple-touch-icon" href="<?php echo base_url('assets/admin/img/logoo.png'); ?>">
+    <link rel="apple-touch-icon" href="<?php echo base_url('assets/images/helixpos.png'); ?>">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -48,7 +48,7 @@
 <div class="font-poppins min-h-screen flex flex-col items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
     <div class="mb-6 text-center">
         <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-white">
-            <span class="text-green-600 dark:text-green-500"><?php echo $shop->shop_name; ?></span>
+            <span class="text-green-600 dark:text-green-500">helixPos</span>
         </h2>
     </div>
 

@@ -4,7 +4,7 @@
 
 <!-- Mirrored from www.wrraptheme.com/templates/lucid/hospital/light/app-appointment.html by HTTraQt Website Copier/1.x [Karbofos 2012-2017] J2, 22 Mac 2020 06:00:00 GMT -->
 <head>
-<title>Pharmacy-Seller panel</title>
+<title>helixPos - Seller</title>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=Edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
@@ -12,10 +12,10 @@
 <meta name="theme-color" content="#0f766e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Afyasoft">
-<link rel="icon" href="<?php echo base_url() ?>assets/out/assets/images/fundi.png" type="image/x-icon" />
+<meta name="apple-mobile-web-app-title" content="helixPos">
+<link rel="icon" href="<?php echo base_url('assets/images/helixpos.png'); ?>" type="image/png" />
 <link rel="manifest" href="<?php echo base_url('manifest.webmanifest'); ?>">
-<link rel="apple-touch-icon" href="<?php echo base_url('assets/admin/img/logoo.png'); ?>">
+<link rel="apple-touch-icon" href="<?php echo base_url('assets/images/helixpos.png'); ?>">
 <meta name="author" content="WrapTheme, design by: ThemeMakker.com">
 
 <script src="https://cdn.tailwindcss.com"></script>
