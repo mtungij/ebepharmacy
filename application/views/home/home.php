@@ -48,7 +48,7 @@
 <div class="font-poppins min-h-screen flex flex-col items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
     <div class="mb-6 text-center">
         <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-white">
-            <span class="text-green-600 dark:text-green-500">helixPos</span>
+            <span class="text-green-600 dark:text-green-500"><?php echo $shop->shop_name; ?></span>
         </h2>
     </div>
 
