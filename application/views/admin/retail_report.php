@@ -29,11 +29,23 @@
 
        <div class="pull">
         <?php $day = date('F-j-Y'); ?>
+        <?php
+          $selected_branch_name = 'All Branches';
+          if (!empty($selected_branch_id) && !empty($branches)) {
+            foreach ($branches as $branch) {
+              if ((int) $selected_branch_id === (int) $branch->branch_id) {
+                $selected_branch_name = $branch->branch_name;
+                break;
+              }
+            }
+          }
+        ?>
         <p style="font-size:12px;"> <?php echo $shop->shop_name; ?><br>
         <?php echo $shop->po_box; ?> <?php echo $shop->location; ?> <br>
         Mob: <?php echo $shop->phone; ?>
         </p> 
          <p style="font-size:12px;"><b>RETAIL SALES TODAY REPORT / <?php echo $day; ?></b></p>
+         <p style="font-size:12px;">Branch: <?php echo html_escape($selected_branch_name); ?></p>
        </div>
 
      
@@ -66,6 +78,7 @@ tr:nth-child(even) {
   <tr>
     <th style="font-size:12px;">No.</th>
     <th style="font-size:12px;">Seller</th>
+    <th style="font-size:12px;">Branch</th>
     <th style="font-size:12px;">Customer</th>
     <th style="font-size:12px;">Product</th>
     <th style="font-size:12px;">Qty</th>
@@ -82,6 +95,7 @@ tr:nth-child(even) {
  <tr>
   <td style="font-size:12px;"><?php echo $no++; ?></td>
     <td style="font-size:12px;"><?php echo $all_sallesdata->full_name; ?></td>
+    <td style="font-size:12px;"><?php echo !empty($all_sallesdata->branch_name) ? html_escape($all_sallesdata->branch_name) : '-'; ?></td>
     <td style="font-size:12px;"><?php echo $all_sallesdata->customer; ?></td>
     <td style="font-size:12px;"><?php echo $all_sallesdata->name; ?></td>
     <td style="font-size:12px;"><?php echo $all_sallesdata->quanty; ?> <?php echo $all_sallesdata->unit; ?></td>
@@ -109,6 +123,7 @@ tr:nth-child(even) {
    <th style="border: none"></th>
    <th style="border: none"></th>
    <th style="border: none"></th>
+   <th style="border: none"></th>
    <th style="border: none;font-size:12px;">Sales:</th>
    <th style="border: none;font-size:12px;"><?php echo number_format($total_retail->Totalretail); ?>/=</th>
    <th style="border: none"></th>
@@ -116,6 +131,7 @@ tr:nth-child(even) {
    <th style="border: none"></th>
  </tr>
  <tr>
+   <th style="border: none"></th>
    <th style="border: none"></th>
    <th style="border: none"></th>
    <th style="border: none"></th>
@@ -133,7 +149,6 @@ tr:nth-child(even) {
 
 </body>
 </html>
-
 
 
 

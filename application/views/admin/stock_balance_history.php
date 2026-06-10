@@ -6,17 +6,6 @@
     margin-top: 14px;
 }
 
-.evamo-history-filter .form-group {
-    margin-bottom: 0;
-}
-
-.evamo-history-filter .evamo-filter-label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-    color: #4a5568;
-}
-
 .evamo-history-filter .evamo-history-actions {
     display: flex;
     align-items: center;
@@ -73,12 +62,10 @@
 <h2>Stock Balance History</h2>
 </div>
 <div class="body">
-    <form method="get" action="<?php echo base_url('admin/stock_balance_history'); ?>" class="evamo-history-filter">
-        <div class="row clearfix">
-            <div class="col-sm-6">
-                <div class="form-group">
-                    <label class="evamo-filter-label">Filter Product</label>
-                    <select name="product_id" class="form-control">
+    <form method="get" action="<?php echo base_url('admin/stock_balance_history'); ?>" class="evamo-live-filter evamo-history-filter">
+        <div class="evamo-filter-field">
+                    <label>Filter Product</label>
+                    <select name="product_id" class="form-control" data-live-submit="1">
                         <option value="">All Products</option>
                         <?php foreach ($product as $row): ?>
                         <option value="<?php echo $row->product_id; ?>" <?php echo ((string)$selected_product_id === (string)$row->product_id) ? 'selected' : ''; ?>>
@@ -86,14 +73,23 @@
                         </option>
                         <?php endforeach; ?>
                     </select>
-                </div>
-            </div>
-            <div class="col-sm-6 evamo-filter-action-col" style="padding-top: 30px;">
-                <div class="evamo-history-actions">
-                    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-                    <a href="<?php echo base_url('admin/stock_balance_history'); ?>" class="btn btn-secondary btn-sm">Reset</a>
-                </div>
-            </div>
+        </div>
+        <div class="evamo-filter-field">
+                    <label>Filter Branch</label>
+                    <select name="branch_id" class="form-control" data-live-submit="1" data-clear-target="product_id">
+                        <option value="">All Branches</option>
+                        <?php if (!empty($branches)): ?>
+                            <?php foreach ($branches as $branch): ?>
+                            <option value="<?php echo $branch->branch_id; ?>" <?php echo ((string)$selected_branch_id === (string)$branch->branch_id) ? 'selected' : ''; ?>>
+                                <?php echo html_escape($branch->branch_name); ?>
+                            </option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+        </div>
+        <div class="evamo-filter-actions evamo-history-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="<?php echo base_url('admin/stock_balance_history'); ?>" class="btn btn-secondary btn-sm">Reset</a>
         </div>
     </form>
 
@@ -103,6 +99,7 @@
                 <tr>
                     <th>S/N</th>
                     <th>Product</th>
+                    <th>Branch</th>
                     <th>Reason</th>
                     <th>Current Stock</th>
                     <th>Action</th>
@@ -116,6 +113,7 @@
                     <tr>
                         <td><strong><?php echo $sn++; ?></strong></td>
                         <td><?php echo $item->name; ?> (<?php echo $item->unit; ?>)</td>
+                        <td><?php echo !empty($item->branch_name) ? html_escape($item->branch_name) : '-'; ?></td>
                         <td><?php echo (isset($item->reason) && $item->reason !== '') ? ucfirst($item->reason) : 'Purchased'; ?></td>
                         <td><strong><?php echo number_format((int)$item->balance); ?></strong></td>
                         <td>
@@ -125,7 +123,7 @@
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="5" class="text-center">No products found.</td>
+                        <td colspan="6" class="text-center">No products found.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>

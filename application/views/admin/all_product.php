@@ -24,11 +24,37 @@
       <h2>Product List</b> </h2>
 </div>
 <div class="body">
+    <?php
+      $selected_branch_id = isset($selected_branch_id) ? $selected_branch_id : null;
+      $pdf_query = '?download=1' . ($selected_branch_id ? '&branch_id=' . (int) $selected_branch_id : '');
+    ?>
+    <form method="get" action="<?php echo base_url('admin/all_product'); ?>" class="evamo-live-filter">
+        <div class="evamo-filter-field">
+            <label>Branch</label>
+            <select name="branch_id" class="form-control" data-live-submit="1">
+                <option value="">All Branches</option>
+                <?php if (!empty($branches)): ?>
+                    <?php foreach ($branches as $branch): ?>
+                        <option value="<?php echo $branch->branch_id; ?>" <?php echo ((int) $selected_branch_id === (int) $branch->branch_id) ? 'selected' : ''; ?>>
+                            <?php echo html_escape($branch->branch_name); ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </select>
+        </div>
+        <div class="evamo-filter-actions">
+            <button type="submit" class="btn btn-primary"><i class="icon-magnifier"></i> Filter</button>
+            <a href="<?php echo base_url('admin/print_data' . $pdf_query); ?>" target="_blank" class="btn btn-info">
+                <i class="icon-printer"></i> Download PDF
+            </a>
+        </div>
+    </form>
     <div class="table-responsive">
 <table class="table table-hover js-basic-example dataTable table-custom">
             <thead class="thead-primary">
                 <tr>
                     <th>Product name</th>
+                    <th>Branch</th>
                     <th>Brand</th>
                     <th>Buy price</th>
                     <th>Retail Sale Price</th>
@@ -42,6 +68,7 @@
             <tfoot>
                 <tr>
                     <th>Product name</th>
+                    <th>Branch</th>
                     <th>Brand</th>
                     <th>Buy price</th>
                     <th>Retail Sale Price</th>
@@ -57,6 +84,7 @@
             <tr>
            
             <td><?php echo $products->name; ?></td>
+            <td><?php echo $products->branch_name ? html_escape($products->branch_name) : '-'; ?></td>
             <td><?php echo $products->bland; ?></td>
             <td>Tsh.<?php echo number_format($products->buy_price); ?>/=</td>
             <td>Tsh.<?php echo number_format($products->price); ?>/=</td>
@@ -106,4 +134,3 @@
 
 
 <?php include 'incs/footer.php'; ?>
-

@@ -171,6 +171,16 @@ document.addEventListener('DOMContentLoaded', function(){
 </div>
 </div>
 <?php endif; ?>
+<?php if ($err = $this->session->flashdata('error')): ?>
+<div class="row">
+<div class="col-md-12">
+<div class="alert alert-dismisible alert-danger">
+<a href="" class="close">&times;</a>
+<?php echo $err;?>
+</div>
+</div>
+</div>
+<?php endif; ?>
 
 <div class="row clearfix">
 <div class="col-lg-6">

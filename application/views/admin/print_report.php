@@ -28,11 +28,23 @@
   </style>
 
          <div class="pull">
+        <?php
+          $selected_branch_name = 'All Branches';
+          if (!empty($selected_branch_id) && !empty($branches)) {
+            foreach ($branches as $branch) {
+              if ((int) $selected_branch_id === (int) $branch->branch_id) {
+                $selected_branch_name = $branch->branch_name;
+                break;
+              }
+            }
+          }
+        ?>
         <p style="font-size:12px;"> <?php echo $shop->shop_name; ?><br>
         <?php echo $shop->po_box; ?> <?php echo $shop->location; ?> <br>
         Mob: <?php echo $shop->phone; ?>
         </p> 
-         <p style="font-size:12px;"><b>ALL PRODUCT</b></p>
+        <p style="font-size:12px;"><b>ALL PRODUCT</b></p>
+        <p style="font-size:12px;">Branch: <?php echo html_escape($selected_branch_name); ?></p>
        </div>
 
      
@@ -65,6 +77,7 @@ tr:nth-child(even) {
   <tr>
     <th style="font-size:12px;">S/No.</th>
     <th style="font-size:12px;">Product name</th>
+    <th style="font-size:12px;">Branch</th>
     <th style="font-size:12px;">Quantity</th>
     <th style="font-size:12px;">Buying price</th>
     <th style="font-size:12px;">Buy - Total</th>
@@ -73,11 +86,12 @@ tr:nth-child(even) {
     <th style="font-size:12px;">Whole Sale Price</th>
     <th style="font-size:12px;">Whole Sale Total</th>
   </tr>
-  <?php echo $no = 1; ?>
+  <?php $no = 1; ?>
   <?php foreach ($data as $datas): ?>
  <tr>
     <td style="font-size:12px;"><?php echo $no++; ?></td>
     <td style="font-size:12px;"><?php echo $datas->name; ?></td>
+    <td style="font-size:12px;"><?php echo $datas->branch_name ? html_escape($datas->branch_name) : '-'; ?></td>
     <td style="font-size:12px;"><?php echo $datas->balance; ?></td>
     <td style="font-size:12px;"><?php echo number_format($datas->buy_price); ?></td>
     <td style="font-size:12px;"> 
@@ -93,6 +107,7 @@ tr:nth-child(even) {
   <tr>
    <th></th>
    <th style="font-size:12px;">Gross Total:</th>
+   <th></th>
    <th style="font-size:12px;"><?php echo $balance->bala; ?></th>
    <th style="font-size:12px;"><?php echo number_format($total_buyprice->buy_prc); ?>/=</th>
    <th style="font-size:12px;"><?php echo number_format($total_buyprice_data->total_buyPrice); ?>/=</th>
@@ -108,7 +123,6 @@ tr:nth-child(even) {
 
 </body>
 </html>
-
 
 
 

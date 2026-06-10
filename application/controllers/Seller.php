@@ -6,11 +6,12 @@ class Seller extends CI_Controller {
 	public function index(){
 	$this->load->model('queries');
   $user_id = $this->session->userdata('user_id');
+  $branch_id = (int) $this->session->userdata('branch_id');
   $my = $this->queries->get_mydata($user_id);
-	$datay = $this->queries->get_productAll();
+	$datay = $this->queries->get_productAll($branch_id ?: null);
   $cartItems = $this->cart->contents();
   $limit = $this->queries->get_stock_limitData();
-  $kwisha = $this->queries->get_bidhaa_kwisha();
+  $kwisha = $this->queries->get_bidhaa_kwisha($branch_id ?: null);
   $privillage = $this->queries->get_userPrivillage($user_id);
    //   echo "<pre>";
 	  // print_r($kwisha);
@@ -22,9 +23,14 @@ class Seller extends CI_Controller {
 
 	function addToCart($proID){
         $this->load->model('queries');
+        $branch_id = (int) $this->session->userdata('branch_id');
         // Fetch specific product by ID
         $product = $this->queries->getRows($proID);
-          $stockRow = $this->db->query("SELECT balance FROM tbl_store WHERE product_id = '".$product['id']."' LIMIT 1")->row_array();
+        if (!$product || ($branch_id && (int)($product['branch_id'] ?? 0) !== $branch_id)) {
+          $this->session->set_flashdata('error', 'This product is not available in your branch.');
+          return redirect('seller/index');
+        }
+          $stockRow = $this->db->query("SELECT balance FROM tbl_store WHERE product_id = '".$product['id']."' AND branch_id = '".$branch_id."' LIMIT 1")->row_array();
   $stockBalance = $stockRow ? (int) $stockRow['balance'] : 0;
         
         // Add product to the cart
@@ -51,9 +57,14 @@ class Seller extends CI_Controller {
 
       function addToCart_jumla($proID){
         $this->load->model('queries');
+        $branch_id = (int) $this->session->userdata('branch_id');
         // Fetch specific product by ID
         $product = $this->queries->getRows($proID);
-          $stockRow = $this->db->query("SELECT balance FROM tbl_store WHERE product_id = '".$product['id']."' LIMIT 1")->row_array();
+        if (!$product || ($branch_id && (int)($product['branch_id'] ?? 0) !== $branch_id)) {
+          $this->session->set_flashdata('error', 'This product is not available in your branch.');
+          return redirect('seller/index');
+        }
+          $stockRow = $this->db->query("SELECT balance FROM tbl_store WHERE product_id = '".$product['id']."' AND branch_id = '".$branch_id."' LIMIT 1")->row_array();
         $stockBalance = $stockRow ? (int) $stockRow['balance'] : 0;
         
         // Add product to the cart
@@ -133,7 +144,8 @@ class Seller extends CI_Controller {
     }
 
     function checkForItemBalance($item_id,$qnty){
-      $sql = "SELECT * FROM tbl_store WHERE product_id='$item_id' AND balance >= '$qnty'";
+      $branch_id = (int) $this->session->userdata('branch_id');
+      $sql = "SELECT * FROM tbl_store WHERE product_id='$item_id' AND branch_id = '$branch_id' AND balance >= '$qnty'";
       $data = $this->db->query($sql);
       
       if(count($data->result()) > 0){
@@ -162,14 +174,20 @@ class Seller extends CI_Controller {
           $customer = $this->input->post('customer');
           $total_price = $this->input->post('total_price');
           $sell_day = date("Y-m-d");
+          $branch_id = (int) $this->session->userdata('branch_id');
 
           // print_r($sell_status);
           //      exit();
   
           for($i=0; $i<count($product_id);$i++){
+            $allowed = $this->db->query("SELECT id FROM product WHERE id = '".(int)$product_id[$i]."' AND branch_id = '".$branch_id."'")->row();
+            if (!$allowed) {
+              $this->session->set_flashdata('error', 'One or more products are not available in your branch.');
+              return redirect('seller/index');
+            }
             $date = date("Y-m-d");
-        $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`sell_status`,`sell_day`,`customer`) 
-      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$sell_status[$i]."','$sell_day','$customer')");
+        $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`branch_id`,`sell_status`,`sell_day`,`customer`) 
+      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$branch_id."','".$sell_status[$i]."','$sell_day','$customer')");
         $this->db->query("INSERT INTO  tbl_stock_movement (`product_id`,`product_qnty`,`user_id`,`mov_status`,`date`) 
       VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$user_id[$i]."','SOLD','$date')");
           }
@@ -206,8 +224,9 @@ class Seller extends CI_Controller {
 
            //update product store
   public function update_storeDatas($product_id,$quantity){
+  $branch_id = (int) $this->session->userdata('branch_id');
   for ($i=0; $i<count($product_id); $i++) { 
-  $sqldata="UPDATE tbl_store SET `out_balance`= `out_balance`+'".$quantity[$i]."',`balance`=`balance`-'".$quantity[$i]."' WHERE `product_id` = '".$product_id[$i]."'";
+  $sqldata="UPDATE tbl_store SET `out_balance`= `out_balance`+'".$quantity[$i]."',`balance`=`balance`-'".$quantity[$i]."' WHERE `product_id` = '".$product_id[$i]."' AND `branch_id` = '$branch_id'";
     // print_r($sqldata);
     //    exit();
   $query = $this->db->query($sqldata);
@@ -218,7 +237,8 @@ class Seller extends CI_Controller {
 
 //update product store
   public function update_storedata($product_id,$quantity){
-  $sqldata="UPDATE tbl_store SET `out_balance`= `out_balance`+$quantity,`balance`=`balance`-$quantity WHERE `product_id` = '$product_id'";
+  $branch_id = (int) $this->session->userdata('branch_id');
+  $sqldata="UPDATE tbl_store SET `out_balance`= `out_balance`+$quantity,`balance`=`balance`-$quantity WHERE `product_id` = '$product_id' AND `branch_id` = '$branch_id'";
     // print_r($sqldata);
     //    exit();
   $query = $this->db->query($sqldata);
@@ -229,7 +249,8 @@ class Seller extends CI_Controller {
     //insert cashire record
      public function insert_cashire_report($customer,$total_price){
     $date = date("Y-m-d");
-      $this->db->query("INSERT INTO tbl_cashire (`full_name`,`total_price`,`date`) VALUES ('$customer','$total_price','$date')");
+    $branch_id = (int) $this->session->userdata('branch_id');
+      $this->db->query("INSERT INTO tbl_cashire (`branch_id`,`full_name`,`total_price`,`date`) VALUES ('$branch_id','$customer','$total_price','$date')");
       }
 
 
@@ -248,14 +269,20 @@ class Seller extends CI_Controller {
           $sell_status = $this->input->post('sell_status[]');
           $total_price = $this->input->post('total_price');
           $sell_day = date("Y-m-d");
+          $branch_id = (int) $this->session->userdata('branch_id');
 
           // print_r($sell_status);
           //    exit();
           $date_recept = date("Y-m-d H:i:s");
           $order_id = $this->insert_recept_number($date_recept);
           for($i=0; $i<count($product_id);$i++){
-        $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`sell_status`,`sell_day`,`customer`) 
-      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$sell_status[$i]."','$sell_day','$customer')");
+            $allowed = $this->db->query("SELECT id FROM product WHERE id = '".(int)$product_id[$i]."' AND branch_id = '".$branch_id."'")->row();
+            if (!$allowed) {
+              $this->session->set_flashdata('error', 'One or more products are not available in your branch.');
+              return redirect('seller/index');
+            }
+        $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`branch_id`,`sell_status`,`sell_day`,`customer`) 
+      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$branch_id."','".$sell_status[$i]."','$sell_day','$customer')");
          $this->db->query("INSERT INTO  tbl_stock_movement (`product_id`,`product_qnty`,`user_id`,`mov_status`,`date`) 
       VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$user_id[$i]."','SOLD','$sell_day')");
           }
@@ -364,6 +391,7 @@ public function create_useToday(){
   if ($this->form_validation->run() ) {
      $data = $this->input->post();
      $data['day'] = date("Y-m-d");
+     $data['branch_id'] = (int) $this->session->userdata('branch_id');
      $this->load->model('queries');
      //$data['day'] = $this->input->post();
      // print_r($data);

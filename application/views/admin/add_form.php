@@ -243,6 +243,24 @@ html.evamo-dark .select2-container--default .select2-results__option--highlighte
   
         <?php echo form_open_multipart("admin/add_product_store"); ?>
 <div class="row clearfix evamo-product-form-grid">
+      <div class="col-sm-12">
+        <div class="form-group">
+          <?php
+            $selected_branch_id = isset($selected_branch_id) ? $selected_branch_id : null;
+            $selected_branch_name = 'All Branches';
+            if ($selected_branch_id && !empty($branches)) {
+              foreach ($branches as $branch) {
+                if ((int)$selected_branch_id === (int)$branch->branch_id) {
+                  $selected_branch_name = $branch->branch_name;
+                  break;
+                }
+              }
+            }
+          ?>
+          <span>Active Branch</span>
+          <input type="text" class="form-control" value="<?php echo html_escape($selected_branch_name); ?>" readonly>
+        </div>
+    </div>
        <div class="col-sm-6">
         <div class="form-group">
            <span>Select Product</span>
@@ -399,4 +417,3 @@ $('#district').html('<option value="">All</option>');
         width: '100%'
     });
 </script>
-

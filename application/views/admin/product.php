@@ -301,6 +301,38 @@ html.evamo-dark .card .header h2 {
     </div>
        <div class="col-sm-6">
       <div class="form-group">
+                <span>Branch <span class="text-danger">*</span></span>
+            <?php
+              $selected_branch_id = isset($selected_branch_id) ? $selected_branch_id : null;
+              $selected_branch_name = '';
+              if ($selected_branch_id && !empty($branches)) {
+                foreach ($branches as $branch) {
+                  if ((int)$selected_branch_id === (int)$branch->branch_id) {
+                    $selected_branch_name = $branch->branch_name;
+                    break;
+                  }
+                }
+              }
+            ?>
+            <?php if ($selected_branch_id): ?>
+              <input type="hidden" name="branch_id" value="<?php echo (int)$selected_branch_id; ?>">
+              <input type="text" class="form-control" value="<?php echo html_escape($selected_branch_name); ?>" readonly>
+              <small class="text-muted">Using selected admin branch.</small>
+            <?php else: ?>
+              <select required name="branch_id" class="form-control" style="width: 100%;">
+                  <option value="">Select branch</option>
+                  <?php foreach ($branches as $branch): ?>
+                      <option value="<?php echo $branch->branch_id; ?>" <?php echo set_select('branch_id', $branch->branch_id); ?>>
+                          <?php echo $branch->branch_name; ?>
+                      </option>
+                  <?php endforeach; ?>
+              </select>
+            <?php endif; ?>
+            <?php echo form_error("branch_id"); ?>
+        </div>
+    </div>
+       <div class="col-sm-6">
+      <div class="form-group">
                 <span>Unit <span class="text-danger">*</span></span>
             <select required name="unit" class="form-control evamo-unit-select" style="width: 100%;">
                 <option value="">Search or select unit</option>
@@ -418,6 +450,7 @@ html.evamo-dark .card .header h2 {
             <thead class="thead-primary">
                 <tr>
                     <th>Product name</th>
+                    <th>Branch</th>
                     <th>Reason</th>
                     <th>Buy price</th>
                     <th>Retail Sell price</th>
@@ -434,6 +467,7 @@ html.evamo-dark .card .header h2 {
             <tr>
            
             <td><?php echo $products->name; ?></td>
+            <td><?php echo !empty($products->branch_name) ? $products->branch_name : '-'; ?></td>
             <td><?php echo (isset($products->reason) && $products->reason !== '') ? ucfirst($products->reason) : 'Purchased'; ?></td>
             <td>Tsh.<?php echo number_format($products->buy_price); ?>/=</td>
             <td>Tsh.<?php echo number_format($products->price); ?>/=</td>
@@ -527,4 +561,3 @@ html.evamo-dark .card .header h2 {
             });
         });
     </script>
-

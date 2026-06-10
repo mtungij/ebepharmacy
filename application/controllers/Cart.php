@@ -4,10 +4,11 @@ class Cart extends CI_Controller{
      function index(){
         $this->load->model('queries');
         $user_id = $this->session->userdata('user_id');
-        $datay = $this->queries->get_productAll();
+        $branch_id = (int) $this->session->userdata('branch_id');
+        $datay = $this->queries->get_productAll($branch_id ?: null);
         $limit = $this->queries->get_stock_limitData();
         $my = $this->queries->get_mydata($user_id);
-        $kwisha = $this->queries->get_bidhaa_kwisha();
+        $kwisha = $this->queries->get_bidhaa_kwisha($branch_id ?: null);
           // print_r($product);
           //   exit();
         $data = array();
@@ -55,8 +56,8 @@ class Cart extends CI_Controller{
     }
     
     function checkForItemBalance($item_id,$qnty){
-    echo "item_id " . $item_id. $qnty;
-    $sql = "SELECT * FROM tbl_store WHERE product_id='$item_id' AND balance >= '$qnty'";
+    $branch_id = (int) $this->session->userdata('branch_id');
+    $sql = "SELECT * FROM tbl_store WHERE product_id='$item_id' AND branch_id = '$branch_id' AND balance >= '$qnty'";
       $data = $this->db->query($sql);
       // echo "<pre>";
       // print_r($data->result());

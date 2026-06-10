@@ -2,6 +2,7 @@
  class Queries extends CI_model{
  
    public function insert_admin($data){
+  $this->ensure_branch_table();
   if ($this->db->insert('tbl_user',$data)) {
     return $this->db->insert_id();
   }
@@ -10,7 +11,8 @@
    }
 
    public function get_users(){
-   	$users = $this->db->query("SELECT * FROM tbl_user");
+    $this->ensure_branch_table();
+   	$users = $this->db->query("SELECT tbl_user.*, tbl_branch.branch_name FROM tbl_user LEFT JOIN tbl_branch ON tbl_branch.branch_id = tbl_user.branch_id");
    	  return $users->result();
    }
 
@@ -30,17 +32,22 @@
    }
 
    public function get_product(){
-    $data_product = $this->db->query("SELECT * FROM product  JOIN tbl_store ON tbl_store.product_id = product.id  ORDER BY id DESC LIMIT 5");
+    $this->ensure_branch_table();
+    $data_product = $this->db->query("SELECT product.*, tbl_store.*, tbl_branch.branch_name FROM product JOIN tbl_store ON tbl_store.product_id = product.id LEFT JOIN tbl_branch ON tbl_branch.branch_id = product.branch_id ORDER BY product.id DESC LIMIT 5");
        return $data_product->result();
    }
 
-    public function get_productAll(){
-    $data_product = $this->db->query("SELECT * FROM product JOIN tbl_store ON tbl_store.product_id = product.id");
+    public function get_productAll($branch_id = null){
+    $this->ensure_branch_table();
+    $branch_sql = $this->inventory_branch_condition($branch_id);
+    $data_product = $this->db->query("SELECT product.*, tbl_store.*, product.id AS id, tbl_branch.branch_name FROM product JOIN tbl_store ON tbl_store.product_id = product.id LEFT JOIN tbl_branch ON tbl_branch.branch_id = product.branch_id $branch_sql");
        return $data_product->result();
    }
 
-     public function get_productAllStore(){
-    $data_product = $this->db->query("SELECT * FROM product  JOIN tbl_store ON tbl_store.product_id = product.id ");
+     public function get_productAllStore($branch_id = null){
+    $this->ensure_branch_table();
+    $branch_sql = $this->inventory_branch_condition($branch_id);
+    $data_product = $this->db->query("SELECT product.*, tbl_store.*, product.id AS id, tbl_branch.branch_name FROM product JOIN tbl_store ON tbl_store.product_id = product.id LEFT JOIN tbl_branch ON tbl_branch.branch_id = product.branch_id $branch_sql");
        return $data_product->result();
    }
 
@@ -70,29 +77,33 @@
       return $sales->result();
     }
 
-      public function get_sallesToday_Cashire(){
+      public function get_sallesToday_Cashire($branch_id = null){
       $date = date("Y-m-d");
-      $sales = $this->db->query("SELECT u.user_id,u.full_name,u.phone_number,u.img,u.role,s.sell_id,s.user_id,s.product_id,s.quantity as quanty,s.new_sell_price,s.total_sell_price,s.profit,s.sell_day,s.created_at,s.status,p.id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.ju_price,s.customer FROM tbl_sell s JOIN tbl_user u ON u.user_id = s.user_id JOIN  product p ON p.id = s.product_id WHERE  s.created_at >= '$date'");
+      $branch_sql = $branch_id !== null ? " AND s.branch_id = " . (int) $branch_id : "";
+      $sales = $this->db->query("SELECT u.user_id,u.full_name,u.phone_number,u.img,u.role,s.sell_id,s.user_id,s.product_id,s.quantity as quanty,s.new_sell_price,s.total_sell_price,s.profit,s.sell_day,s.created_at,s.status,p.id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.ju_price,s.customer FROM tbl_sell s JOIN tbl_user u ON u.user_id = s.user_id JOIN  product p ON p.id = s.product_id WHERE  s.created_at >= '$date' $branch_sql");
       return $sales->result();
     }
 
 
-     public function get_sallesTodayData(){
+     public function get_sallesTodayData($branch_id = null){
       $date = date("Y-m-d");
-      $sales = $this->db->query("SELECT u.user_id,u.full_name,u.phone_number,u.img,u.role,s.sell_id,s.user_id,s.product_id,s.quantity as quanty,s.new_sell_price,s.total_sell_price,s.profit,s.sell_day,s.created_at,s.status,p.id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.ju_price,s.customer FROM tbl_sell s JOIN tbl_user u ON u.user_id = s.user_id JOIN  product p ON p.id = s.product_id WHERE  s.sell_day >= DATE_SUB(now(), INTERVAL 7 DAY) ORDER BY s.sell_day = 'DESC'");
+      $branch_sql = $branch_id !== null ? " AND s.branch_id = " . (int) $branch_id : "";
+      $sales = $this->db->query("SELECT u.user_id,u.full_name,u.phone_number,u.img,u.role,s.sell_id,s.user_id,s.product_id,s.quantity as quanty,s.new_sell_price,s.total_sell_price,s.profit,s.sell_day,s.created_at,s.status,p.id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.ju_price,s.customer,b.branch_name FROM tbl_sell s JOIN tbl_user u ON u.user_id = s.user_id JOIN  product p ON p.id = s.product_id LEFT JOIN tbl_branch b ON b.branch_id = s.branch_id WHERE  s.sell_day >= DATE_SUB(now(), INTERVAL 7 DAY) $branch_sql ORDER BY s.sell_day = 'DESC'");
       return $sales->result();
     }
 
-    public function get_sallesTodayData_seller(){
+    public function get_sallesTodayData_seller($branch_id = null){
       $date = date("Y-m-d");
-      $sales = $this->db->query("SELECT u.user_id,u.full_name,u.phone_number,u.img,u.role,s.sell_id,s.user_id,s.product_id,s.quantity as quanty,s.new_sell_price,s.total_sell_price,s.profit,s.sell_day,s.created_at,s.status,p.id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.ju_price,s.customer,SUM(s.total_sell_price) AS total_mauzo FROM tbl_sell s JOIN tbl_user u ON u.user_id = s.user_id JOIN  product p ON p.id = s.product_id WHERE  s.sell_day = '$date' GROUP BY s.user_id");
+      $branch_sql = $branch_id !== null ? " AND s.branch_id = " . (int) $branch_id : "";
+      $sales = $this->db->query("SELECT u.user_id,u.full_name,u.phone_number,u.img,u.role,s.sell_id,s.user_id,s.product_id,s.quantity as quanty,s.new_sell_price,s.total_sell_price,s.profit,s.sell_day,s.created_at,s.status,p.id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.ju_price,s.customer,SUM(s.total_sell_price) AS total_mauzo FROM tbl_sell s JOIN tbl_user u ON u.user_id = s.user_id JOIN  product p ON p.id = s.product_id WHERE  s.sell_day = '$date' $branch_sql GROUP BY s.user_id");
       return $sales->result();
     }
 
 
-      public function get_sallesTodayDataRetail(){
+      public function get_sallesTodayDataRetail($branch_id = null){
       $date = date("Y-m-d");
-      $sales = $this->db->query("SELECT u.user_id,u.full_name,u.phone_number,u.img,u.role,s.sell_id,s.user_id,s.product_id,s.quantity as quanty,s.new_sell_price,s.total_sell_price,s.profit,s.sell_day,s.created_at,s.sell_status,p.id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.ju_price,s.customer FROM tbl_sell s JOIN tbl_user u ON u.user_id = s.user_id JOIN  product p ON p.id = s.product_id WHERE s.sell_status = 'retail' AND s.created_at >= '$date'");
+      $branch_sql = $branch_id !== null ? " AND s.branch_id = " . (int) $branch_id : "";
+      $sales = $this->db->query("SELECT u.user_id,u.full_name,u.phone_number,u.img,u.role,s.sell_id,s.user_id,s.product_id,s.quantity as quanty,s.new_sell_price,s.total_sell_price,s.profit,s.sell_day,s.created_at,s.sell_status,p.id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.ju_price,s.customer,b.branch_name FROM tbl_sell s JOIN tbl_user u ON u.user_id = s.user_id JOIN  product p ON p.id = s.product_id LEFT JOIN tbl_branch b ON b.branch_id = s.branch_id WHERE s.sell_status = 'retail' AND s.created_at >= '$date' $branch_sql");
       return $sales->result();
     }
 
@@ -104,51 +115,64 @@
      }
 
 
-     public function get_today_sales_cashire(){
+     public function get_today_sales_cashire($branch_id = null){
       $date = date("Y-m-d");
-       $data = $this->db->query("SELECT SUM(total_sell_price) AS TotalItemsOrdered FROM tbl_sell WHERE  created_at >= '$date'");
+      $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
+       $data = $this->db->query("SELECT SUM(total_sell_price) AS TotalItemsOrdered FROM tbl_sell WHERE  created_at >= '$date' $branch_sql");
        return $data->row();
      }
 
-       public function get_today_salesData(){
+       public function get_today_salesData($branch_id = null){
       $date = date("Y-m-d");
-       $data = $this->db->query("SELECT SUM(total_sell_price) AS TotalItemsOrdered FROM tbl_sell WHERE  created_at >= '$date'");
+      $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
+       $data = $this->db->query("SELECT SUM(total_sell_price) AS TotalItemsOrdered FROM tbl_sell WHERE  created_at >= '$date' $branch_sql");
        return $data->row();
      }
 
-     public function get_today_profit(){
+     public function get_today_profit($branch_id = null){
       $date = date("Y-m-d");
-       $data = $this->db->query("SELECT SUM(profit) AS Totalprofit FROM tbl_sell WHERE  created_at >= '$date'");
+      $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
+       $data = $this->db->query("SELECT SUM(profit) AS Totalprofit FROM tbl_sell WHERE  created_at >= '$date' $branch_sql");
        return $data->row();
      }
 
-     public function get_all_inventory(){
-     $data = $this->db->query("SELECT * FROM product JOIN tbl_store ON tbl_store.product_id = product.id");
+     private function inventory_branch_condition($branch_id = null){
+      return $branch_id !== null && $branch_id !== '' ? " WHERE product.branch_id = " . (int) $branch_id : "";
+     }
+
+     public function get_all_inventory($branch_id = null){
+     $branch_sql = $this->inventory_branch_condition($branch_id);
+     $data = $this->db->query("SELECT product.*, tbl_store.*, product.id AS id, tbl_branch.branch_name FROM product JOIN tbl_store ON tbl_store.product_id = product.id LEFT JOIN tbl_branch ON tbl_branch.branch_id = product.branch_id $branch_sql");
       return $data->result();
      }
 
-     public function get_all_SUMbalanceinventory(){
-     $data = $this->db->query("SELECT SUM(balance) AS bala FROM product JOIN tbl_store ON tbl_store.product_id = product.id");
+     public function get_all_SUMbalanceinventory($branch_id = null){
+     $branch_sql = $this->inventory_branch_condition($branch_id);
+     $data = $this->db->query("SELECT SUM(balance) AS bala FROM product JOIN tbl_store ON tbl_store.product_id = product.id $branch_sql");
       return $data->row();
      }
 
-     public function get_all_SUMbuypriceinventory(){
-     $data = $this->db->query("SELECT SUM(buy_price) AS buy_prc FROM product JOIN tbl_store ON tbl_store.product_id = product.id");
+     public function get_all_SUMbuypriceinventory($branch_id = null){
+     $branch_sql = $this->inventory_branch_condition($branch_id);
+     $data = $this->db->query("SELECT SUM(buy_price) AS buy_prc FROM product JOIN tbl_store ON tbl_store.product_id = product.id $branch_sql");
       return $data->row();
      }
 
-     public function get_all_Totalbuyprice(){
-     $data = $this->db->query("SELECT SUM(total_buy) AS total_buyPrice FROM product JOIN tbl_store ON tbl_store.product_id = product.id");
+     public function get_all_Totalbuyprice($branch_id = null){
+     $branch_sql = $this->inventory_branch_condition($branch_id);
+     $data = $this->db->query("SELECT SUM(total_buy) AS total_buyPrice FROM product JOIN tbl_store ON tbl_store.product_id = product.id $branch_sql");
       return $data->row();
      }
 
-     public function get_all_selling_price(){
-     $data = $this->db->query("SELECT SUM(price) AS sell_price FROM product JOIN tbl_store ON tbl_store.product_id = product.id");
+     public function get_all_selling_price($branch_id = null){
+     $branch_sql = $this->inventory_branch_condition($branch_id);
+     $data = $this->db->query("SELECT SUM(price) AS sell_price FROM product JOIN tbl_store ON tbl_store.product_id = product.id $branch_sql");
       return $data->row();
      }
 
-      public function get_all_Totalselling_price(){
-     $data = $this->db->query("SELECT SUM(total_sell) AS Total_sell_price FROM product JOIN tbl_store ON tbl_store.product_id = product.id");
+      public function get_all_Totalselling_price($branch_id = null){
+     $branch_sql = $this->inventory_branch_condition($branch_id);
+     $data = $this->db->query("SELECT SUM(total_sell) AS Total_sell_price FROM product JOIN tbl_store ON tbl_store.product_id = product.id $branch_sql");
       return $data->row();
      }
 
@@ -175,6 +199,7 @@
      }
 
      public function insert_useToday($data){
+      $this->ensure_branch_table();
       return $this->db->insert('cash_flow',$data);
      }
 
@@ -184,9 +209,10 @@
      return $use->result();
      }
 
-      public function  get_use_today_cashire(){
+      public function  get_use_today_cashire($branch_id = null){
       $date = date("Y-m-d");
-      $use = $this->db->query("SELECT * FROM cash_flow c  WHERE created >= '$date'");
+      $branch_sql = $branch_id !== null ? " AND c.branch_id = " . (int) $branch_id : "";
+      $use = $this->db->query("SELECT * FROM cash_flow c  WHERE created >= '$date' $branch_sql");
      return $use->result();
      }
 
@@ -196,9 +222,10 @@
        return $matumiz->row();
      }
 
-       public function get_totalMatumizi_cashire(){
+       public function get_totalMatumizi_cashire($branch_id = null){
       $date = date('Y-m-d');
-      $matumiz = $this->db->query("SELECT SUM(price) as matumiz FROM cash_flow WHERE created >= '$date'");
+      $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
+      $matumiz = $this->db->query("SELECT SUM(price) as matumiz FROM cash_flow WHERE created >= '$date' $branch_sql");
        return $matumiz->row();
      }
 
@@ -221,14 +248,16 @@
         return $data->result();
      }
 
-     public function All_totalMatumizi(){
+     public function All_totalMatumizi($branch_id = null){
       //$date = date('Y-m-d');
-      $matumiz = $this->db->query("SELECT SUM(price) as matumiz FROM cash_flow");
+      $branch_sql = $branch_id !== null ? " WHERE branch_id = " . (int) $branch_id : "";
+      $matumiz = $this->db->query("SELECT SUM(price) as matumiz FROM cash_flow $branch_sql");
        return $matumiz->row();
      }
 
-  public function get_All_salesData(){
-       $data = $this->db->query("SELECT SUM(total_sell_price) AS TotalItemsOrdered FROM tbl_sell");
+  public function get_All_salesData($branch_id = null){
+      $branch_sql = $branch_id !== null ? " WHERE branch_id = " . (int) $branch_id : "";
+       $data = $this->db->query("SELECT SUM(total_sell_price) AS TotalItemsOrdered FROM tbl_sell $branch_sql");
        return $data->row();
      }
 
@@ -296,13 +325,17 @@
       return $mauzo->row();
      }
 
-     public function get_sellinprice(){
-      $selling = $this->db->query("SELECT * FROM product");
+     public function get_sellinprice($branch_id = null){
+      $this->ensure_branch_table();
+      $branch_sql = $branch_id !== null ? " WHERE product.branch_id = " . (int) $branch_id : "";
+      $selling = $this->db->query("SELECT product.*, tbl_branch.branch_name FROM product LEFT JOIN tbl_branch ON tbl_branch.branch_id = product.branch_id $branch_sql");
         return $selling->result();
      }
 
-     public function get_emptyProduct(){
-      $empty = $this->db->query("SELECT * FROM tbl_store JOIN product ON product.id = tbl_store.product_id WHERE balance = 0");
+     public function get_emptyProduct($branch_id = null){
+      $this->ensure_branch_table();
+      $branch_sql = $branch_id !== null ? " AND product.branch_id = " . (int) $branch_id : "";
+      $empty = $this->db->query("SELECT product.*, tbl_store.*, product.id AS id, tbl_branch.branch_name FROM tbl_store JOIN product ON product.id = tbl_store.product_id LEFT JOIN tbl_branch ON tbl_branch.branch_id = product.branch_id WHERE balance = 0 $branch_sql");
         return $empty->result();
      }
 
@@ -367,6 +400,147 @@
         return $this->db->where('id',$id)->update('tbl_information',$data);
       }
 
+      public function ensure_branch_table(){
+        $this->db->query("
+          CREATE TABLE IF NOT EXISTS `tbl_branch` (
+            `branch_id` int(11) NOT NULL AUTO_INCREMENT,
+            `information_id` int(11) DEFAULT NULL,
+            `branch_name` varchar(150) DEFAULT NULL,
+            `location` text DEFAULT NULL,
+            `phone` text DEFAULT NULL,
+            `email` text DEFAULT NULL,
+            `is_main` tinyint(1) NOT NULL DEFAULT 0,
+            `status` varchar(50) DEFAULT 'open',
+            `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+            PRIMARY KEY (`branch_id`),
+            KEY `information_id` (`information_id`)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        ");
+
+        if (!$this->db->field_exists('branch_id', 'tbl_user')) {
+          $this->db->query("ALTER TABLE `tbl_user` ADD `branch_id` int(11) DEFAULT NULL AFTER `role`");
+        }
+
+        if (!$this->db->field_exists('branch_id', 'tbl_sell')) {
+          $this->db->query("ALTER TABLE `tbl_sell` ADD `branch_id` int(11) DEFAULT NULL AFTER `user_id`");
+        }
+
+        if (!$this->db->field_exists('branch_id', 'cash_flow')) {
+          $this->db->query("ALTER TABLE `cash_flow` ADD `branch_id` int(11) DEFAULT NULL AFTER `user_id`");
+        }
+
+        if ($this->db->table_exists('tbl_cashire') && !$this->db->field_exists('branch_id', 'tbl_cashire')) {
+          $this->db->query("ALTER TABLE `tbl_cashire` ADD `branch_id` int(11) DEFAULT NULL AFTER `cash_id`");
+        }
+
+        if ($this->db->table_exists('product') && !$this->db->field_exists('branch_id', 'product')) {
+          $this->db->query("ALTER TABLE `product` ADD `branch_id` int(11) DEFAULT NULL AFTER `user_id`");
+        }
+
+        if ($this->db->table_exists('tbl_store') && !$this->db->field_exists('branch_id', 'tbl_store')) {
+          $this->db->query("ALTER TABLE `tbl_store` ADD `branch_id` int(11) DEFAULT NULL AFTER `product_id`");
+        }
+
+        return true;
+      }
+
+      public function phone_number_exists($phone_number){
+        return $this->db
+          ->where('phone_number', $phone_number)
+          ->count_all_results('tbl_user') > 0;
+      }
+
+      public function create_initial_account($shopData, $branchData, $adminData){
+        $this->ensure_branch_table();
+        $this->db->trans_start();
+
+        $this->db->insert('tbl_information', $shopData);
+        $shopId = $this->db->insert_id();
+
+        $branchData['information_id'] = $shopId;
+        $this->db->insert('tbl_branch', $branchData);
+        $branchId = $this->db->insert_id();
+
+        $adminData['branch_id'] = $branchId;
+        $this->db->insert('tbl_user', $adminData);
+        $userId = $this->db->insert_id();
+
+        $this->db->trans_complete();
+
+        if (!$this->db->trans_status()) {
+          return false;
+        }
+
+        return [
+          'shop_id' => $shopId,
+          'branch_id' => $branchId,
+          'user_id' => $userId,
+        ];
+      }
+
+      public function get_branches(){
+        $this->ensure_branch_table();
+        return $this->db
+          ->order_by('is_main', 'DESC')
+          ->order_by('branch_id', 'DESC')
+          ->get('tbl_branch')
+          ->result();
+      }
+
+      public function insert_branch($data){
+        $this->ensure_branch_table();
+        return $this->db->insert('tbl_branch', $data);
+      }
+
+      public function get_main_branch(){
+        $this->ensure_branch_table();
+        $main = $this->db
+          ->where('is_main', 1)
+          ->order_by('branch_id', 'ASC')
+          ->get('tbl_branch')
+          ->row();
+
+        if ($main) {
+          return $main;
+        }
+
+        return $this->db
+          ->order_by('branch_id', 'ASC')
+          ->get('tbl_branch')
+          ->row();
+      }
+
+      public function backfill_missing_branch_data($branch_id = null){
+        $this->ensure_branch_table();
+        $branch_id = $branch_id ?: ($this->get_main_branch()->branch_id ?? null);
+
+        if (!$branch_id) {
+          return false;
+        }
+
+        $branch_id = (int) $branch_id;
+        $tables = ['tbl_user', 'product', 'tbl_store', 'tbl_sell', 'cash_flow', 'tbl_cashire'];
+        $summary = [];
+
+        foreach ($tables as $table) {
+          if (!$this->db->table_exists($table) || !$this->db->field_exists('branch_id', $table)) {
+            $summary[$table] = 0;
+            continue;
+          }
+
+          $this->db->where('branch_id IS NULL', null, false);
+          $this->db->or_where('branch_id', 0);
+          $this->db->update($table, ['branch_id' => $branch_id]);
+          $summary[$table] = $this->db->affected_rows();
+        }
+
+        return [
+          'branch_id' => $branch_id,
+          'summary' => $summary,
+          'total' => array_sum($summary),
+        ];
+      }
+
 
 
   public function update_password_data($user_id, $userdata)
@@ -392,18 +566,22 @@
       return $this->db->WHERE('id',$id)->update('cash_flow',$data);
     }
 
-    public function get_bidhaa_kwisha(){
-      $data = $this->db->query("SELECT * FROM tbl_store JOIN product ON product.id = tbl_store.product_id WHERE balance = 0");
+    public function get_bidhaa_kwisha($branch_id = null){
+      $this->ensure_branch_table();
+      $branch_sql = $branch_id !== null ? " AND product.branch_id = " . (int) $branch_id : "";
+      $data = $this->db->query("SELECT product.*, tbl_store.*, product.id AS id, tbl_branch.branch_name FROM tbl_store JOIN product ON product.id = tbl_store.product_id LEFT JOIN tbl_branch ON tbl_branch.branch_id = product.branch_id WHERE balance = 0 $branch_sql");
        return $data->result();
     }
 
-    public function get_sum_jumlaPrice(){
-      $jumla = $this->db->query("SELECT SUM(ju_price) AS jumlaPrice FROM product JOIN tbl_store ON tbl_store.product_id = product.id");
+    public function get_sum_jumlaPrice($branch_id = null){
+      $branch_sql = $this->inventory_branch_condition($branch_id);
+      $jumla = $this->db->query("SELECT SUM(ju_price) AS jumlaPrice FROM product JOIN tbl_store ON tbl_store.product_id = product.id $branch_sql");
        return $jumla->row();
     }
 
-    public function get_total_beiju(){
-      $jum = $this->db->query("SELECT SUM(total_ju) AS totalju FROM tbl_store JOIN product ON product.id = tbl_store.product_id");
+    public function get_total_beiju($branch_id = null){
+      $branch_sql = $this->inventory_branch_condition($branch_id);
+      $jum = $this->db->query("SELECT SUM(total_ju) AS totalju FROM tbl_store JOIN product ON product.id = tbl_store.product_id $branch_sql");
       return $jum->row();
     }
 
@@ -414,9 +592,10 @@
       return $sales->result();
     }
 
-     public function get_sallesTodayRetail_cashire(){
+     public function get_sallesTodayRetail_cashire($branch_id = null){
       $date = date("Y-m-d");
-      $sales = $this->db->query("SELECT u.user_id,u.full_name,u.phone_number,u.img,u.role,s.sell_id,s.user_id,s.product_id,s.quantity as quanty,s.new_sell_price,s.total_sell_price,s.profit,s.sell_day,s.created_at,s.sell_status,p.id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.ju_price,s.customer FROM tbl_sell s JOIN tbl_user u ON u.user_id = s.user_id JOIN  product p ON p.id = s.product_id WHERE  s.sell_status = 'retail' AND s.created_at >= '$date'");
+      $branch_sql = $branch_id !== null ? " AND s.branch_id = " . (int) $branch_id : "";
+      $sales = $this->db->query("SELECT u.user_id,u.full_name,u.phone_number,u.img,u.role,s.sell_id,s.user_id,s.product_id,s.quantity as quanty,s.new_sell_price,s.total_sell_price,s.profit,s.sell_day,s.created_at,s.sell_status,p.id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.ju_price,s.customer FROM tbl_sell s JOIN tbl_user u ON u.user_id = s.user_id JOIN  product p ON p.id = s.product_id WHERE  s.sell_status = 'retail' AND s.created_at >= '$date' $branch_sql");
       return $sales->result();
     }
 
@@ -427,9 +606,10 @@
       return $sales->result();
     }
 
-      public function get_sallesTodayWholesale_cashire(){
+      public function get_sallesTodayWholesale_cashire($branch_id = null){
       $date = date("Y-m-d");
-      $sales = $this->db->query("SELECT u.user_id,u.full_name,u.phone_number,u.img,u.role,s.sell_id,s.user_id,s.product_id,s.quantity as quanty,s.new_sell_price,s.total_sell_price,s.profit,s.sell_day,s.created_at,s.sell_status,p.id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.ju_price,s.customer FROM tbl_sell s JOIN tbl_user u ON u.user_id = s.user_id JOIN  product p ON p.id = s.product_id WHERE  s.sell_status = 'whole' AND s.created_at >= '$date'");
+      $branch_sql = $branch_id !== null ? " AND s.branch_id = " . (int) $branch_id : "";
+      $sales = $this->db->query("SELECT u.user_id,u.full_name,u.phone_number,u.img,u.role,s.sell_id,s.user_id,s.product_id,s.quantity as quanty,s.new_sell_price,s.total_sell_price,s.profit,s.sell_day,s.created_at,s.sell_status,p.id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.ju_price,s.customer FROM tbl_sell s JOIN tbl_user u ON u.user_id = s.user_id JOIN  product p ON p.id = s.product_id WHERE  s.sell_status = 'whole' AND s.created_at >= '$date' $branch_sql");
       return $sales->result();
     }
 
@@ -444,33 +624,37 @@ public function get_today_salesretail_user($user_id){
         return $this->get_today_salesretail_user($user_id);
       }
 
-      public function get_today_salesretail_cashire(){
+      public function get_today_salesretail_cashire($branch_id = null){
       $date = date("Y-m-d");
-       $data = $this->db->query("SELECT SUM(total_sell_price) AS Totalretail FROM tbl_sell WHERE sell_status = 'retail' AND created_at >= '$date'");
+      $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
+       $data = $this->db->query("SELECT SUM(total_sell_price) AS Totalretail FROM tbl_sell WHERE sell_status = 'retail' AND created_at >= '$date' $branch_sql");
        return $data->row();
      }
 
-      public function get_today_salesreatil_cashire(){
-        return $this->get_today_salesretail_cashire();
+      public function get_today_salesreatil_cashire($branch_id = null){
+        return $this->get_today_salesretail_cashire($branch_id);
       }
 
-      public function get_today_salesWhole_cashire(){
+      public function get_today_salesWhole_cashire($branch_id = null){
       $date = date("Y-m-d");
-       $data = $this->db->query("SELECT SUM(total_sell_price) AS Totalwhole FROM tbl_sell WHERE sell_status = 'whole' AND created_at >= '$date'");
+      $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
+       $data = $this->db->query("SELECT SUM(total_sell_price) AS Totalwhole FROM tbl_sell WHERE sell_status = 'whole' AND created_at >= '$date' $branch_sql");
        return $data->row();
      }
 
 
-       public function get_today_salesretail(){
+       public function get_today_salesretail($branch_id = null){
       $date = date("Y-m-d");
-       $data = $this->db->query("SELECT SUM(total_sell_price) AS Totalretail FROM tbl_sell WHERE sell_status = 'retail' AND created_at >= '$date'");
+      $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
+       $data = $this->db->query("SELECT SUM(total_sell_price) AS Totalretail FROM tbl_sell WHERE sell_status = 'retail' AND created_at >= '$date' $branch_sql");
        return $data->row();
      }
 
 
-     public function get_today_profitretail(){
+     public function get_today_profitretail($branch_id = null){
       $date = date("Y-m-d");
-       $data = $this->db->query("SELECT SUM(profit) AS Totalprofitretail FROM tbl_sell WHERE sell_status = 'retail' AND created_at >= '$date'");
+      $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
+       $data = $this->db->query("SELECT SUM(profit) AS Totalprofitretail FROM tbl_sell WHERE sell_status = 'retail' AND created_at >= '$date' $branch_sql");
        return $data->row();
      }
 
@@ -482,16 +666,18 @@ public function get_today_salesretail_user($user_id){
     }
 
 
-      public function get_today_salesWholeData(){
+      public function get_today_salesWholeData($branch_id = null){
       $date = date("Y-m-d");
-       $data = $this->db->query("SELECT SUM(total_sell_price) AS Totalwhole FROM tbl_sell WHERE sell_status = 'whole' AND created_at >= '$date'");
+      $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
+       $data = $this->db->query("SELECT SUM(total_sell_price) AS Totalwhole FROM tbl_sell WHERE sell_status = 'whole' AND created_at >= '$date' $branch_sql");
        return $data->row();
      }
 
 
-      public function get_today_profitwhole(){
+      public function get_today_profitwhole($branch_id = null){
       $date = date("Y-m-d");
-       $data = $this->db->query("SELECT SUM(profit) AS whole_profit FROM tbl_sell WHERE sell_status = 'whole' AND created_at >= '$date'");
+      $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
+       $data = $this->db->query("SELECT SUM(profit) AS whole_profit FROM tbl_sell WHERE sell_status = 'whole' AND created_at >= '$date' $branch_sql");
        return $data->row();
      }
 
@@ -632,8 +818,10 @@ public function get_today_salesretail_user($user_id){
       return $mauzo->row();
      }
 
-     public function get_store_product_available(){
-      $data = $this->db->query("SELECT * FROM tbl_store s JOIN product p ON p.id = s.product_id");
+     public function get_store_product_available($branch_id = null){
+      $this->ensure_branch_table();
+      $branch_sql = $branch_id !== null && $branch_id !== '' ? " WHERE p.branch_id = " . (int) $branch_id : "";
+      $data = $this->db->query("SELECT s.*, p.*, s.product_id AS product_id, b.branch_name FROM tbl_store s JOIN product p ON p.id = s.product_id LEFT JOIN tbl_branch b ON b.branch_id = p.branch_id $branch_sql");
       return $data->result();
      }
 
@@ -676,8 +864,9 @@ public function get_today_salesretail_user($user_id){
    return $data->row();
  }
 
- public function get_mainTransforbalance($product_id){
-  $data = $this->db->query("SELECT * FROM tbl_store WHERE product_id = '$product_id'");
+ public function get_mainTransforbalance($product_id, $branch_id = null){
+  $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT * FROM tbl_store WHERE product_id = '$product_id' $branch_sql");
   return $data->row();
  }
 
@@ -687,32 +876,37 @@ public function get_today_salesretail_user($user_id){
    return $data->result();
  }
 
- public function get_empty_products_count(){
-  $data = $this->db->query("SELECT COUNT(*) AS count FROM tbl_store WHERE balance = 0");
+ public function get_empty_products_count($branch_id = null){
+  $branch_sql = $branch_id !== null ? " AND p.branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT COUNT(*) AS count FROM tbl_store s JOIN product p ON p.id = s.product_id WHERE s.balance = 0 $branch_sql");
   $row = $data->row();
   return (int) ($row->count ?? 0);
  }
 
- public function get_purchased_products_today_count(){
-  $data = $this->db->query("SELECT COUNT(DISTINCT product_id) AS sku_purchased FROM tbl_stock_movement WHERE DATE(date) = CURDATE() AND UPPER(TRIM(mov_status)) = 'PURCHASED'");
+ public function get_purchased_products_today_count($branch_id = null){
+  $branch_sql = $branch_id !== null ? " AND p.branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT COUNT(DISTINCT m.product_id) AS sku_purchased FROM tbl_stock_movement m JOIN product p ON p.id = m.product_id WHERE DATE(m.date) = CURDATE() AND UPPER(TRIM(m.mov_status)) = 'PURCHASED' $branch_sql");
   $row = $data->row();
   return (int) ($row->sku_purchased ?? 0);
  }
 
- public function get_adjusted_products_today_count(){
-  $data = $this->db->query("SELECT COUNT(DISTINCT product_id) AS sku_adjusted FROM tbl_stock_movement WHERE DATE(date) = CURDATE() AND UPPER(TRIM(mov_status)) LIKE 'ADJUSTED%'");
+ public function get_adjusted_products_today_count($branch_id = null){
+  $branch_sql = $branch_id !== null ? " AND p.branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT COUNT(DISTINCT m.product_id) AS sku_adjusted FROM tbl_stock_movement m JOIN product p ON p.id = m.product_id WHERE DATE(m.date) = CURDATE() AND UPPER(TRIM(m.mov_status)) LIKE 'ADJUSTED%' $branch_sql");
   $row = $data->row();
   return (int) ($row->sku_adjusted ?? 0);
  }
 
- public function get_purchased_products_today_units_count(){
-  $data = $this->db->query("SELECT COALESCE(SUM(product_qnty),0) AS total_purchased_units FROM tbl_stock_movement WHERE DATE(date) = CURDATE() AND UPPER(TRIM(mov_status)) = 'PURCHASED'");
+ public function get_purchased_products_today_units_count($branch_id = null){
+  $branch_sql = $branch_id !== null ? " AND p.branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT COALESCE(SUM(m.product_qnty),0) AS total_purchased_units FROM tbl_stock_movement m JOIN product p ON p.id = m.product_id WHERE DATE(m.date) = CURDATE() AND UPPER(TRIM(m.mov_status)) = 'PURCHASED' $branch_sql");
   $row = $data->row();
   return (int) ($row->total_purchased_units ?? 0);
  }
 
- public function get_adjusted_products_today_units_count(){
-  $data = $this->db->query("SELECT COALESCE(SUM(product_qnty),0) AS total_adjusted_units FROM tbl_stock_movement WHERE DATE(date) = CURDATE() AND UPPER(TRIM(mov_status)) LIKE 'ADJUSTED%'");
+ public function get_adjusted_products_today_units_count($branch_id = null){
+  $branch_sql = $branch_id !== null ? " AND p.branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT COALESCE(SUM(m.product_qnty),0) AS total_adjusted_units FROM tbl_stock_movement m JOIN product p ON p.id = m.product_id WHERE DATE(m.date) = CURDATE() AND UPPER(TRIM(m.mov_status)) LIKE 'ADJUSTED%' $branch_sql");
   $row = $data->row();
   return (int) ($row->total_adjusted_units ?? 0);
  }
@@ -803,30 +997,35 @@ public function get_today_salesretail_user($user_id){
   return $data->result();
  }
 
- public function get_sum_buyPrice(){
-  $data = $this->db->query("SELECT SUM(total_buy) AS total_buy FROM tbl_store");
+ public function get_sum_buyPrice($branch_id = null){
+  $branch_sql = $branch_id !== null ? " WHERE branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT SUM(total_buy) AS total_buy FROM tbl_store $branch_sql");
   return $data->row();
  }
 
- public function get_total_retail_salePrice(){
-  $data = $this->db->query("SELECT SUM(total_sell) AS total_retail FROM tbl_store");
+ public function get_total_retail_salePrice($branch_id = null){
+  $branch_sql = $branch_id !== null ? " WHERE branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT SUM(total_sell) AS total_retail FROM tbl_store $branch_sql");
   return $data->row();
  }
 
- public function get_suwhole_sale(){
-  $data = $this->db->query("SELECT SUM(total_ju) AS totalwhole FROM tbl_store");
+ public function get_suwhole_sale($branch_id = null){
+  $branch_sql = $branch_id !== null ? " WHERE branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT SUM(total_ju) AS totalwhole FROM tbl_store $branch_sql");
   return $data->row();
  }
 
- public function get_today_cashire_request(){
+ public function get_today_cashire_request($branch_id = null){
   $date = date("Y-m-d");
-  $data = $this->db->query("SELECT * FROM  tbl_cashire WHERE date = '$date' ORDER BY cash_id DESC");
+  $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT * FROM  tbl_cashire WHERE date = '$date' $branch_sql ORDER BY cash_id DESC");
    return $data->result();
  }
 
- public function get_total_req(){
+ public function get_total_req($branch_id = null){
   $date = date("Y-m-d");
-  $data = $this->db->query("SELECT SUM(total_price) AS total FROM tbl_cashire WHERE date = '$date'");
+  $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT SUM(total_price) AS total FROM tbl_cashire WHERE date = '$date' $branch_sql");
     return $data->row();
  }
 
@@ -865,6 +1064,45 @@ public function get_today_salesretail_user($user_id){
   public function get_monthly_report($from,$to){
   $data = $this->db->query("SELECT p.name,p.unit,s.quantity as qnty,s.new_sell_price,s.total_sell_price,u.full_name,s.sell_status,s.created_at as sell_date,s.profit  FROM tbl_sell s JOIN tbl_user u  ON u.user_id = s.user_id JOIN product p ON p.id = s.product_id WHERE s.sell_day between '$from' and '$to'");
   return $data->result();
+  }
+
+  public function get_sales_profit_report($from, $to, $branch_id = null){
+    $from = $this->db->escape_str($from);
+    $to = $this->db->escape_str($to);
+    $branch_sql = $branch_id ? " AND s.branch_id = " . (int)$branch_id : "";
+    $data = $this->db->query("
+      SELECT
+        p.name AS product_name,
+        p.unit,
+        s.sell_status,
+        s.sell_day,
+        COALESCE(b.branch_name, 'No Branch') AS branch_name,
+        COALESCE(SUM(s.quantity), 0) AS qty_sold,
+        COALESCE(SUM(s.total_sell_price), 0) AS sales_amount,
+        COALESCE(SUM(s.profit), 0) AS profit
+      FROM tbl_sell s
+      JOIN product p ON p.id = s.product_id
+      LEFT JOIN tbl_branch b ON b.branch_id = s.branch_id
+      WHERE s.sell_day BETWEEN '$from' AND '$to' $branch_sql
+      GROUP BY s.sell_day, s.product_id, p.name, p.unit, s.sell_status, s.branch_id, b.branch_name
+      ORDER BY s.sell_day DESC, p.name ASC
+    ");
+    return $data->result();
+  }
+
+  public function get_sales_profit_report_totals($from, $to, $branch_id = null){
+    $from = $this->db->escape_str($from);
+    $to = $this->db->escape_str($to);
+    $branch_sql = $branch_id ? " AND branch_id = " . (int)$branch_id : "";
+    $data = $this->db->query("
+      SELECT
+        COALESCE(SUM(quantity), 0) AS qty_sold,
+        COALESCE(SUM(total_sell_price), 0) AS sales_amount,
+        COALESCE(SUM(profit), 0) AS profit
+      FROM tbl_sell
+      WHERE sell_day BETWEEN '$from' AND '$to' $branch_sql
+    ");
+    return $data->row();
   }
 
   public function get_allSales($from,$to){
@@ -1136,9 +1374,10 @@ public function get_total_indirect_expenses(){
   return $data->row();
 }
 
-public function get_total_profit()
+public function get_total_profit($branch_id = null)
 {
-  $data = $this->db->query("SELECT SUM(profit) AS total_profit FROM tbl_sell");
+  $branch_sql = $branch_id !== null ? " WHERE branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT SUM(profit) AS total_profit FROM tbl_sell $branch_sql");
  return $data->row();
 }
 
@@ -1184,28 +1423,32 @@ public function get_total_purchase_data($req_id){
 }
 
 
-public function get_all_sells()
+public function get_all_sells($branch_id = null)
 {
-  $data = $this->db->query("SELECT SUM(total_sell_price) AS total_sell,SUM(profit) AS total_profit FROM  tbl_sell");
+  $branch_sql = $branch_id !== null ? " WHERE branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT SUM(total_sell_price) AS total_sell,SUM(profit) AS total_profit FROM  tbl_sell $branch_sql");
   return $data->row();
 }
 
 
-public function get_all_order_request(){
-  $data = $this->db->query("SELECT SUM(s.total_sell_price) AS total_sell,customer,u.full_name,r.order_id,r.date_receipt,r.order_status,s.sell_status FROM tbl_receipt r JOIN tbl_sell s ON s.order_id = r.order_id JOIN tbl_user u  ON u.user_id = s.user_id AND r.order_status = 'pending'GROUP BY s.order_id");
+public function get_all_order_request($branch_id = null){
+  $branch_sql = $branch_id !== null ? " AND s.branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT SUM(s.total_sell_price) AS total_sell,customer,u.full_name,r.order_id,r.date_receipt,r.order_status,s.sell_status FROM tbl_receipt r JOIN tbl_sell s ON s.order_id = r.order_id JOIN tbl_user u  ON u.user_id = s.user_id AND r.order_status = 'pending' $branch_sql GROUP BY s.order_id");
   return $data->result();
 }
 
 
-public function get_all_order_request_confirmed(){
+public function get_all_order_request_confirmed($branch_id = null){
   $today = date("Y-m-d");
-  $data = $this->db->query("SELECT SUM(s.total_sell_price) AS total_sell,customer,u.full_name,r.order_id,r.date_receipt,r.order_status FROM tbl_receipt r JOIN tbl_sell s ON s.order_id = r.order_id JOIN tbl_user u  ON u.user_id = s.user_id AND r.order_status = 'aproved' AND date(date_receipt) = '$today'GROUP BY s.order_id");
+  $branch_sql = $branch_id !== null ? " AND s.branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT SUM(s.total_sell_price) AS total_sell,customer,u.full_name,r.order_id,r.date_receipt,r.order_status FROM tbl_receipt r JOIN tbl_sell s ON s.order_id = r.order_id JOIN tbl_user u  ON u.user_id = s.user_id AND r.order_status = 'aproved' AND date(date_receipt) = '$today' $branch_sql GROUP BY s.order_id");
   return $data->result();
 }
 
-public function get_all_order_request_confirmed_total(){
+public function get_all_order_request_confirmed_total($branch_id = null){
   $today = date("Y-m-d");
-  $data = $this->db->query("SELECT SUM(s.total_sell_price) AS total_sell_recept,customer,u.full_name,r.order_id,r.date_receipt,r.order_status FROM tbl_receipt r JOIN tbl_sell s ON s.order_id = r.order_id JOIN tbl_user u  ON u.user_id = s.user_id AND r.order_status = 'aproved' AND date(date_receipt) = '$today'");
+  $branch_sql = $branch_id !== null ? " AND s.branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT SUM(s.total_sell_price) AS total_sell_recept,customer,u.full_name,r.order_id,r.date_receipt,r.order_status FROM tbl_receipt r JOIN tbl_sell s ON s.order_id = r.order_id JOIN tbl_user u  ON u.user_id = s.user_id AND r.order_status = 'aproved' AND date(date_receipt) = '$today' $branch_sql");
   return $data->row();
 }
 
@@ -1231,15 +1474,17 @@ public function confirm_order_data($order_id,$all_order){
 }
 
 
-public function get_product_tranding(){
+public function get_product_tranding($branch_id = null){
   $date = date("Y-m-d");
-  $data = $this->db->query("SELECT SUM(s.quantity) AS total_qnty,p.name,p.price,p.ju_price,s.sell_day FROM tbl_sell s JOIN product p ON p.id = s.product_id WHERE s.sell_day = '$date'  GROUP BY s.product_id ORDER BY SUM(s.quantity) DESC");
+  $branch_sql = $branch_id !== null ? " AND s.branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT SUM(s.quantity) AS total_qnty,p.name,p.price,p.ju_price,s.sell_day,b.branch_name FROM tbl_sell s JOIN product p ON p.id = s.product_id LEFT JOIN tbl_branch b ON b.branch_id = s.branch_id WHERE s.sell_day = '$date' $branch_sql GROUP BY s.product_id ORDER BY SUM(s.quantity) DESC");
   return $data->result();
 }
 
-public function get_product_tranding_data($from,$to){
+public function get_product_tranding_data($from,$to,$branch_id = null){
   $date = date("Y-m-d");
-  $data = $this->db->query("SELECT SUM(s.quantity) AS total_qnty,p.name,p.price,p.ju_price,s.sell_day FROM tbl_sell s JOIN product p ON p.id = s.product_id WHERE s.sell_day between '$from' and '$to' GROUP BY s.product_id ORDER BY SUM(s.quantity) DESC");
+  $branch_sql = $branch_id !== null ? " AND s.branch_id = " . (int) $branch_id : "";
+  $data = $this->db->query("SELECT SUM(s.quantity) AS total_qnty,p.name,p.price,p.ju_price,s.sell_day,b.branch_name FROM tbl_sell s JOIN product p ON p.id = s.product_id LEFT JOIN tbl_branch b ON b.branch_id = s.branch_id WHERE s.sell_day between '$from' and '$to' $branch_sql GROUP BY s.product_id ORDER BY SUM(s.quantity) DESC");
   return $data->result();
 }
 

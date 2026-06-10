@@ -68,6 +68,74 @@ tailwind.config = {
 <link rel="stylesheet" href="<?php echo base_url() ?>assets/admin/css/main.css">
 <link rel="stylesheet" href="<?php echo base_url() ?>assets/admin/css/color_skins.css">
 <link rel="stylesheet" href="<?php echo base_url() ?>assets/admin/css/tailwind-bridge.css?v=20260601n">
+<style>
+.evamo-live-filter {
+	display: flex;
+	align-items: flex-end;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-bottom: 16px;
+}
+
+.evamo-live-filter label {
+	margin-bottom: 6px;
+	font-weight: 600;
+	color: #4a5568;
+}
+
+.evamo-live-filter .evamo-filter-field {
+	display: flex;
+	flex-direction: column;
+	min-width: 220px;
+	flex: 1 1 220px;
+}
+
+.evamo-live-filter .evamo-filter-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.evamo-live-filter .form-control {
+	min-height: 38px;
+}
+
+@media (max-width: 575.98px) {
+	.evamo-live-filter {
+		display: block;
+	}
+
+	.evamo-live-filter .evamo-filter-field,
+	.evamo-live-filter .evamo-filter-actions {
+		width: 100%;
+		margin-bottom: 10px;
+	}
+
+	.evamo-live-filter .evamo-filter-actions .btn {
+		width: 100%;
+		margin-right: 0 !important;
+	}
+}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+	document.querySelectorAll('.evamo-live-filter select[data-live-submit="1"]').forEach(function (select) {
+		select.addEventListener('change', function () {
+			var clearTarget = select.getAttribute('data-clear-target');
+			if (clearTarget) {
+				var target = select.form ? select.form.querySelector('[name="' + clearTarget + '"]') : null;
+				if (target) {
+					target.value = '';
+				}
+			}
+			if (select.form) {
+				select.form.submit();
+			}
+		});
+	});
+});
+</script>
 </head>
 <body class="theme-cyan">
 

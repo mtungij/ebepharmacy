@@ -16,6 +16,16 @@
 </div>
 </div>
 <?php endif; ?>
+<?php if ($err = $this->session->flashdata('error')): ?>
+<div class="row">
+<div class="col-md-12">
+<div class="alert alert-dismisible alert-danger">
+<a href="" class="close">&times;</a>
+<?php echo $err;?>
+</div>
+</div>
+</div>
+<?php endif; ?>
 <div class="row clearfix">
 <div class="col-lg-12 col-md-12 col-sm-12">
 <div class="card">
@@ -49,6 +59,20 @@
                 <option value="cashier" <?php echo set_select('role', 'cashier'); ?>>cashier</option>
             </select>
             <?php echo form_error("role"); ?>
+        </div>
+    </div>
+    <div class="col-sm-4 evamo-branch-field" id="user-branch-field" style="display: none;">
+        <div class="form-group">
+            <span class="evamo-user-form-label">Branch</span>
+            <select class="form-control" name="branch_id" id="user-branch-select">
+                <option value="">Select branch</option>
+                <?php foreach ($branches as $branch): ?>
+                    <option value="<?php echo $branch->branch_id; ?>" <?php echo set_select('branch_id', $branch->branch_id); ?>>
+                        <?php echo $branch->branch_name; ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <?php echo form_error("branch_id"); ?>
         </div>
     </div>
 </div>
@@ -150,6 +174,7 @@
                     <th>Full name</th>
                     <th>Phone number</th>
                     <th>Privillage</th>
+                    <th>Branch</th>
                     <th>System Access</th>
                     <th>Date</th>
                     <th>Action</th>
@@ -161,6 +186,7 @@
                     <th>Full name</th>
                     <th>Phone number</th>
                     <th>Privillage</th>
+                    <th>Branch</th>
                                         <th>System Access</th>
                     <th>Date</th>
                     <th>Action</th>
@@ -182,6 +208,7 @@
             <td><?php echo $admins->full_name; ?></td>
             <td><?php echo $admins->phone_number; ?></td>
             <td><?php echo $admins->role; ?></td>
+            <td><?php echo !empty($admins->branch_name) ? $admins->branch_name : '-'; ?></td>
                         <td>
                             <?php if ($admins->role === 'seller'): ?>
                                 <?php if (!empty($user_access)): ?>
@@ -316,6 +343,8 @@ html.evamo-dark .evamo-access-option span {
     var toggleButtons = document.querySelectorAll('.evamo-password-toggle');
     var roleSelect = document.getElementById('user-role-select');
     var systemAccessBlock = document.getElementById('seller-system-access');
+    var branchField = document.getElementById('user-branch-field');
+    var branchSelect = document.getElementById('user-branch-select');
 
     function toggleSystemAccess() {
         if (!roleSelect || !systemAccessBlock) {
@@ -323,6 +352,16 @@ html.evamo-dark .evamo-access-option span {
         }
 
         systemAccessBlock.style.display = roleSelect.value === 'seller' ? 'block' : 'none';
+        if (branchField) {
+            var needsBranch = roleSelect.value === 'seller' || roleSelect.value === 'cashier';
+            branchField.style.display = needsBranch ? 'block' : 'none';
+            if (branchSelect) {
+                branchSelect.required = needsBranch;
+                if (!needsBranch) {
+                    branchSelect.value = '';
+                }
+            }
+        }
     }
 
     toggleButtons.forEach(function (btn) {
@@ -357,4 +396,3 @@ html.evamo-dark .evamo-access-option span {
 
 
 <?php include 'incs/footer.php'; ?>
-

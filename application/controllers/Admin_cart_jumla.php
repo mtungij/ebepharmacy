@@ -1,13 +1,19 @@
 	<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 class Admin_cart_jumla extends CI_Controller{
+     private function current_admin_branch_id(){
+        $session_branch_id = $this->session->userdata('admin_branch_id');
+        return $session_branch_id ? (int) $session_branch_id : null;
+     }
+
      function index(){
         $this->load->model('queries');
         $user_id = $this->session->userdata('user_id');
-        $datay = $this->queries->get_productAll();
+        $branch_id = $this->current_admin_branch_id();
+        $datay = $this->queries->get_productAll($branch_id);
         $limit = $this->queries->get_stock_limitData();
         $my = $this->queries->get_mydata($user_id);
-        $kwisha = $this->queries->get_bidhaa_kwisha();
+        $kwisha = $this->queries->get_bidhaa_kwisha($branch_id);
           // print_r($product);
           //   exit();
         $data = array();
@@ -17,7 +23,7 @@ class Admin_cart_jumla extends CI_Controller{
         //      exit();
         
         // Load the cart view
-        $this->load->view('admin/sell_jumla',['cartItems'=>$cartItems,'datay'=>$datay,'limit'=>$limit,'my'=>$my,'kwisha'=>$kwisha]);
+        $this->load->view('admin/sell_jumla',['cartItems'=>$cartItems,'datay'=>$datay,'limit'=>$limit,'my'=>$my,'kwisha'=>$kwisha,'selected_branch_id'=>$branch_id]);
     }
 
     

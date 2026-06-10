@@ -46,9 +46,10 @@
 <body class="bg-gray-100 dark:bg-gray-800 evamo-bg-layer">
 
 <div class="font-poppins min-h-screen flex flex-col items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
+    <?php $shop_name = !empty($shop->shop_name) ? $shop->shop_name : 'helixPos'; ?>
     <div class="mb-6 text-center">
         <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-white">
-            <span class="text-green-600 dark:text-green-500"><?php echo $shop->shop_name; ?></span>
+            <span class="text-green-600 dark:text-green-500"><?php echo $shop_name; ?></span>
         </h2>
     </div>
 
@@ -116,6 +117,12 @@
                         Login
                     </button>
                 <?php echo form_close(); ?>
+
+                <div class="mt-4 text-center">
+                    <a href="<?php echo base_url('home/create_account'); ?>" class="text-sm font-semibold text-cyan-700 hover:text-cyan-800 dark:text-cyan-300 dark:hover:text-cyan-200">
+                        Create account
+                    </a>
+                </div>
 
                 <div class="mt-6 border-t border-gray-200 pt-5 dark:border-gray-700">
                     <p class="text-center text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Support</p>

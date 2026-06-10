@@ -4,16 +4,61 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 @require_once './assets/library/SpreadsheetReader.php';
 
 class Admin extends CI_Controller {
+  private function current_admin_branch_id(){
+    $branch_id = $this->input->get('branch_id', TRUE);
+
+    if ($branch_id !== null) {
+      if ($branch_id === '') {
+        $this->session->unset_userdata('admin_branch_id');
+        return null;
+      }
+
+      $branch_id = (int) $branch_id;
+      $this->session->set_userdata('admin_branch_id', $branch_id);
+      return $branch_id;
+    }
+
+    $session_branch_id = $this->session->userdata('admin_branch_id');
+    return $session_branch_id ? (int) $session_branch_id : null;
+  }
+
+  public function switch_branch(){
+    $branch_id = $this->input->post('branch_id', TRUE);
+
+    if ($branch_id === null) {
+      $branch_id = $this->input->get('branch_id', TRUE);
+    }
+
+    if ($branch_id === null || $branch_id === '') {
+      $this->session->unset_userdata('admin_branch_id');
+    } else {
+      $this->session->set_userdata('admin_branch_id', (int) $branch_id);
+    }
+
+    $redirect_url = $this->input->post('redirect_url', TRUE);
+    if (!$redirect_url) {
+      $redirect_url = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : base_url('admin/index');
+    }
+
+    if (strpos($redirect_url, base_url()) !== 0) {
+      $redirect_url = base_url('admin/index');
+    }
+
+    return redirect($redirect_url);
+  }
+
 	public function index(){
 		$this->load->model('queries');
     $user_id = $this->session->userdata('user_id');
-		$all_salles = $this->queries->get_sallesTodayData();
-		$total_sell = $this->queries->get_today_salesData();
-		$total_profit = $this->queries->get_today_profit();
-    $today_retail_sales = $this->queries->get_today_salesretail_cashire();
-    $today_wholesale_sales = $this->queries->get_today_salesWhole_cashire();
-    $total_matumiz = $this->queries->All_totalMatumizi();
-    $total_sell_data = $this->queries->get_All_salesData();
+    $selected_branch_id = $this->current_admin_branch_id();
+    $branches = $this->queries->get_branches();
+		$all_salles = $this->queries->get_sallesTodayData($selected_branch_id);
+		$total_sell = $this->queries->get_today_salesData($selected_branch_id);
+		$total_profit = $this->queries->get_today_profit($selected_branch_id);
+    $today_retail_sales = $this->queries->get_today_salesretail_cashire($selected_branch_id);
+    $today_wholesale_sales = $this->queries->get_today_salesWhole_cashire($selected_branch_id);
+    $total_matumiz = $this->queries->All_totalMatumizi($selected_branch_id);
+    $total_sell_data = $this->queries->get_All_salesData($selected_branch_id);
     $mishahara_data = $this->queries->get_sumPayrol();
     $my = $this->queries->get_mydata($user_id);
     $total_huduma = $this->queries->get_total_huduma();
@@ -25,19 +70,19 @@ class Admin extends CI_Controller {
 
 
     //new code 
-  $all_matumiz_all = $this->queries->All_totalMatumizi();
-  $all_sell_all = $this->queries->get_All_salesData();
+  $all_matumiz_all = $this->queries->All_totalMatumizi($selected_branch_id);
+  $all_sell_all = $this->queries->get_All_salesData($selected_branch_id);
   $mishahara_data_all = $this->queries->get_sumPayrol();
   $huduma_all = $this->queries->get_total_service_todayData();
   $inderect_expenses_all = $this->queries->get_total_indirect_expenses();
-  $total_profit_all = $this->queries->get_total_profit();
+  $total_profit_all = $this->queries->get_total_profit($selected_branch_id);
   
   // Get medicine movement data
   $fastmoving_medicines = $this->queries->get_fastmoving_medicines();
   $slowmoving_medicines = $this->queries->get_slowmoving_medicines();
   $medicine_movement_summary = $this->queries->get_medicine_movement_summary();
   $zero_balance_medicines = $this->queries->get_zero_balance_medicines();
-  $empty_products_count = $this->queries->get_empty_products_count();
+  $empty_products_count = $this->queries->get_empty_products_count($selected_branch_id);
 
   // metric mode: 'skus' or 'units' (default skus)
   $metric_mode = $this->input->post('metric_mode');
@@ -49,30 +94,103 @@ class Admin extends CI_Controller {
   }
 
   if ($metric_mode === 'units') {
-    $purchased_today_count = $this->queries->get_purchased_products_today_units_count();
-    $adjusted_today_count = $this->queries->get_adjusted_products_today_units_count();
+    $purchased_today_count = $this->queries->get_purchased_products_today_units_count($selected_branch_id);
+    $adjusted_today_count = $this->queries->get_adjusted_products_today_units_count($selected_branch_id);
   } else {
-    $purchased_today_count = $this->queries->get_purchased_products_today_count();
-    $adjusted_today_count = $this->queries->get_adjusted_products_today_count();
+    $purchased_today_count = $this->queries->get_purchased_products_today_count($selected_branch_id);
+    $adjusted_today_count = $this->queries->get_adjusted_products_today_count($selected_branch_id);
   }
     //$total_sell = $this->queries->get_Yearly_monthsELL($year);
 		 // echo "<pre>";
 		 // print_r($datamonth);
 		 // echo "</pre>";
 		 //     exit();
-    $this->load->view('admin/index',['all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'today_retail_sales'=>$today_retail_sales,'today_wholesale_sales'=>$today_wholesale_sales,'total_matumiz'=>$total_matumiz,'total_sell_data'=>$total_sell_data,'mishahara_data'=>$mishahara_data,'my'=>$my,'total_huduma'=>$total_huduma,'years'=>$years,'datamonth'=>$datamonth,'today_indirect_exp'=>$today_indirect_exp,'all_matumiz_all'=>$all_matumiz_all,'all_sell_all'=>$all_sell_all,'mishahara_data_all'=>$mishahara_data_all,'huduma_all'=>$huduma_all,'huduma_all'=>$huduma_all,'inderect_expenses_all'=>$inderect_expenses_all,'total_profit_all'=>$total_profit_all,'fastmoving_medicines'=>$fastmoving_medicines,'slowmoving_medicines'=>$slowmoving_medicines,'medicine_movement_summary'=>$medicine_movement_summary,'zero_balance_medicines'=>$zero_balance_medicines,'empty_products_count'=>$empty_products_count,'purchased_today_count'=>$purchased_today_count,'adjusted_today_count'=>$adjusted_today_count,'metric_mode'=>$metric_mode]);
+    $this->load->view('admin/index',['all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'today_retail_sales'=>$today_retail_sales,'today_wholesale_sales'=>$today_wholesale_sales,'total_matumiz'=>$total_matumiz,'total_sell_data'=>$total_sell_data,'mishahara_data'=>$mishahara_data,'my'=>$my,'total_huduma'=>$total_huduma,'years'=>$years,'datamonth'=>$datamonth,'today_indirect_exp'=>$today_indirect_exp,'all_matumiz_all'=>$all_matumiz_all,'all_sell_all'=>$all_sell_all,'mishahara_data_all'=>$mishahara_data_all,'huduma_all'=>$huduma_all,'huduma_all'=>$huduma_all,'inderect_expenses_all'=>$inderect_expenses_all,'total_profit_all'=>$total_profit_all,'fastmoving_medicines'=>$fastmoving_medicines,'slowmoving_medicines'=>$slowmoving_medicines,'medicine_movement_summary'=>$medicine_movement_summary,'zero_balance_medicines'=>$zero_balance_medicines,'empty_products_count'=>$empty_products_count,'purchased_today_count'=>$purchased_today_count,'adjusted_today_count'=>$adjusted_today_count,'metric_mode'=>$metric_mode,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
 	}
 
 
 
 	public function users(){
 		$this->load->model('queries');
+    $this->queries->ensure_branch_table();
     $user_id = $this->session->userdata('user_id');
 		 $admin = $this->queries->get_users();
      $my = $this->queries->get_mydata($user_id);
      $privillage_map = $this->queries->get_privillage_map();
-    $this->load->view('admin/users',['admin'=>$admin,'my'=>$my,'privillage_map'=>$privillage_map]);
+     $branches = $this->queries->get_branches();
+    $this->load->view('admin/users',['admin'=>$admin,'my'=>$my,'privillage_map'=>$privillage_map,'branches'=>$branches]);
 	}
+
+  public function branches(){
+    $this->load->model('queries');
+    $user_id = $this->session->userdata('user_id');
+    $my = $this->queries->get_mydata($user_id);
+    $branches = $this->queries->get_branches();
+    $shop_info = $this->queries->get_shop_infoData();
+
+    $this->load->view('admin/branches', [
+      'my' => $my,
+      'branches' => $branches,
+      'shop_info' => $shop_info,
+    ]);
+  }
+
+  public function create_branch(){
+    $this->form_validation->set_rules('branch_name', 'branch name', 'required|trim');
+    $this->form_validation->set_rules('location', 'location', 'required|trim');
+    $this->form_validation->set_rules('phone', 'phone', 'required|trim');
+    $this->form_validation->set_rules('email', 'email', 'trim|valid_email');
+    $this->form_validation->set_error_delimiters('<div class="text-danger">', '</div>');
+
+    if (!$this->form_validation->run()) {
+      return $this->branches();
+    }
+
+    $this->load->model('queries');
+    $shop_info = $this->queries->get_shop_infoData();
+
+    $data = [
+      'information_id' => !empty($shop_info->id) ? $shop_info->id : null,
+      'branch_name' => $this->input->post('branch_name', true),
+      'location' => $this->input->post('location', true),
+      'phone' => $this->input->post('phone', true),
+      'email' => $this->input->post('email', true),
+      'is_main' => 0,
+      'status' => $this->input->post('status', true) ?: 'open',
+    ];
+
+    if ($this->queries->insert_branch($data)) {
+      $this->session->set_flashdata('massage', 'Branch registered successfully');
+    } else {
+      $this->session->set_flashdata('error', 'Failed to register branch');
+    }
+
+    return redirect('admin/branches');
+  }
+
+  public function backfill_branch_data(){
+    $this->load->model('queries');
+    $main_branch = $this->queries->get_main_branch();
+
+    if (!$main_branch) {
+      $this->session->set_flashdata('error', 'Create a branch first before backfilling data.');
+      return redirect('admin/branches');
+    }
+
+    $result = $this->queries->backfill_missing_branch_data($main_branch->branch_id);
+
+    if (!$result) {
+      $this->session->set_flashdata('error', 'Backfill failed.');
+      return redirect('admin/branches');
+    }
+
+    $this->session->set_flashdata(
+      'massage',
+      'Backfill completed to '.$main_branch->branch_name.'. Updated '.$result['total'].' records.'
+    );
+
+    return redirect('admin/branches');
+  }
 
   public function validate_seller_access($role){
     $system_access = (array) $this->input->post('system_access');
@@ -98,6 +216,13 @@ class Admin extends CI_Controller {
       $data['full_name'] = $this->security->sanitize_filename($this->input->post('full_name'));
       $data['phone_number'] = $this->security->sanitize_filename($this->input->post('phone_number'));
       unset($data['confirm_password'], $data['system_access']);
+      if (($data['role'] === 'seller' || $data['role'] === 'cashier') && empty($data['branch_id'])) {
+        $this->session->set_flashdata('error', 'Select branch for seller or cashier.');
+        return redirect('admin/users');
+      }
+      if ($data['role'] === 'admin') {
+        $data['branch_id'] = null;
+      }
 			$data['password'] = sha1($this->input->post('password'));
       
     
@@ -142,21 +267,26 @@ class Admin extends CI_Controller {
 	//product
 	public function product(){
 		$this->load->model('queries');
+    $this->queries->ensure_branch_table();
     $user_id = $this->session->userdata('user_id');
 		$product = $this->queries->get_product();
     $my = $this->queries->get_mydata($user_id);
     $privillage = $this->queries->get_userPrivillage($user_id);
+    $branches = $this->queries->get_branches();
+    $selected_branch_id = $this->current_admin_branch_id();
 		  // echo "<pre>";
 		  // print_r($product);
 		  // echo "</pre>";
 		  //      exit();
-		$this->load->view('admin/product',['product'=>$product,'my'=>$my,'privillage'=>$privillage]);
+		$this->load->view('admin/product',['product'=>$product,'my'=>$my,'privillage'=>$privillage,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
 	}
 
 	public function create_product(){
+    $selected_branch_id = $this->current_admin_branch_id();
 		$this->form_validation->set_rules('name','Product name','required');
 		$this->form_validation->set_rules('unit','Product unit','required');
 		$this->form_validation->set_rules('user_id','user','required');
+		$this->form_validation->set_rules('branch_id','branch','required');
 		$this->form_validation->set_rules('buy_price','buy price','required');
 		$this->form_validation->set_rules('price','sell price','required');
     $this->form_validation->set_rules('ju_price','sell price');
@@ -167,6 +297,9 @@ class Admin extends CI_Controller {
 		$this->form_validation->set_error_delimiters('<div class="text-danger">','</div>');
 		if ($this->form_validation->run() ) {
 			$product = $this->input->post();
+      if ($selected_branch_id) {
+        $product['branch_id'] = $selected_branch_id;
+      }
       if ($this->db->field_exists('reason', 'product')) {
         if (!isset($product['reason']) || trim((string)$product['reason']) === '') {
           $product['reason'] = 'purchased';
@@ -200,7 +333,8 @@ class Admin extends CI_Controller {
        // echo "jina Halipo";
       $product_id = $this->queries->insert_product($product);
 			if ($product_id > 0) {
-        $this->insert_store($product_id,$balance,$out_balance,$total_buy,$total_sell,$total_ju);
+        $branch_id = isset($product['branch_id']) ? (int)$product['branch_id'] : null;
+        $this->insert_store($product_id,$balance,$out_balance,$total_buy,$total_sell,$total_ju,$branch_id);
         $this->insert_product_main_store($product_id,$balance,$total_buy,$total_sell,$total_ju,$out_balance);
         $movement_user_id = isset($product['user_id']) ? (int)$product['user_id'] : (int)$this->session->userdata('user_id');
         $this->record_stock_movement($product_id, $balance, $movement_user_id, 'PURCHASED');
@@ -306,7 +440,12 @@ class Admin extends CI_Controller {
 }
 
 
-	  public function insert_store($product_id,$balance,$out_balance,$total_buy,$total_sell,$total_ju){
+	  public function insert_store($product_id,$balance,$out_balance,$total_buy,$total_sell,$total_ju,$branch_id = null){
+  if ($this->db->field_exists('branch_id', 'tbl_store')) {
+    $branch_id = (int) $branch_id;
+    $this->db->query("INSERT INTO tbl_store (`product_id`, `branch_id`, `balance`,`out_balance`,`total_buy`,`total_sell`,`total_ju`) VALUES ('$product_id', '$branch_id', '$balance','$out_balance','$total_buy','$total_sell','$total_ju')");
+    return;
+  }
   $this->db->query("INSERT INTO tbl_store (`product_id`, `balance`,`out_balance`,`total_buy`,`total_sell`,`total_ju`) VALUES ('$product_id', '$balance','$out_balance','$total_buy','$total_sell','$total_ju')");
       }
 
@@ -383,6 +522,7 @@ class Admin extends CI_Controller {
       if ($this->form_validation->run()) {
         $data = $this->input->post();
         $this->load->model('queries');
+        $selected_branch_id = $this->current_admin_branch_id();
         $product_id = $data['product_id'];
         $balance = $data['balance'];
         $reason = isset($data['reason']) ? strtolower(trim((string)$data['reason'])) : '';
@@ -393,11 +533,19 @@ class Admin extends CI_Controller {
         }
 
         $product = $this->queries->get_product_safe($product_id);
+        if ($selected_branch_id && (!$product || (int)$product->branch_id !== (int)$selected_branch_id)) {
+          $this->session->set_flashdata('error','This product is not available in the selected branch');
+          return redirect("admin/product_add_Store");
+        }
         $buy_price = $product->buy_price;
         $sell_price = $product->price;
         $product_name = $product->name;
         $ju_sellprice = $product->ju_price;
-        $main_stoo = $this->queries->get_mainTransforbalance($product_id);
+        $main_stoo = $this->queries->get_mainTransforbalance($product_id, $selected_branch_id);
+        if (!$main_stoo) {
+          $this->session->set_flashdata('error','Product store record was not found for the selected branch');
+          return redirect("admin/product_add_Store");
+        }
         $remain_balance = $main_stoo->balance;
 
         $moved_product = 0;
@@ -410,7 +558,7 @@ class Admin extends CI_Controller {
         $total_jusell = $new_balance * $ju_sellprice; 
 
        
-      if ($this->update_main_stooProduct($product_id,$new_balance,$total_buy,$total_sell,$moved_product,$total_jusell)) {
+      if ($this->update_main_stooProduct($product_id,$new_balance,$total_buy,$total_sell,$moved_product,$total_jusell,$selected_branch_id)) {
         $movement_status = ($reason === 'adjusted') ? 'ADJUSTED IN' : 'PURCHASED';
         $movement_user_id = (int)$this->session->userdata('user_id');
         $this->record_stock_movement($product_id, $balance, $movement_user_id, $movement_status);
@@ -472,8 +620,9 @@ class Admin extends CI_Controller {
      }
 
 
-public function update_main_stooProduct($product_id,$new_balance,$total_buy,$total_sell,$moved_product,$total_jusell){
-  $sqldata="UPDATE `tbl_store` SET `balance`= '$new_balance',`total_buy`='$total_buy',`total_sell`= '$total_sell',`out_balance`='$moved_product',`total_ju`='$total_jusell' WHERE `product_id`= '$product_id'";
+public function update_main_stooProduct($product_id,$new_balance,$total_buy,$total_sell,$moved_product,$total_jusell,$branch_id = null){
+  $branch_sql = $branch_id !== null ? " AND `branch_id` = '".(int)$branch_id."'" : "";
+  $sqldata="UPDATE `tbl_store` SET `balance`= '$new_balance',`total_buy`='$total_buy',`total_sell`= '$total_sell',`out_balance`='$moved_product',`total_ju`='$total_jusell' WHERE `product_id`= '$product_id' $branch_sql";
     // print_r($sqldata);
     //    exit();
   $query = $this->db->query($sqldata);
@@ -541,25 +690,29 @@ $sqldata="UPDATE `tbl_main_store` SET `total_buy_price`= '$new_update_buy',`tota
       	$this->load->model('queries');
         $user_id = $this->session->userdata('user_id');
         $my = $this->queries->get_mydata($user_id);
-      	$product = $this->queries->get_productAll();
+        $branch_id = $this->current_admin_branch_id();
+        $branches = $this->queries->get_branches();
+      	$product = $this->queries->get_productAll($branch_id);
         $privillage = $this->queries->get_userPrivillage($user_id);
       	   // print_r($product);
       	   //     exit();
-      	$this->load->view('admin/all_product',['product'=>$product,'my'=>$my,'privillage'=>$privillage]);
+      	$this->load->view('admin/all_product',['product'=>$product,'my'=>$my,'privillage'=>$privillage,'branches'=>$branches,'selected_branch_id'=>$branch_id]);
       }
 
       public function all_productStore(){
       	$this->load->model('queries');
         $user_id = $this->session->userdata('user_id');
         $my = $this->queries->get_mydata($user_id);
-      	$store = $this->queries->get_productAllStore();
+        $branch_id = $this->current_admin_branch_id();
+        $branches = $this->queries->get_branches();
+      	$store = $this->queries->get_productAllStore($branch_id);
       	$data_limit = $this->queries->get_stock_limitData();
         $privillage = $this->queries->get_userPrivillage($user_id);
       	  //  echo "<pre>";
       	  // print_r($data_limit);
       	  //  echo "</pre>";
       	  //    exit();
-      	$this->load->view('admin/store_product',['store'=>$store,'data_limit'=>$data_limit,'my'=>$my,'privillage'=>$privillage]);
+      	$this->load->view('admin/store_product',['store'=>$store,'data_limit'=>$data_limit,'my'=>$my,'privillage'=>$privillage,'branches'=>$branches,'selected_branch_id'=>$branch_id]);
       }
 
       public function dispency_product(){
@@ -658,16 +811,18 @@ echo $this->queries->fetch_eneos($this->input->post('product_id'));
       	$this->load->model('queries');
         $user_id = $this->session->userdata('user_id');
         $my = $this->queries->get_mydata($user_id);
-      	$inve = $this->queries->get_all_inventory();
-        $sum_total_buy = $this->queries->get_sum_buyPrice();
-        $sum_total_retail = $this->queries->get_total_retail_salePrice();
-        $total_wholesale = $this->queries->get_suwhole_sale();
-        $total_sell_profit = $this->queries->get_all_sells();
+        $selected_branch_id = $this->current_admin_branch_id();
+        $branches = $this->queries->get_branches();
+      	$inve = $this->queries->get_all_inventory($selected_branch_id);
+        $sum_total_buy = $this->queries->get_sum_buyPrice($selected_branch_id);
+        $sum_total_retail = $this->queries->get_total_retail_salePrice($selected_branch_id);
+        $total_wholesale = $this->queries->get_suwhole_sale($selected_branch_id);
+        $total_sell_profit = $this->queries->get_all_sells($selected_branch_id);
       	  // echo "<pre>";
       	  // print_r($total_sell_profit);
       	  // echo "</pre>";
       	  //    exit();
-      	$this->load->view('admin/inventory',['inve'=>$inve,'my'=>$my,'sum_total_buy'=>$sum_total_buy,'sum_total_retail'=>$sum_total_retail,'total_wholesale'=>$total_wholesale,'total_sell_profit'=>$total_sell_profit]);
+      	$this->load->view('admin/inventory',['inve'=>$inve,'my'=>$my,'sum_total_buy'=>$sum_total_buy,'sum_total_retail'=>$sum_total_retail,'total_wholesale'=>$total_wholesale,'total_sell_profit'=>$total_sell_profit,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
       }
 
       public function stock_limit(){
@@ -843,9 +998,10 @@ public function genel_cashflow(){
       //$user_id = $this->session->userdata('user_id');
       $my = $this->queries->get_mydata($user_id);
       $admin = $this->queries->get_usersEdit($user_id);
+      $branches = $this->queries->get_branches();
         // print_r($admin);
         //     exit();
-      $this->load->view('admin/edit_users',['admin'=>$admin,'my'=>$my]);
+      $this->load->view('admin/edit_users',['admin'=>$admin,'my'=>$my,'branches'=>$branches]);
     }
 
     public function modify_admin($user_id){
@@ -855,6 +1011,13 @@ public function genel_cashflow(){
     $this->form_validation->set_error_delimiters('<div class="text-danger">','</div>');
     if ($this->form_validation->run() ) {
       $data = $this->input->post();
+      if (($data['role'] === 'seller' || $data['role'] === 'cashier') && empty($data['branch_id'])) {
+        $this->session->set_flashdata('error','Select branch for seller or cashier.');
+        return redirect('admin/edit_user/'.$user_id);
+      }
+      if ($data['role'] === 'admin') {
+        $data['branch_id'] = null;
+      }
       //  echo "<pre>";
       // print_r($data);
       // echo "</pre>";
@@ -955,16 +1118,18 @@ public function sales_today(){
   $this->load->model('queries');
     $user_id = $this->session->userdata('user_id');
     $my = $this->queries->get_mydata($user_id);
-    $all_salles = $this->queries->get_sallesTodayData();
-    $total_sell = $this->queries->get_today_salesData();
-    $total_profit = $this->queries->get_today_profit();
+    $selected_branch_id = $this->current_admin_branch_id();
+    $branches = $this->queries->get_branches();
+    $all_salles = $this->queries->get_sallesTodayData($selected_branch_id);
+    $total_sell = $this->queries->get_today_salesData($selected_branch_id);
+    $total_profit = $this->queries->get_today_profit($selected_branch_id);
     
-    $data_employee = $this->queries->get_sallesTodayData_seller();
+    $data_employee = $this->queries->get_sallesTodayData_seller($selected_branch_id);
       //        echo "<pre>";
       // print_r($data_employee);
       //           exit();
 
-  $this->load->view('admin/today_sales',['all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'my'=>$my,'data_employee'=>$data_employee]);
+  $this->load->view('admin/today_sales',['all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'my'=>$my,'data_employee'=>$data_employee,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
 }
 
 public function general_sells_product(){
@@ -1099,35 +1264,43 @@ public function general_sells_product(){
 
   public function print_data(){
   $this->load->model('queries');
-  $data = $this->queries->get_all_inventory();
-  $balance = $this->queries->get_all_SUMbalanceinventory();
-  $total_buyprice = $this->queries->get_all_SUMbuypriceinventory();
-  $total_buyprice_data = $this->queries->get_all_Totalbuyprice();
-  $total_sell_price = $this->queries->get_all_selling_price();
-  $totalAll_sellprice = $this->queries-> get_all_Totalselling_price();
+  $branch_id = $this->current_admin_branch_id();
+  $data = $this->queries->get_all_inventory($branch_id);
+  $balance = $this->queries->get_all_SUMbalanceinventory($branch_id);
+  $total_buyprice = $this->queries->get_all_SUMbuypriceinventory($branch_id);
+  $total_buyprice_data = $this->queries->get_all_Totalbuyprice($branch_id);
+  $total_sell_price = $this->queries->get_all_selling_price($branch_id);
+  $totalAll_sellprice = $this->queries-> get_all_Totalselling_price($branch_id);
   $shop = $this->queries->get_shop_infoData();
-  $bei_jumla = $this->queries->get_sum_jumlaPrice();
-  $total_jumla = $this->queries->get_total_beiju();
+  $branches = $this->queries->get_branches();
+  $bei_jumla = $this->queries->get_sum_jumlaPrice($branch_id);
+  $total_jumla = $this->queries->get_total_beiju($branch_id);
              // print_r($total_jumla);
              //    exit();
         $mpdf = new \Mpdf\Mpdf();
-        $html = $this->load->view('admin/print_report',['data'=>$data,'balance'=>$balance,'total_buyprice'=>$total_buyprice,'total_buyprice_data'=>$total_buyprice_data,'total_sell_price'=>$total_sell_price,'totalAll_sellprice'=> $totalAll_sellprice,'shop'=>$shop,'bei_jumla'=>$bei_jumla,'total_jumla'=>$total_jumla],true);
+        $html = $this->load->view('admin/print_report',['data'=>$data,'balance'=>$balance,'total_buyprice'=>$total_buyprice,'total_buyprice_data'=>$total_buyprice_data,'total_sell_price'=>$total_sell_price,'totalAll_sellprice'=> $totalAll_sellprice,'shop'=>$shop,'branches'=>$branches,'selected_branch_id'=>$branch_id,'bei_jumla'=>$bei_jumla,'total_jumla'=>$total_jumla],true);
         $mpdf->SetFooter('Generated By (0) 629364847 & (0) 748470181');
         $mpdf->WriteHTML($html);
+        if ($this->input->get('download', TRUE)) {
+          $filename = $branch_id ? 'all-products-branch-'.$branch_id.'.pdf' : 'all-products.pdf';
+          return $mpdf->Output($filename, 'D');
+        }
         $mpdf->Output();
   }
 
 
   public function print_sellingPrice(){
     $this->load->model('queries');
-    $selling_priceData = $this->queries->get_sellinprice();
+    $selected_branch_id = $this->current_admin_branch_id();
+    $branches = $this->queries->get_branches();
+    $selling_priceData = $this->queries->get_sellinprice($selected_branch_id);
     $shop = $this->queries->get_shop_infoData();
       //   echo "<pre>";
       // print_r($selling_priceData);
       // echo "</pre>";
       //     exit();
       $mpdf = new \Mpdf\Mpdf();
-       $html = $this->load->view('admin/selling_price',['selling_priceData'=>$selling_priceData,'shop'=>$shop],true);
+       $html = $this->load->view('admin/selling_price',['selling_priceData'=>$selling_priceData,'shop'=>$shop,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id],true);
        $mpdf->SetFooter('Generated By (0) 629364847 & (0) 748470181');
         $mpdf->WriteHTML($html);
         $mpdf->Output();
@@ -1135,14 +1308,16 @@ public function general_sells_product(){
 
   public function empty_product(){
       $this->load->model('queries');
-      $empty_prdData = $this->queries->get_emptyProduct();
+      $selected_branch_id = $this->current_admin_branch_id();
+      $branches = $this->queries->get_branches();
+      $empty_prdData = $this->queries->get_emptyProduct($selected_branch_id);
       $shop = $this->queries->get_shop_infoData();
 
          // print_r($empty_prdData);
          //       exit();
 
       $mpdf = new \Mpdf\Mpdf();
-       $html = $this->load->view('admin/empty_product',['empty_prdData'=>$empty_prdData,'shop'=>$shop],true);
+       $html = $this->load->view('admin/empty_product',['empty_prdData'=>$empty_prdData,'shop'=>$shop,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id],true);
        $mpdf->SetFooter('Generated By (0) 629364847 & (0) 748470181');
         $mpdf->WriteHTML($html);
         $mpdf->Output();
@@ -1153,22 +1328,24 @@ public function general_sells_product(){
 
   public function today_salles_report(){
     $this->load->model('queries');
-    $all_salles = $this->queries->get_sallesTodayData();
-    $total_sell = $this->queries->get_today_salesData();
-    $total_profit = $this->queries->get_today_profit();
+    $selected_branch_id = $this->current_admin_branch_id();
+    $branches = $this->queries->get_branches();
+    $all_salles = $this->queries->get_sallesTodayData($selected_branch_id);
+    $total_sell = $this->queries->get_today_salesData($selected_branch_id);
+    $total_profit = $this->queries->get_today_profit($selected_branch_id);
     $shop = $this->queries->get_shop_infoData();
-    $total_retail = $this->queries->get_today_salesretail();
-    $total_profit_retail = $this->queries->get_today_profitretail();
-    $total_whole = $this->queries->get_today_salesWholeData();
-    $whole_profit = $this->queries->get_today_profitwhole();
+    $total_retail = $this->queries->get_today_salesretail($selected_branch_id);
+    $total_profit_retail = $this->queries->get_today_profitretail($selected_branch_id);
+    $total_whole = $this->queries->get_today_salesWholeData($selected_branch_id);
+    $whole_profit = $this->queries->get_today_profitwhole($selected_branch_id);
     
-    $data_employee = $this->queries->get_sallesTodayData_seller();
+    $data_employee = $this->queries->get_sallesTodayData_seller($selected_branch_id);
       //       echo "<pre>";
       // print_r($data_employee);
       //          exit();
 
     $mpdf = new \Mpdf\Mpdf();
-    $html = $this->load->view('admin/today_sell_report',['all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'shop'=>$shop,'total_retail'=>$total_retail,'total_profit_retail'=>$total_profit_retail,'total_whole'=>$total_whole,'whole_profit'=>$whole_profit,'data_employee'=>$data_employee],true);
+    $html = $this->load->view('admin/today_sell_report',['all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'shop'=>$shop,'total_retail'=>$total_retail,'total_profit_retail'=>$total_profit_retail,'total_whole'=>$total_whole,'whole_profit'=>$whole_profit,'data_employee'=>$data_employee,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id],true);
     $mpdf->SetFooter('Generated By (0) 629364847 & (0) 748470181');
         $mpdf->WriteHTML($html);
         $mpdf->Output();
@@ -1512,10 +1689,12 @@ public function password_check($oldpass)
     $this->load->model('queries');
     $user_id = $this->session->userdata('user_id');
     $my = $this->queries->get_mydata($user_id);
-    $all_salles = $this->queries->get_sallesTodayData();
-    $total_sell = $this->queries->get_today_salesData();
-    $total_profit = $this->queries->get_today_profit();
-      $this->load->view('admin/today_salesData',['my'=>$my,'all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit]);
+    $selected_branch_id = $this->current_admin_branch_id();
+    $branches = $this->queries->get_branches();
+    $all_salles = $this->queries->get_sallesTodayData($selected_branch_id);
+    $total_sell = $this->queries->get_today_salesData($selected_branch_id);
+    $total_profit = $this->queries->get_today_profit($selected_branch_id);
+      $this->load->view('admin/today_salesData',['my'=>$my,'all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
     }
 
     public function today_cashflowData(){
@@ -1525,7 +1704,8 @@ public function password_check($oldpass)
   $data_cash = $this->queries->get_all_cashflow();
   $total_expences = $this->queries->get_totalEpences();
   $data_cashin = $this->queries->get_today_salesData();
-      $this->load->view('admin/today_cashflowData',['my'=>$my,'data_cash'=>$data_cash,'total_expences'=>$total_expences,'data_cashin'=>$data_cashin]);
+  $huduma = $this->queries->get_total_service_today();
+      $this->load->view('admin/today_cashflowData',['my'=>$my,'data_cash'=>$data_cash,'total_expences'=>$total_expences,'data_cashin'=>$data_cashin,'huduma'=>$huduma]);
     }
 
   public function general_cashflowData(){
@@ -1543,50 +1723,162 @@ public function password_check($oldpass)
       $this->load->model('queries');
       $user_id = $this->session->userdata('user_id');
       $my = $this->queries->get_mydata($user_id);
-      $product = $this->queries->get_productAll();
-      $this->load->view('admin/all_productData',['my'=>$my,'product'=>$product]);
+      $selected_branch_id = $this->current_admin_branch_id();
+      $branches = $this->queries->get_branches();
+      $product = $this->queries->get_productAll($selected_branch_id);
+      $this->load->view('admin/all_productData',['my'=>$my,'product'=>$product,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
     }
 
     public function sales_productData(){
       $this->load->model('queries');
       $user_id = $this->session->userdata('user_id');
       $my = $this->queries->get_mydata($user_id);
-      $product = $this->queries->get_productAll();
-      $this->load->view('admin/sales_price',['product'=>$product,'my'=>$my]);
+      $selected_branch_id = $this->current_admin_branch_id();
+      $branches = $this->queries->get_branches();
+      $product = $this->queries->get_productAll($selected_branch_id);
+      $this->load->view('admin/sales_price',['product'=>$product,'my'=>$my,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
+    }
+
+    public function physical_counting_report(){
+      $this->load->model('queries');
+      $user_id = $this->session->userdata('user_id');
+      $my = $this->queries->get_mydata($user_id);
+      $selected_branch_id = $this->current_admin_branch_id();
+      $branches = $this->queries->get_branches();
+      $product = $this->queries->get_all_inventory($selected_branch_id);
+
+      $this->load->view('admin/physical_counting_report', [
+        'my' => $my,
+        'product' => $product,
+        'branches' => $branches,
+        'selected_branch_id' => $selected_branch_id,
+      ]);
+    }
+
+    public function print_physical_counting_report(){
+      $this->load->model('queries');
+      $selected_branch_id = $this->current_admin_branch_id();
+      $branches = $this->queries->get_branches();
+      $product = $this->queries->get_all_inventory($selected_branch_id);
+      $shop = $this->queries->get_shop_infoData();
+
+      $mpdf = new \Mpdf\Mpdf(['mode' => 'utf-8', 'format' => 'A4-L', 'orientation' => 'L']);
+      $html = $this->load->view('admin/print_physical_counting_report', [
+        'product' => $product,
+        'shop' => $shop,
+        'branches' => $branches,
+        'selected_branch_id' => $selected_branch_id,
+      ], true);
+      $mpdf->SetFooter('Generated By (0) 629364847 & (0) 748470181');
+      $mpdf->WriteHTML($html);
+      $mpdf->Output('physical-counting-report.pdf', 'D');
+    }
+
+    public function sales_profit_report(){
+      $this->load->model('queries');
+      $user_id = $this->session->userdata('user_id');
+      $my = $this->queries->get_mydata($user_id);
+      $selected_branch_id = $this->current_admin_branch_id();
+      $branches = $this->queries->get_branches();
+      $today = date('Y-m-d');
+      $from = trim((string)$this->input->get('from', TRUE));
+      $to = trim((string)$this->input->get('to', TRUE));
+      $from = preg_match('/^\d{4}-\d{2}-\d{2}$/', $from) ? $from : $today;
+      $to = preg_match('/^\d{4}-\d{2}-\d{2}$/', $to) ? $to : $today;
+
+      if ($from > $to) {
+        $temp = $from;
+        $from = $to;
+        $to = $temp;
+      }
+
+      $sales = $this->queries->get_sales_profit_report($from, $to, $selected_branch_id);
+      $totals = $this->queries->get_sales_profit_report_totals($from, $to, $selected_branch_id);
+
+      $this->load->view('admin/sales_profit_report', [
+        'my' => $my,
+        'branches' => $branches,
+        'selected_branch_id' => $selected_branch_id,
+        'sales' => $sales,
+        'totals' => $totals,
+        'from' => $from,
+        'to' => $to,
+      ]);
+    }
+
+    public function print_sales_profit_report(){
+      $this->load->model('queries');
+      $selected_branch_id = $this->current_admin_branch_id();
+      $branches = $this->queries->get_branches();
+      $shop = $this->queries->get_shop_infoData();
+      $today = date('Y-m-d');
+      $from = trim((string)$this->input->get('from', TRUE));
+      $to = trim((string)$this->input->get('to', TRUE));
+      $from = preg_match('/^\d{4}-\d{2}-\d{2}$/', $from) ? $from : $today;
+      $to = preg_match('/^\d{4}-\d{2}-\d{2}$/', $to) ? $to : $today;
+
+      if ($from > $to) {
+        $temp = $from;
+        $from = $to;
+        $to = $temp;
+      }
+
+      $sales = $this->queries->get_sales_profit_report($from, $to, $selected_branch_id);
+      $totals = $this->queries->get_sales_profit_report_totals($from, $to, $selected_branch_id);
+
+      $mpdf = new \Mpdf\Mpdf(['mode' => 'utf-8', 'format' => 'A4-L', 'orientation' => 'L']);
+      $html = $this->load->view('admin/print_sales_profit_report', [
+        'shop' => $shop,
+        'branches' => $branches,
+        'selected_branch_id' => $selected_branch_id,
+        'sales' => $sales,
+        'totals' => $totals,
+        'from' => $from,
+        'to' => $to,
+      ], true);
+      $mpdf->SetFooter('Generated By (0) 629364847 & (0) 748470181');
+      $mpdf->WriteHTML($html);
+      $mpdf->Output('sales-profit-report.pdf', 'D');
     }
 
     public function empty_productData(){
       $this->load->model('queries');
       $user_id = $this->session->userdata('user_id');
       $my = $this->queries->get_mydata($user_id);
-      $empty_prdData = $this->queries->get_emptyProduct();
-      $this->load->view('admin/empty_productData',['empty_prdData'=>$empty_prdData,'my'=>$my]);
+      $selected_branch_id = $this->current_admin_branch_id();
+      $branches = $this->queries->get_branches();
+      $empty_prdData = $this->queries->get_emptyProduct($selected_branch_id);
+      $this->load->view('admin/empty_productData',['empty_prdData'=>$empty_prdData,'my'=>$my,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
     }
 
     public function retail_sales(){
       $this->load->model('queries');
       $user_id = $this->session->userdata('user_id');
       $my = $this->queries->get_mydata($user_id);
-      $retail_data = $this->queries->get_sallesTodayDataRetail();
-      $total_retail = $this->queries->get_today_salesretail();
-      $total_profit_retail = $this->queries->get_today_profitretail();
+      $selected_branch_id = $this->current_admin_branch_id();
+      $branches = $this->queries->get_branches();
+      $retail_data = $this->queries->get_sallesTodayDataRetail($selected_branch_id);
+      $total_retail = $this->queries->get_today_salesretail($selected_branch_id);
+      $total_profit_retail = $this->queries->get_today_profitretail($selected_branch_id);
       // echo "<pre>";
       // print_r($total_profit_retail);
       // echo "</pre>";
       //        exit();
-      $this->load->view('admin/retail_sales',['my'=>$my,'retail_data'=>$retail_data,'total_retail'=>$total_retail,'total_profit_retail'=>$total_profit_retail]);
+      $this->load->view('admin/retail_sales',['my'=>$my,'retail_data'=>$retail_data,'total_retail'=>$total_retail,'total_profit_retail'=>$total_profit_retail,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
     }
 
 
     public function print_retail_report(){
       $this->load->model('queries');
-      $retail_data = $this->queries->get_sallesTodayDataRetail();
-      $total_retail = $this->queries->get_today_salesretail();
-      $total_profit_retail = $this->queries->get_today_profitretail();
+      $selected_branch_id = $this->current_admin_branch_id();
+      $branches = $this->queries->get_branches();
+      $retail_data = $this->queries->get_sallesTodayDataRetail($selected_branch_id);
+      $total_retail = $this->queries->get_today_salesretail($selected_branch_id);
+      $total_profit_retail = $this->queries->get_today_profitretail($selected_branch_id);
       $shop = $this->queries->get_shop_infoData();
 
       $mpdf = new \Mpdf\Mpdf();
-      $html = $this->load->view('admin/retail_report',['retail_data'=>$retail_data,'total_retail'=>$total_retail,'total_profit_retail'=>$total_profit_retail,'shop'=>$shop],true);
+      $html = $this->load->view('admin/retail_report',['retail_data'=>$retail_data,'total_retail'=>$total_retail,'total_profit_retail'=>$total_profit_retail,'shop'=>$shop,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id],true);
       $mpdf->SetFooter('Generated By (0) 629364847 & (0) 748470181');
         $mpdf->WriteHTML($html);
         $mpdf->Output();
@@ -1685,11 +1977,12 @@ public function password_check($oldpass)
   $this->load->model('queries');
   $user_id = $this->session->userdata('user_id');
   $my = $this->queries->get_mydata($user_id);
-  $datay = $this->queries->get_productAll();
+  $branch_id = $this->current_admin_branch_id();
+  $datay = $this->queries->get_productAll($branch_id);
   $cartItems = $this->cart->contents();
   $limit = $this->queries->get_stock_limitData();
-  $kwisha = $this->queries->get_bidhaa_kwisha();
-  $this->load->view('admin/sell',['datay'=>$datay,'cartItems'=>$cartItems,'limit'=>$limit,'my'=>$my,'kwisha'=>$kwisha]);
+  $kwisha = $this->queries->get_bidhaa_kwisha($branch_id);
+  $this->load->view('admin/sell',['datay'=>$datay,'cartItems'=>$cartItems,'limit'=>$limit,'my'=>$my,'kwisha'=>$kwisha,'selected_branch_id'=>$branch_id]);
     }
 
 
@@ -1697,9 +1990,15 @@ public function password_check($oldpass)
   
   function addToCart($proID){
         $this->load->model('queries');
+        $branch_id = $this->current_admin_branch_id();
         // Fetch specific product by ID
         $product = $this->queries->getRows($proID);
-        $stockRow = $this->db->query("SELECT balance FROM tbl_store WHERE product_id = '".$product['id']."' LIMIT 1")->row_array();
+        if (!$product || ($branch_id && (int)($product['branch_id'] ?? 0) !== (int)$branch_id)) {
+          $this->session->set_flashdata('error', 'This product is not available in the selected branch.');
+          return redirect('admin/admin_sell');
+        }
+        $branch_sql = $branch_id ? " AND branch_id = '".(int)$branch_id."'" : "";
+        $stockRow = $this->db->query("SELECT balance FROM tbl_store WHERE product_id = '".$product['id']."' $branch_sql LIMIT 1")->row_array();
         $stockBalance = $stockRow ? (int) $stockRow['balance'] : 0;
         
         // Add product to the cart
@@ -1729,9 +2028,15 @@ public function password_check($oldpass)
 
       function addToCart_jumla($proID){
         $this->load->model('queries');
+        $branch_id = $this->current_admin_branch_id();
         // Fetch specific product by ID
         $product = $this->queries->getRows($proID);
-        $stockRow = $this->db->query("SELECT balance FROM tbl_store WHERE product_id = '".$product['id']."' LIMIT 1")->row_array();
+        if (!$product || ($branch_id && (int)($product['branch_id'] ?? 0) !== (int)$branch_id)) {
+          $this->session->set_flashdata('error', 'This product is not available in the selected branch.');
+          return redirect('admin/admin_sell');
+        }
+        $branch_sql = $branch_id ? " AND branch_id = '".(int)$branch_id."'" : "";
+        $stockRow = $this->db->query("SELECT balance FROM tbl_store WHERE product_id = '".$product['id']."' $branch_sql LIMIT 1")->row_array();
         $stockBalance = $stockRow ? (int) $stockRow['balance'] : 0;
         
         // Add product to the cart
@@ -1793,7 +2098,9 @@ public function password_check($oldpass)
     }
 
     function checkForItemBalance($item_id,$qnty){
-      $sql = "SELECT * FROM tbl_store WHERE product_id='$item_id' AND balance >= '$qnty'";
+      $branch_id = $this->current_admin_branch_id();
+      $branch_sql = $branch_id ? " AND branch_id = '".(int)$branch_id."'" : "";
+      $sql = "SELECT * FROM tbl_store WHERE product_id='$item_id' $branch_sql AND balance >= '$qnty'";
       $data = $this->db->query($sql);
       
       if(count($data->result()) > 0){
@@ -1834,14 +2141,21 @@ public function password_check($oldpass)
           $total_price = $this->input->post('total_price');
           $sell_day = date("Y-m-d");
           $date_recept = date("Y-m-d H:i:s");
+          $branch_id = $this->current_admin_branch_id();
 
           // print_r($sell_status);
           //      exit();
           $order_id = $this->insert_recept_number($date_recept);
           for($i=0; $i<count($product_id);$i++){
+            $branch_sql = $branch_id ? " AND branch_id = '".(int)$branch_id."'" : "";
+            $allowed = $this->db->query("SELECT id FROM product WHERE id = '".(int)$product_id[$i]."' $branch_sql")->row();
+            if (!$allowed) {
+              $this->session->set_flashdata('error', 'One or more products are not available in the selected branch.');
+              return redirect('admin/admin_sell');
+            }
             $date = date("Y-m-d");
-       $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`sell_status`,`sell_day`,`customer`) 
-      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$sell_status[$i]."','$sell_day','$customer')");
+       $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`branch_id`,`sell_status`,`sell_day`,`customer`) 
+      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$branch_id."','".$sell_status[$i]."','$sell_day','$customer')");
    
          
         $this->record_stock_movement($product_id[$i], $quantity[$i], $user_id[$i], 'SOLD', $date);
@@ -1892,14 +2206,21 @@ public function password_check($oldpass)
           $sell_status = $this->input->post('sell_status[]');
           $total_price = $this->input->post('total_price');
           $sell_day = date("Y-m-d");
+          $branch_id = $this->current_admin_branch_id();
 
           // print_r($sell_status);
           //      exit();
            $date_recept = date("Y-m-d H:i:s");
            $order_id = $this->insert_recept_number($date_recept);
           for($i=0; $i<count($product_id);$i++){
-        $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`sell_status`,`sell_day`,`customer`) 
-      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$sell_status[$i]."','$sell_day','$customer')");
+            $branch_sql = $branch_id ? " AND branch_id = '".(int)$branch_id."'" : "";
+            $allowed = $this->db->query("SELECT id FROM product WHERE id = '".(int)$product_id[$i]."' $branch_sql")->row();
+            if (!$allowed) {
+              $this->session->set_flashdata('error', 'One or more products are not available in the selected branch.');
+              return redirect('admin/admin_sell');
+            }
+        $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`branch_id`,`sell_status`,`sell_day`,`customer`) 
+      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$branch_id."','".$sell_status[$i]."','$sell_day','$customer')");
     $this->record_stock_movement($product_id[$i], $quantity[$i], $user_id[$i], 'SOLD', $sell_day);
           }
           
@@ -1925,7 +2246,9 @@ public function password_check($oldpass)
 
 //update product store
   public function update_storedata($product_id,$quantity){
-  $sqldata="UPDATE tbl_store SET `out_balance`= `out_balance`+$quantity,`balance`=`balance`-$quantity WHERE `product_id` = '$product_id'";
+  $branch_id = $this->current_admin_branch_id();
+  $branch_sql = $branch_id ? " AND `branch_id` = '".(int)$branch_id."'" : "";
+  $sqldata="UPDATE tbl_store SET `out_balance`= `out_balance`+$quantity,`balance`=`balance`-$quantity WHERE `product_id` = '$product_id' $branch_sql";
     // print_r($sqldata);
     //    exit();
   $query = $this->db->query($sqldata);
@@ -1958,15 +2281,17 @@ public function password_check($oldpass)
       $user_id = $this->session->userdata('user_id');
       $my = $this->queries->get_mydata($user_id);
       $product_id = $this->input->post('product_id');
-      $product = $this->queries->get_store_product_available();
+      $selected_branch_id = $this->current_admin_branch_id();
+      $branches = $this->queries->get_branches();
+      $product = $this->queries->get_store_product_available($selected_branch_id);
       $data = $this->queries->view_stock_movement($product_id);
       $privillage = $this->queries->get_userPrivillage($user_id);
 
-      $trending_product = $this->queries->get_product_tranding();
+      $trending_product = $this->queries->get_product_tranding($selected_branch_id);
        // echo "<pre>";
        //  print_r($trending_product);
        //        exit();
-      $this->load->view('admin/product_movement',['my'=>$my,'product'=>$product,'data'=>$data,'privillage'=>$privillage,'trending_product'=>$trending_product]);
+      $this->load->view('admin/product_movement',['my'=>$my,'product'=>$product,'data'=>$data,'privillage'=>$privillage,'trending_product'=>$trending_product,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
     }
 
     public function stock_balance_history(){
@@ -1976,14 +2301,18 @@ public function password_check($oldpass)
       $privillage = $this->queries->get_userPrivillage($user_id);
       $product_id = $this->input->get('product_id');
       $selected_product_id = ($product_id !== null && $product_id !== '') ? (int)$product_id : null;
+      $selected_branch_id = $this->current_admin_branch_id();
 
-      $product = $this->queries->get_store_product_available();
+      $branches = $this->queries->get_branches();
+      $product = $this->queries->get_store_product_available($selected_branch_id);
 
       $this->load->view('admin/stock_balance_history',[
         'my' => $my,
         'privillage' => $privillage,
         'product' => $product,
         'selected_product_id' => $selected_product_id,
+        'branches' => $branches,
+        'selected_branch_id' => $selected_branch_id,
       ]);
     }
 
@@ -2107,11 +2436,24 @@ public function password_check($oldpass)
        $privillage = $this->queries->get_userPrivillage($user_id);
        $from = $this->input->post('from');
        $to = $this->input->post('to');
-       $tranding = $this->queries->get_product_tranding_data($from,$to);
+       $branch_id = $this->input->post('branch_id');
+       if ($branch_id !== null) {
+         if ($branch_id === '') {
+           $this->session->unset_userdata('admin_branch_id');
+           $selected_branch_id = null;
+         } else {
+           $selected_branch_id = (int)$branch_id;
+           $this->session->set_userdata('admin_branch_id', $selected_branch_id);
+         }
+       } else {
+         $selected_branch_id = $this->current_admin_branch_id();
+       }
+       $branches = $this->queries->get_branches();
+       $tranding = $this->queries->get_product_tranding_data($from,$to,$selected_branch_id);
           //        echo "<pre>";
           // print_r($tranding);
           //          exit();
-      $this->load->view('admin/tranding_filter',['tranding'=>$tranding,'my'=>$my,'privillage'=>$privillage,'from'=>$from,'to'=>$to]);
+      $this->load->view('admin/tranding_filter',['tranding'=>$tranding,'my'=>$my,'privillage'=>$privillage,'from'=>$from,'to'=>$to,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
     }
 
 
@@ -2119,10 +2461,12 @@ public function password_check($oldpass)
     $this->load->model('queries');
     $user_id = $this->session->userdata('user_id');
     $shop = $this->queries->get_shop_infoData();
-    $tranding = $this->queries->get_product_tranding_data($from,$to);
+    $selected_branch_id = $this->current_admin_branch_id();
+    $branches = $this->queries->get_branches();
+    $tranding = $this->queries->get_product_tranding_data($from,$to,$selected_branch_id);
     
     $mpdf = new \Mpdf\Mpdf();
-    $html = $this->load->view('admin/print_tranding',['shop'=>$shop,'tranding'=>$tranding,'from'=>$from,'to'=>$to],true);
+    $html = $this->load->view('admin/print_tranding',['shop'=>$shop,'tranding'=>$tranding,'from'=>$from,'to'=>$to,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id],true);
     $mpdf->SetFooter('Generated By (0) 629364847 & (0) 748470181');
         $mpdf->WriteHTML($html);
         $mpdf->Output();
@@ -2604,13 +2948,15 @@ public function prev_recod(){
  public function product_add_Store(){
       $this->load->model('queries');
       $user_id = $this->session->userdata('user_id');
-      $product = $this->queries->get_store_product_available();
+      $selected_branch_id = $this->current_admin_branch_id();
+      $branches = $this->queries->get_branches();
+      $product = $this->queries->get_store_product_available($selected_branch_id);
       $my = $this->queries->get_mydata($user_id);
       $privillage = $this->queries->get_userPrivillage($user_id);
        //  echo "<pre>";
        // print_r($product);
        //         exit();
-      $this->load->view('admin/add_form',['product'=>$product,'my'=>$my,'privillage'=>$privillage]);
+      $this->load->view('admin/add_form',['product'=>$product,'my'=>$my,'privillage'=>$privillage,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
     }
 
       public function adjust_product_stoo(){

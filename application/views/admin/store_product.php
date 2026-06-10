@@ -30,11 +30,32 @@
 </div>
 </div>
 <div class="body">
+    <?php $selected_branch_id = isset($selected_branch_id) ? $selected_branch_id : null; ?>
+    <form method="get" action="<?php echo base_url('admin/all_productStore'); ?>" class="evamo-live-filter">
+        <div class="evamo-filter-field">
+            <label>Branch</label>
+            <select name="branch_id" class="form-control" data-live-submit="1">
+                <option value="">All Branches</option>
+                <?php if (!empty($branches)): ?>
+                    <?php foreach ($branches as $branch): ?>
+                        <option value="<?php echo $branch->branch_id; ?>" <?php echo ((string)$selected_branch_id === (string)$branch->branch_id) ? 'selected' : ''; ?>>
+                            <?php echo html_escape($branch->branch_name); ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </select>
+        </div>
+        <div class="evamo-filter-actions">
+            <button type="submit" class="btn btn-primary"><i class="icon-magnifier"></i> Filter</button>
+            <a href="<?php echo base_url('admin/all_productStore'); ?>" class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
     <div class="table-responsive">
 <table class="table table-hover js-basic-example dataTable table-custom">
             <thead class="thead-primary">
                 <tr>
                     <th>Product name</th>
+                    <th>Branch</th>
                     <th>Reason</th>
                     <th>Brand</th>
                     <th>Balance</th>
@@ -44,6 +65,7 @@
             <tfoot>
                 <tr>
                     <th>Product name</th>
+                    <th>Branch</th>
                     <th>Reason</th>
                     <th>Brand</th>
                     <th>Balance</th>
@@ -56,6 +78,7 @@
             <tr>
             
             <td><b><?php echo $stores->name; ?></b></td>
+            <td><b><?php echo !empty($stores->branch_name) ? html_escape($stores->branch_name) : '-'; ?></b></td>
                         <td><b><?php echo (isset($stores->reason) && $stores->reason !== '') ? ucfirst($stores->reason) : 'Purchased'; ?></b></td>
             <td><b><?php echo $stores->bland; ?></b></td>
             <td>
@@ -97,4 +120,3 @@
 
 
 <?php include 'incs/footer.php'; ?>
-

@@ -1,15 +1,15 @@
 <?php
     $CI =& get_instance();
-    $shop_info = $CI->queries->get_shop_infoData();
-    $shop_name = !empty($shop_info->shop_name) ? $shop_info->shop_name : 'Shop';
-
-    $shop_logo = '';
-    if (!empty($shop_info->shop_logo)) {
-        $shop_logo = $shop_info->shop_logo;
-    } elseif (!empty($shop_info->logo)) {
-        $shop_logo = $shop_info->logo;
-    } elseif (!empty($shop_info->image)) {
-        $shop_logo = $shop_info->image;
+    $branch_name = 'Branch';
+    $session_branch_id = $CI->session->userdata('branch_id');
+    if ($session_branch_id && $CI->db->table_exists('tbl_branch')) {
+        $branch = $CI->db
+            ->where('branch_id', (int) $session_branch_id)
+            ->get('tbl_branch')
+            ->row();
+        if (!empty($branch->branch_name)) {
+            $branch_name = $branch->branch_name;
+        }
     }
 
     if (!function_exists('evamo_heroicon')) {
@@ -37,7 +37,7 @@
         </button>
         <div class="sidebar-shop-meta">
             <span class="sidebar-shop-icon"><?php echo evamo_heroicon('building-office'); ?></span>
-            <div class="sidebar-shop-name"><?php echo $shop_name; ?></div>
+            <div class="sidebar-shop-name"><?php echo html_escape($branch_name); ?></div>
         </div>
     </div>
 

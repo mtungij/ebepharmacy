@@ -28,11 +28,23 @@
   </style>
 
        <div class="pull">
+       <?php
+        $selected_branch_name = 'All Branches';
+        if (!empty($selected_branch_id) && !empty($branches)) {
+          foreach ($branches as $branch) {
+            if ((int) $selected_branch_id === (int) $branch->branch_id) {
+              $selected_branch_name = $branch->branch_name;
+              break;
+            }
+          }
+        }
+       ?>
        <p style="font-size:12px;"> <?php echo $shop->shop_name; ?><br>
         <?php echo $shop->po_box; ?> <?php echo $shop->location; ?> <br>
         Mob: <?php echo $shop->phone; ?>
         </p> 
          <p style="font-size:12px;"><b>EMPTY PRODUCT REPORT</b></p>
+         <p style="font-size:12px;">Branch: <?php echo html_escape($selected_branch_name); ?></p>
        </div>
 
      
@@ -65,6 +77,7 @@ tr:nth-child(even) {
   <tr>
     <th style="font-size:12px;">S/No.</th>
     <th style="font-size:12px;">Product name</th>
+    <th style="font-size:12px;">Branch</th>
     <th style="font-size:12px;">Balance</th>
     <th style="font-size:12px;">Buying Price</th>
   </tr>
@@ -75,6 +88,7 @@ tr:nth-child(even) {
  <tr>
     <td style="font-size:12px;"><?php echo $no++; ?></td>
     <td style="font-size:12px;"><?php echo $empty_prdDatas->name; ?></td>
+    <td style="font-size:12px;"><?php echo !empty($empty_prdDatas->branch_name) ? html_escape($empty_prdDatas->branch_name) : '-'; ?></td>
     <td style="font-size:12px;"><?php echo $empty_prdDatas->balance; ?></td>
     <td style="font-size:12px;"><?php echo number_format($empty_prdDatas->buy_price); ?>/=</td>
   </tr>
@@ -86,7 +100,6 @@ tr:nth-child(even) {
 
 </body>
 </html>
-
 
 
 

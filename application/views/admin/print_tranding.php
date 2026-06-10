@@ -28,6 +28,17 @@
   </style>
 
        <div class="pull">
+    <?php
+      $selected_branch_name = 'All Branches';
+      if (!empty($selected_branch_id) && !empty($branches)) {
+        foreach ($branches as $branch) {
+          if ((int) $selected_branch_id === (int) $branch->branch_id) {
+            $selected_branch_name = $branch->branch_name;
+            break;
+          }
+        }
+      }
+    ?>
     <p style="font-size:12px;"> <?php echo $shop->shop_name; ?><br>
         <?php echo $shop->po_box; ?> <?php echo $shop->location; ?> <br>
         Mob: <?php echo $shop->phone; ?>
@@ -36,6 +47,7 @@
           <?php $date = date("Y-m-d"); ?>
       
          product frequency movement / From:<?php echo $from; ?> - To: <?php echo $to; ?> <b> 
+        <br>Branch: <?php echo html_escape($selected_branch_name); ?>
         </p>  
         
        </div>
@@ -70,6 +82,7 @@ tr:nth-child(even) {
   <tr>
     <th style="font-size:12px;">S/no.</th>
     <th style="font-size:12px;">Product Name</th>
+    <th style="font-size:12px;">Branch</th>
     <th style="font-size:12px;">Quantity</th>
     <th style="font-size:12px;">Retail price</th>
     <th style="font-size:12px;">Wholesale price</th>
@@ -82,6 +95,7 @@ tr:nth-child(even) {
  <tr>
     <td><?php echo $no++; ?>.</td>
     <td style="font-size:12px;"><?php echo $transs->name; ?></td>
+    <td style="font-size:12px;"><?php echo !empty($transs->branch_name) ? html_escape($transs->branch_name) : '-'; ?></td>
     <td style="font-size:12px;"><?php echo $transs->total_qnty; ?></td>
     <td style="font-size:12px;"><?php echo $transs->price; ?></td>
     <td style="font-size:12px;"><?php echo $transs->ju_price; ?></td>
@@ -98,7 +112,6 @@ tr:nth-child(even) {
 
 </body>
 </html>
-
 
 
 

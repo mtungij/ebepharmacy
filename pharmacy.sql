@@ -30,6 +30,7 @@ SET time_zone = "+00:00";
 CREATE TABLE `cash_flow` (
   `id` int(11) NOT NULL,
   `user_id` text DEFAULT NULL,
+  `branch_id` int(11) DEFAULT NULL,
   `name` text DEFAULT NULL,
   `description` text DEFAULT NULL,
   `price` text DEFAULT NULL,
@@ -46,6 +47,7 @@ CREATE TABLE `cash_flow` (
 CREATE TABLE `product` (
   `id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
+  `branch_id` int(11) DEFAULT NULL,
   `name` text DEFAULT NULL,
   `price` int(11) DEFAULT NULL,
   `ju_price` int(11) DEFAULT NULL,
@@ -484,6 +486,7 @@ INSERT INTO `product` (`id`, `user_id`, `name`, `price`, `ju_price`, `pro_price`
 
 CREATE TABLE `tbl_cashire` (
   `cash_id` int(11) NOT NULL,
+  `branch_id` int(11) DEFAULT NULL,
   `full_name` text DEFAULT NULL,
   `total_price` int(11) DEFAULT NULL,
   `date` text DEFAULT NULL
@@ -841,6 +844,31 @@ CREATE TABLE `tbl_huduma` (
   `huduma_price` text DEFAULT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_branch`
+--
+
+CREATE TABLE `tbl_branch` (
+  `branch_id` int(11) NOT NULL,
+  `information_id` int(11) DEFAULT NULL,
+  `branch_name` varchar(150) DEFAULT NULL,
+  `location` text DEFAULT NULL,
+  `phone` text DEFAULT NULL,
+  `email` text DEFAULT NULL,
+  `is_main` tinyint(1) NOT NULL DEFAULT 0,
+  `status` varchar(50) DEFAULT 'open',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `tbl_branch`
+--
+
+INSERT INTO `tbl_branch` (`branch_id`, `information_id`, `branch_name`, `location`, `phone`, `email`, `is_main`, `status`, `created_at`) VALUES
+(1, 1, 'Main Branch', 'MBEYA -INSLAGA', '0718616591', 'beatricerichard@gmail.com', 1, 'open', '2024-10-10 11:47:13');
 
 -- --------------------------------------------------------
 
@@ -1774,6 +1802,7 @@ CREATE TABLE `tbl_receve_huduma` (
 CREATE TABLE `tbl_sell` (
   `sell_id` int(11) NOT NULL,
   `user_id` varchar(11) DEFAULT NULL,
+  `branch_id` int(11) DEFAULT NULL,
   `customer` text DEFAULT NULL,
   `product_id` int(11) DEFAULT NULL,
   `order_id` int(11) DEFAULT NULL,
@@ -5623,6 +5652,7 @@ CREATE TABLE `tbl_stock_open` (
 CREATE TABLE `tbl_store` (
   `store_id` int(11) NOT NULL,
   `product_id` int(11) DEFAULT NULL,
+  `branch_id` int(11) DEFAULT NULL,
   `balance` int(11) DEFAULT NULL,
   `total_buy` int(11) DEFAULT NULL,
   `total_sell` int(11) DEFAULT NULL,
@@ -6104,6 +6134,7 @@ CREATE TABLE `tbl_user` (
   `phone_number` text DEFAULT NULL,
   `img` text DEFAULT NULL,
   `role` text DEFAULT NULL,
+  `branch_id` int(11) DEFAULT NULL,
   `status` varchar(50) DEFAULT 'open',
   `password` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -6179,6 +6210,13 @@ ALTER TABLE `tbl_huduma`
 --
 ALTER TABLE `tbl_information`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `tbl_branch`
+--
+ALTER TABLE `tbl_branch`
+  ADD PRIMARY KEY (`branch_id`),
+  ADD KEY `information_id` (`information_id`);
 
 --
 -- Indexes for table `tbl_main_store`
@@ -6335,6 +6373,12 @@ ALTER TABLE `tbl_huduma`
 --
 ALTER TABLE `tbl_information`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `tbl_branch`
+--
+ALTER TABLE `tbl_branch`
+  MODIFY `branch_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `tbl_main_store`

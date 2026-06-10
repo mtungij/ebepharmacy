@@ -27,9 +27,23 @@
       </div>
       <div class="col-md-6">
         <div class="pull-right">
-         <a href="<?php echo base_url("admin/print_data"); ?>" class="btn btn-info" target="_blank"><i class="icon-printer"></i>All Product</a>
-         <a href="<?php echo base_url("admin/print_sellingPrice"); ?> "  class="btn btn-primary" target="_blank"><i class="icon-printer"></i>Selling Price</a>
-         <a href="<?php echo base_url("admin/empty_product"); ?>" class="btn btn-danger" target="=_blank"><i class="icon-printer"></i>Empty product</a>
+          <?php
+            $selected_branch_id = isset($selected_branch_id) ? $selected_branch_id : null;
+            $print_query = $selected_branch_id ? '?branch_id=' . (int)$selected_branch_id : '';
+            $selected_branch_name = 'All Branches';
+            if ($selected_branch_id && !empty($branches)) {
+              foreach ($branches as $branch) {
+                if ((int)$selected_branch_id === (int)$branch->branch_id) {
+                  $selected_branch_name = $branch->branch_name;
+                  break;
+                }
+              }
+            }
+          ?>
+         <span class="badge badge-info mr-2"><?php echo html_escape($selected_branch_name); ?></span>
+         <a href="<?php echo base_url("admin/print_data".$print_query); ?>" class="btn btn-info" target="_blank"><i class="icon-printer"></i>All Product</a>
+         <a href="<?php echo base_url("admin/print_sellingPrice".$print_query); ?> "  class="btn btn-primary" target="_blank"><i class="icon-printer"></i>Selling Price</a>
+         <a href="<?php echo base_url("admin/empty_product".$print_query); ?>" class="btn btn-danger" target="=_blank"><i class="icon-printer"></i>Empty product</a>
           </div>
       </div>
       </div>
@@ -40,6 +54,7 @@
             <thead class="thead-primary">
                 <tr>
                     <th>Product name</th>
+                    <th>Branch</th>
                     <th>All Product</th>
                     <th>Unit</th>
                     <th>Products Sold</th>
@@ -55,6 +70,7 @@
             <tfoot>
                 <tr>
                     <th>TOTAL</th>
+                    <th></th>
                     <th></th>
                     <th></th>
                     <th></th>
@@ -100,6 +116,7 @@
             <tr>
            
             <td><b><?php echo $inventory->name; ?></b></td>
+            <td><?php echo !empty($inventory->branch_name) ? html_escape($inventory->branch_name) : '-'; ?></td>
             <td><?php echo $inventory->balance + $inventory->out_balance; ?></td>
             <td><?php echo $inventory->unit; ?></td>
             <td><?php echo $inventory->out_balance; ?></td>
@@ -145,4 +162,3 @@
 
 
 <?php include 'incs/footer.php'; ?>
-

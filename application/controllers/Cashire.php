@@ -20,11 +20,12 @@ class Cashire extends CI_Controller {
 	public function dashboard(){
  $this->load->model('queries');
   $user_id = $this->session->userdata('user_id');
+  $branch_id = (int) $this->session->userdata('branch_id');
   $my = $this->queries->get_mydata($user_id);
-  $cashire = $this->queries->get_today_cashire_request();
-  $today_total = $this->queries->get_total_req();
+  $cashire = $this->queries->get_today_cashire_request($branch_id);
+  $today_total = $this->queries->get_total_req($branch_id);
 
-  $recept = $this->queries->get_all_order_request();
+  $recept = $this->queries->get_all_order_request($branch_id);
     //     echo "<pre>";
     // print_r($recept);
     //      exit();
@@ -45,9 +46,10 @@ $this->load->view('cashire/dashboard',['my'=>$my,'cashire'=>$cashire,'today_tota
   public function view_order_confirmd(){
   $this->load->model('queries');
   $user_id = $this->session->userdata('user_id');
+  $branch_id = (int) $this->session->userdata('branch_id');
   $my = $this->queries->get_mydata($user_id);
-  $recept = $this->queries->get_all_order_request_confirmed();
-  $total_recept = $this->queries->get_all_order_request_confirmed_total();
+  $recept = $this->queries->get_all_order_request_confirmed($branch_id);
+  $total_recept = $this->queries->get_all_order_request_confirmed_total($branch_id);
    // print_r($total_recept);
    //         exit();
 
@@ -190,14 +192,15 @@ $this->load->view('cashire/dashboard',['my'=>$my,'cashire'=>$cashire,'today_tota
           $customer = $this->input->post('customer');
           $total_price = $this->input->post('total_price');
           $sell_day = date("Y-m-d");
+          $branch_id = (int) $this->session->userdata('branch_id');
 
           // print_r($sell_status);
           //      exit();
   
           for($i=0; $i<count($product_id);$i++){
             $date = date("Y-m-d");
-        $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`sell_status`,`sell_day`,`customer`) 
-      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$sell_status[$i]."','$sell_day','$customer')");
+        $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`branch_id`,`sell_status`,`sell_day`,`customer`) 
+      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$branch_id."','".$sell_status[$i]."','$sell_day','$customer')");
         $this->db->query("INSERT INTO  tbl_stock_movement (`product_id`,`product_qnty`,`user_id`,`mov_status`,`date`) 
       VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$user_id[$i]."','SOLD','$date')");
           }
@@ -238,7 +241,8 @@ $this->load->view('cashire/dashboard',['my'=>$my,'cashire'=>$cashire,'today_tota
     //insert cashire record
      public function insert_cashire_report($customer,$total_price){
     $date = date("Y-m-d");
-      $this->db->query("INSERT INTO tbl_cashire (`full_name`,`total_price`,`date`) VALUES ('$customer','$total_price','$date')");
+    $branch_id = (int) $this->session->userdata('branch_id');
+      $this->db->query("INSERT INTO tbl_cashire (`branch_id`,`full_name`,`total_price`,`date`) VALUES ('$branch_id','$customer','$total_price','$date')");
       }
 
 
@@ -254,13 +258,14 @@ $this->load->view('cashire/dashboard',['my'=>$my,'cashire'=>$cashire,'today_tota
           $user_id = $this->input->post('user_id[]');
           $sell_status = $this->input->post('sell_status[]');
           $sell_day = date("Y-m-d");
+          $branch_id = (int) $this->session->userdata('branch_id');
 
           // print_r($sell_status);
           //    exit();
   
           for($i=0; $i<count($product_id);$i++){
-        $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`sell_status`,`sell_day`) 
-      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$sell_status[$i]."','$sell_day')");
+        $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`branch_id`,`sell_status`,`sell_day`) 
+      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$branch_id."','".$sell_status[$i]."','$sell_day')");
           }
           // print_r($product_id);
           // print_r($quantity);
@@ -307,8 +312,9 @@ public function today_salles(){
   $user_id = $this->session->userdata('user_id');
   $date = date("Y-m-d");
   $this->load->model('queries');
-  $data = $this->queries->get_sallesToday_Cashire();
-  $today_SalesData = $this->queries->get_today_sales_cashire();
+  $branch_id = (int) $this->session->userdata('branch_id');
+  $data = $this->queries->get_sallesToday_Cashire($branch_id);
+  $today_SalesData = $this->queries->get_today_sales_cashire($branch_id);
   $my = $this->queries->get_mydata($user_id);
     // echo "<pre>";
     // print_r($data);
@@ -320,9 +326,10 @@ public function today_salles(){
 public function retail_sale(){
   $this->load->model('queries');
   $user_id = $this->session->userdata('user_id');
-  $retail = $this->queries->get_sallesTodayRetail_cashire();
+  $branch_id = (int) $this->session->userdata('branch_id');
+  $retail = $this->queries->get_sallesTodayRetail_cashire($branch_id);
   $my = $this->queries->get_mydata($user_id);
-  $total_retail = $this->queries->get_today_salesretail_cashire();
+  $total_retail = $this->queries->get_today_salesretail_cashire($branch_id);
     //   echo "<pre>";
     // print_r($total_retail);
     // echo "</pre>";
@@ -333,9 +340,10 @@ public function retail_sale(){
 public function whore_sale(){
   $this->load->model('queries');
   $user_id = $this->session->userdata('user_id');
-  $whole_sale = $this->queries->get_sallesTodayWholesale_cashire();
+  $branch_id = (int) $this->session->userdata('branch_id');
+  $whole_sale = $this->queries->get_sallesTodayWholesale_cashire($branch_id);
   $my = $this->queries->get_mydata($user_id);
-  $total_wholesale = $this->queries->get_today_salesWhole_cashire();
+  $total_wholesale = $this->queries->get_today_salesWhole_cashire($branch_id);
   // echo "<pre>";
   // print_r($total_wholesale);
   // echo "</pre>";
@@ -346,9 +354,10 @@ public function whore_sale(){
 public function cash_flow(){
  $this->load->model('queries');
  $user_id = $this->session->userdata('user_id');
- $today = $this->queries->get_use_today_cashire();
- $matumizi = $this->queries->get_totalMatumizi_cashire();
- $today_SalesData = $this->queries->get_today_sales_cashire();
+ $branch_id = (int) $this->session->userdata('branch_id');
+ $today = $this->queries->get_use_today_cashire($branch_id);
+ $matumizi = $this->queries->get_totalMatumizi_cashire($branch_id);
+ $today_SalesData = $this->queries->get_today_sales_cashire($branch_id);
  $my = $this->queries->get_mydata($user_id);
 
  // echo "<pre>";
@@ -367,6 +376,7 @@ public function create_useToday(){
   if ($this->form_validation->run() ) {
      $data = $this->input->post();
      $data['day'] = date("Y-m-d");
+     $data['branch_id'] = (int) $this->session->userdata('branch_id');
      $this->load->model('queries');
      //$data['day'] = $this->input->post();
      // print_r($data);
@@ -385,8 +395,9 @@ public function create_useToday(){
 public function today_saled_report(){
   $this->load->model('queries');
   $user_id = $this->session->userdata('user_id');
-  $data = $this->queries->get_sallesToday_Cashire();
-  $today_SalesData = $this->queries->get_today_sales_cashire();
+  $branch_id = (int) $this->session->userdata('branch_id');
+  $data = $this->queries->get_sallesToday_Cashire($branch_id);
+  $today_SalesData = $this->queries->get_today_sales_cashire($branch_id);
   $shop = $this->queries->get_shop_infoData();
    // echo "<pre>";
    // print_r($shop);
@@ -568,8 +579,9 @@ public function password_check($oldpass)
   $this->load->model('queries');
   $user_id = $this->session->userdata('user_id');
   $my = $this->queries->get_mydata($user_id);
-  $total_retail = $this->queries->get_today_salesretail_cashire();
-  $retail = $this->queries->get_sallesTodayRetail_cashire();
+  $branch_id = (int) $this->session->userdata('branch_id');
+  $total_retail = $this->queries->get_today_salesretail_cashire($branch_id);
+  $retail = $this->queries->get_sallesTodayRetail_cashire($branch_id);
   $shop = $this->queries->get_shop_infoData();
    // echo "<pre>";
    // print_r($shop);
@@ -585,8 +597,9 @@ public function password_check($oldpass)
   public function today_whole_salesReport(){
   $this->load->model('queries');
   $user_id = $this->session->userdata('user_id');
-  $total_wholesale = $this->queries->get_today_salesWhole_cashire();
-  $whole_sale = $this->queries->get_sallesTodayWholesale_cashire();
+  $branch_id = (int) $this->session->userdata('branch_id');
+  $total_wholesale = $this->queries->get_today_salesWhole_cashire($branch_id);
+  $whole_sale = $this->queries->get_sallesTodayWholesale_cashire($branch_id);
   $shop = $this->queries->get_shop_infoData();
    // echo "<pre>";
    // print_r($shop);

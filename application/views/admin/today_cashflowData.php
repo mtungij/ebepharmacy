@@ -20,6 +20,11 @@
 <div class="row clearfix">
 <div class="col-lg-12">
 <div class="card">
+<?php
+  $cash_in_total = isset($data_cashin->TotalItemsOrdered) ? (float)$data_cashin->TotalItemsOrdered : 0;
+  $expenses_total = isset($total_expences->matumiz) ? (float)$total_expences->matumiz : 0;
+  $service_total = isset($huduma->total_price) ? (float)$huduma->total_price : 0;
+?>
 <div class="header">
   <div class="row">
     <div class="col-md-4">
@@ -28,7 +33,7 @@
   <div class="col-md-4">
     <div class="pull-right">
       Today Cash In
-      <input type="" name="" value="<?php echo number_format($data_cashin->TotalItemsOrdered) ; ?>/=" class="form-control" readonly>
+      <input type="" name="" value="<?php echo number_format($cash_in_total) ; ?>/=" class="form-control" readonly>
     </div>
   </div>
   <div class="col-md-4">
@@ -61,13 +66,13 @@
         <?php endforeach; ?>
         <tr>
           <th></th>
-          <th><h5 style="color: blue">Total Expenses : <?php echo number_format($total_expences->matumiz); ?>/=</h5></th>
-          <th><h5 style="color:orange">Total Cash In : <?php echo number_format($data_cashin->TotalItemsOrdered); ?>/=</h5></th>
+          <th><h5 style="color: blue">Total Expenses : <?php echo number_format($expenses_total); ?>/=</h5></th>
+          <th><h5 style="color:orange">Total Cash In : <?php echo number_format($cash_in_total); ?>/=</h5></th>
         </tr>
         <tr>
           <th></th>
           <th></th>
-          <th><h5 style="color: green">Gross Total: <?php echo number_format($data_cashin->TotalItemsOrdered - $total_expences->matumiz + $huduma->total_price) ; ?>/=</h5></th>
+          <th><h5 style="color: green">Gross Total: <?php echo number_format($cash_in_total - $expenses_total + $service_total) ; ?>/=</h5></th>
         </tr>
             </tbody>
         </table>
@@ -80,6 +85,5 @@
 </div>
 <script src="<?php echo base_url() ?>assets/admin/js/jquery.js"></script>
 <?php include 'incs/footer.php'; ?>
-
 
 

@@ -60,12 +60,33 @@
       </div>
 </div>
 <div class="body">
+    <?php $selected_branch_id = isset($selected_branch_id) ? $selected_branch_id : null; ?>
+    <form method="get" action="<?php echo base_url('admin/view_product_movement'); ?>" class="evamo-live-filter">
+        <div class="evamo-filter-field">
+            <label>Branch</label>
+            <select name="branch_id" class="form-control" data-live-submit="1">
+                <option value="">All Branches</option>
+                <?php if (!empty($branches)): ?>
+                    <?php foreach ($branches as $branch): ?>
+                        <option value="<?php echo $branch->branch_id; ?>" <?php echo ((string)$selected_branch_id === (string)$branch->branch_id) ? 'selected' : ''; ?>>
+                            <?php echo html_escape($branch->branch_name); ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </select>
+        </div>
+        <div class="evamo-filter-actions">
+            <button type="submit" class="btn btn-primary"><i class="icon-magnifier"></i> Filter</button>
+            <a href="<?php echo base_url('admin/view_product_movement'); ?>" class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
     <div class="table-responsive">
 <table class="table table-hover j-basic-example dataTable table-custom">
             <thead class="thead-primary">
                 <tr>
                     <th>S/no.</th>
                     <th>Product Name</th>
+                    <th>Branch</th>
                     <th>Quantity</th>
                     <th>Retail price</th>
                     <th>wholesale price</th>
@@ -79,6 +100,7 @@
             <tr>
               <td><?php echo $no++; ?>.</td>
             <td><?php echo $transs->name; ?></td>
+            <td><?php echo !empty($transs->branch_name) ? html_escape($transs->branch_name) : '-'; ?></td>
             <td><?php echo $transs->total_qnty; ?></td>
             <td>
              <?php echo number_format($transs->price); ?>
@@ -214,6 +236,7 @@ $('#district').html('<option value="">All</option>');
 <div class="modal-body">
 <div class="row clearfix">
     <?php $date = date("Y-m-d"); ?>
+    <input type="hidden" name="branch_id" value="<?php echo !empty($selected_branch_id) ? (int)$selected_branch_id : ''; ?>">
     <div class="col-md-6 col-6">
       <span>From</span>
       <input type="date" class="form-control" value="<?php echo $date; ?>" name="from" required>
@@ -233,4 +256,3 @@ $('#district').html('<option value="">All</option>');
 </div>
 </div>
 </div>
-

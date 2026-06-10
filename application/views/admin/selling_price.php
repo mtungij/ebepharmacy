@@ -28,11 +28,23 @@
   </style>
 
        <div class="pull">
+        <?php
+          $selected_branch_name = 'All Branches';
+          if (!empty($selected_branch_id) && !empty($branches)) {
+            foreach ($branches as $branch) {
+              if ((int)$selected_branch_id === (int)$branch->branch_id) {
+                $selected_branch_name = $branch->branch_name;
+                break;
+              }
+            }
+          }
+        ?>
         <p style="font-size:12px;"> <?php echo $shop->shop_name; ?><br>
         <?php echo $shop->po_box; ?> <?php echo $shop->location; ?> <br>
         Mob: <?php echo $shop->phone; ?>
         </p>  
          <p style="font-size:12px;"><b>SELLING PRICE REPORT</b></p>
+         <p style="font-size:12px;">Branch: <?php echo html_escape($selected_branch_name); ?></p>
        </div>
 
      
@@ -65,6 +77,7 @@ tr:nth-child(even) {
   <tr>
     <th style="font-size:12px;">S/No.</th>
     <th style="font-size:12px;">Product name</th>
+    <th style="font-size:12px;">Branch</th>
     <th style="font-size:12px;">Retail Sale Price</th>
     <th style="font-size:12px;">Whole Sale Price</th>
   </tr>
@@ -75,6 +88,7 @@ tr:nth-child(even) {
  <tr>
      <td style="font-size:12px;"><?php echo $no++; ?></td>
     <td style="font-size:12px;"><?php echo $selling_priceDatas->name; ?></td>
+    <td style="font-size:12px;"><?php echo !empty($selling_priceDatas->branch_name) ? html_escape($selling_priceDatas->branch_name) : '-'; ?></td>
     <td style="font-size:12px;">
       <?php if ($selling_priceDatas->price == 0) {
        ?>
@@ -100,7 +114,6 @@ tr:nth-child(even) {
 
 </body>
 </html>
-
 
 
 

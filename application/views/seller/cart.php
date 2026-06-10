@@ -324,9 +324,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
        <?php }else{ ?>
         <div class="pull-right">
-          <?php $kwiaha = $this->db->query("SELECT * FROM tbl_store WHERE balance =0"); 
-           ?>
-      <h2><a href="<?php echo base_url("seller/get_emptyItm"); ?>">No balance Item<span class="badge badge-danger"><i><?php echo $kwiaha->num_rows(); ?></span></i></a></h2>
+      <h2><a href="<?php echo base_url("seller/get_emptyItm"); ?>">No balance Item<span class="badge badge-danger"><i><?php echo count($kwisha); ?></span></i></a></h2>
       </div>
       <?php } ?>
       </div>
@@ -556,6 +554,5 @@ document.addEventListener('DOMContentLoaded', function(){
         </div>
     </div>
 </div> -->
-
 
 

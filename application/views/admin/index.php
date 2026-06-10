@@ -19,7 +19,12 @@ $all_sales_total = (float) (is_object($all_sell_all) ? ($all_sell_all->TotalItem
 $all_indirect_total = (float) (is_object($inderect_expenses_all) ? ($inderect_expenses_all->total_paid_expenses ?? 0) : 0);
 
 $gross_total = $all_profit_total - ($all_expense_total + $all_payroll_total) + ($all_sales_total - $all_profit_total - $all_indirect_total);
-$product_total = (int) $this->db->query('SELECT * FROM product')->num_rows();
+$selected_branch_id = isset($selected_branch_id) ? $selected_branch_id : null;
+$product_total_sql = 'SELECT * FROM product';
+if ($selected_branch_id) {
+    $product_total_sql .= ' WHERE branch_id = ' . (int) $selected_branch_id;
+}
+$product_total = (int) $this->db->query($product_total_sql)->num_rows();
 
 $movement_fast = (int) ($medicine_movement_summary['fastMoving'] ?? 0);
 $movement_slow = (int) ($medicine_movement_summary['slowMoving'] ?? 0);
@@ -54,9 +59,14 @@ if (!empty($datamonth)) {
   $previous_end = date('Y-m-d', strtotime('-7 days', strtotime($today)));
   $previous_start = date('Y-m-d', strtotime('-13 days', strtotime($today)));
 
-  $sum_between = function ($table, $column, $date_column, $from, $to) {
+  $sum_between = function ($table, $column, $date_column, $from, $to) use ($selected_branch_id) {
     if (!$this->db->table_exists($table)) {
       return 0.0;
+    }
+
+    $branch_sql = '';
+    if ($selected_branch_id && $this->db->field_exists('branch_id', $table)) {
+      $branch_sql = ' AND branch_id = ' . (int) $selected_branch_id;
     }
 
     $query = $this->db->query(
@@ -64,6 +74,7 @@ if (!empty($datamonth)) {
       . $this->db->escape($from)
       . " AND "
       . $this->db->escape($to)
+      . $branch_sql
     );
 
     if (!$query || !$query->row()) {

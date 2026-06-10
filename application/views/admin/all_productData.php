@@ -27,7 +27,21 @@
       </div>
       <div class="col-lg-6">
           <div class="pull-right">
-              <a href="<?php echo base_url("admin/print_data"); ?>" class="btn btn-info btn-sm" target="_blank"><i class="icon-printer"></i>Print</a>
+              <?php
+                $selected_branch_id = isset($selected_branch_id) ? $selected_branch_id : null;
+                $print_query = $selected_branch_id ? '?branch_id=' . (int)$selected_branch_id : '';
+                $selected_branch_name = 'All Branches';
+                if ($selected_branch_id && !empty($branches)) {
+                  foreach ($branches as $branch) {
+                    if ((int)$selected_branch_id === (int)$branch->branch_id) {
+                      $selected_branch_name = $branch->branch_name;
+                      break;
+                    }
+                  }
+                }
+              ?>
+              <span class="badge badge-info mr-2"><?php echo html_escape($selected_branch_name); ?></span>
+              <a href="<?php echo base_url("admin/print_data".$print_query); ?>" class="btn btn-info btn-sm" target="_blank"><i class="icon-printer"></i>Print</a>
           </div>
       </div>
       </div>
@@ -38,6 +52,7 @@
             <thead class="thead-primary">
                 <tr>
                     <th>Product name</th>
+                    <th>Branch</th>
                     <th>Buy price</th>
                     <th>Retail Sale price</th>
                     <th>Whore Sale price</th>
@@ -46,6 +61,7 @@
             <tfoot>
                 <tr>
                     <th>Product name</th>
+                    <th>Branch</th>
                     <th>Buy price</th>
                     <th>Retail Sale price</th>
                     <th>Whore Sale price</th>
@@ -56,6 +72,7 @@
             <tr>
            
             <td><?php echo $products->name; ?></td>
+            <td><?php echo !empty($products->branch_name) ? html_escape($products->branch_name) : '-'; ?></td>
             <td>Tsh.<?php echo number_format($products->buy_price); ?>/=</td>
             <td>
               <?php if ($products->price == 0) {
@@ -90,4 +107,3 @@
 
 
 <?php include 'incs/footer.php'; ?>
-

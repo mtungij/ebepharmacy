@@ -195,6 +195,7 @@ if ($_SESSION['role'] == 'admin') {
                 <nav class="sidebar-nav">
                     <ul class="main-menu metismenu">
                         <li><a href="<?php echo base_url("admin/index") ?>"><?php echo evamo_heroicon('home'); ?><span>Dashboard</span></a></li>
+                        <li><a href="<?php echo base_url("admin/branches") ?>"><?php echo evamo_heroicon('building-office'); ?><span>Branches</span></a></li>
                         <li><a href="<?php echo base_url("admin/admin_sell") ?>"><?php echo evamo_heroicon('shopping-bag'); ?><span>Sell</span></a></li>
 
                         <li><a href="javascript:void(0);" class="has-arrow"><?php echo evamo_heroicon('users'); ?><span>Users</span></a>
@@ -248,10 +249,12 @@ if ($_SESSION['role'] == 'admin') {
                 <nav class="sidebar-nav">
                     <ul class="main-menu metismenu">
                         <li><a href="<?php echo base_url("admin/today_salesReport") ?>"><?php echo evamo_heroicon('chart'); ?><span>Today's Sales</span></a></li>
+                        <li><a href="<?php echo base_url("admin/sales_profit_report") ?>"><?php echo evamo_heroicon('chart'); ?><span>Sales & Profit</span></a></li>
                         <li><a href="<?php echo base_url("admin/today_cashflowData") ?>"><?php echo evamo_heroicon('banknotes'); ?><span>Today's Cashflow</span></a></li>
                         <li><a href="<?php echo base_url("admin/general_cashflowData") ?>"><?php echo evamo_heroicon('banknotes'); ?><span>General Cashflow</span></a></li>
                         <li><a href="<?php echo base_url("admin/all_productData") ?>"><?php echo evamo_heroicon('squares'); ?><span>All Product</span></a></li>
                         <li><a href="<?php echo base_url("admin/sales_productData") ?>"><?php echo evamo_heroicon('squares'); ?><span>Selling Price</span></a></li>
+                        <li><a href="<?php echo base_url("admin/physical_counting_report") ?>"><?php echo evamo_heroicon('squares'); ?><span>Physical Count</span></a></li>
                         <li><a href="<?php echo base_url("admin/buying_price") ?>"><?php echo evamo_heroicon('squares'); ?><span>Buying Price</span></a></li>
                         <li><a href="<?php echo base_url("admin/empty_productData") ?>"><?php echo evamo_heroicon('squares'); ?><span>Empty Product</span></a></li>
                     </ul>

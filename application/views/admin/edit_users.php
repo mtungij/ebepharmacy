@@ -42,13 +42,29 @@
         <div class="col-sm-4">
       <div class="form-group">
         <span>Privillage</span>
-        <select type="text" class="form-control" required name="role">
+        <select type="text" class="form-control" required name="role" id="edit-user-role-select">
           <option value="<?php echo $admin->role; ?>"><?php echo $admin->role; ?></option>
           <option>admin</option>
           <option>seller</option>
           <option>cashier</option>
         </select>
         <?php echo form_error("role"); ?>
+        </div>
+    </div>
+</div>
+<div class="row clearfix" id="edit-user-branch-row" style="display:none;">
+       <div class="col-sm-4">
+      <div class="form-group">
+        <span>Branch</span>
+        <select type="text" class="form-control" name="branch_id" id="edit-user-branch-select">
+          <option value="">Select branch</option>
+          <?php foreach ($branches as $branch): ?>
+            <option value="<?php echo $branch->branch_id; ?>" <?php echo ((int) $admin->branch_id === (int) $branch->branch_id) ? 'selected' : ''; ?>>
+              <?php echo $branch->branch_name; ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+        <?php echo form_error("branch_id"); ?>
         </div>
     </div>
 </div>
@@ -74,5 +90,29 @@
 </div>
 
 
-<?php include 'incs/footer.php'; ?>
+<script>
+(function () {
+  var roleSelect = document.getElementById('edit-user-role-select');
+  var branchRow = document.getElementById('edit-user-branch-row');
+  var branchSelect = document.getElementById('edit-user-branch-select');
 
+  function toggleBranch() {
+    if (!roleSelect || !branchRow || !branchSelect) {
+      return;
+    }
+    var needsBranch = roleSelect.value === 'seller' || roleSelect.value === 'cashier';
+    branchRow.style.display = needsBranch ? 'block' : 'none';
+    branchSelect.required = needsBranch;
+    if (!needsBranch) {
+      branchSelect.value = '';
+    }
+  }
+
+  if (roleSelect) {
+    roleSelect.addEventListener('change', toggleBranch);
+    toggleBranch();
+  }
+})();
+</script>
+
+<?php include 'incs/footer.php'; ?>

@@ -10,10 +10,21 @@
     $low_stock_count = 0;
     $pending_order_count = 0;
     $today_sales_count = 0;
+    $admin_branch_id = $CI->session->userdata('admin_branch_id');
+    $admin_branches = array();
+
+    if ($CI->db->table_exists('tbl_branch')) {
+        $admin_branches = $CI->db
+            ->order_by('is_main', 'DESC')
+            ->order_by('branch_id', 'DESC')
+            ->get('tbl_branch')
+            ->result();
+    }
 
     if ($CI->db->table_exists('product')) {
+        $low_stock_branch_sql = $admin_branch_id ? " AND branch_id = " . (int) $admin_branch_id : "";
         $low_stock_row = $CI->db->query(
-            "SELECT COUNT(*) AS total FROM product WHERE stock_limit > 0 AND quantity <= stock_limit"
+            "SELECT COUNT(*) AS total FROM product WHERE stock_limit > 0 AND quantity <= stock_limit" . $low_stock_branch_sql
         )->row();
         $low_stock_count = (int) ($low_stock_row->total ?? 0);
     }
@@ -26,8 +37,10 @@
     }
 
     if ($CI->db->table_exists('tbl_sell')) {
+        $today_sales_branch_sql = $admin_branch_id ? " AND branch_id = " . (int) $admin_branch_id : "";
         $today_sales_row = $CI->db->query(
             "SELECT COUNT(*) AS total FROM tbl_sell WHERE sell_day = " . $CI->db->escape(date('Y-m-d'))
+            . $today_sales_branch_sql
         )->row();
         $today_sales_count = (int) ($today_sales_row->total ?? 0);
     }
@@ -59,6 +72,19 @@
     </div>
 
     <div class="evamo-topbar-right">
+        <form action="<?php echo base_url('admin/switch_branch'); ?>" method="post" class="evamo-branch-switch">
+            <input type="hidden" name="redirect_url" value="<?php echo html_escape(current_url()); ?>">
+            <i class="icon-location-pin"></i>
+            <select name="branch_id" onchange="this.form.submit()" aria-label="Switch branch">
+                <option value="">All Branches</option>
+                <?php foreach ($admin_branches as $branch): ?>
+                    <option value="<?php echo $branch->branch_id; ?>" <?php echo ((string)$admin_branch_id === (string)$branch->branch_id) ? 'selected' : ''; ?>>
+                        <?php echo html_escape($branch->branch_name); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </form>
+
         <button type="button" class="evamo-icon-btn evamo-theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Switch to dark mode" title="Switch theme">
             <svg class="evamo-theme-icon evamo-theme-icon-moon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 1 0 9.8 9.8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -131,6 +157,34 @@
         font-weight: 600;
     }
 
+    .evamo-branch-switch {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 36px;
+        padding: 0 10px;
+        border: 1px solid rgba(15, 118, 110, 0.18);
+        border-radius: 999px;
+        background: #fff;
+        color: #0f766e;
+    }
+
+    .evamo-branch-switch select {
+        width: 160px;
+        max-width: 22vw;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #111827;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .evamo-branch-switch i {
+        font-size: 14px;
+    }
+
     @media (max-width: 767.98px) {
         .evamo-install-app-text {
             display: none;
@@ -140,6 +194,18 @@
             width: 36px;
             padding: 0;
             justify-content: center;
+        }
+
+        .evamo-branch-switch {
+            order: 5;
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 6px;
+        }
+
+        .evamo-branch-switch select {
+            width: 100%;
+            max-width: none;
         }
     }
     </style>
