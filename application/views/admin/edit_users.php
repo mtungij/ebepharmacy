@@ -16,6 +16,16 @@
 </div>
 </div>
 <?php endif; ?>
+<?php if ($err = $this->session->flashdata('error')): ?>
+<div class="row">
+<div class="col-md-12">
+<div class="alert alert-dismisible alert-danger">
+<a href="" class="close">&times;</a>
+<?php echo $err;?>
+</div>
+</div>
+</div>
+<?php endif; ?>
 <div class="row clearfix">
 <div class="col-lg-12 col-md-12 col-sm-12">
 <div class="card">
@@ -24,6 +34,7 @@
 </div>
 <div class="body">
 <?php echo form_open_multipart("admin/modify_admin/{$admin->user_id}"); ?>
+<?php $user_access = isset($user_access) ? $user_access : array(); ?>
 <div class="row clearfix">
        <div class="col-sm-4">
         <div class="form-group">
@@ -43,10 +54,10 @@
       <div class="form-group">
         <span>Privillage</span>
         <select type="text" class="form-control" required name="role" id="edit-user-role-select">
-          <option value="<?php echo $admin->role; ?>"><?php echo $admin->role; ?></option>
-          <option>admin</option>
-          <option>seller</option>
-          <option>cashier</option>
+          <option value="">Select privillage</option>
+          <option value="admin" <?php echo set_select('role', 'admin', $admin->role === 'admin'); ?>>admin</option>
+          <option value="seller" <?php echo set_select('role', 'seller', $admin->role === 'seller'); ?>>seller</option>
+          <option value="cashier" <?php echo set_select('role', 'cashier', $admin->role === 'cashier'); ?>>cashier</option>
         </select>
         <?php echo form_error("role"); ?>
         </div>
@@ -66,6 +77,29 @@
         </select>
         <?php echo form_error("branch_id"); ?>
         </div>
+    </div>
+</div>
+
+<div class="row clearfix" id="edit-seller-system-access" style="display:none;">
+    <div class="col-sm-12">
+      <div class="form-group">
+        <span>System Access</span>
+        <div class="evamo-access-options">
+          <label class="fancy-checkbox evamo-access-option">
+            <input type="checkbox" name="system_access[]" value="seller" <?php echo set_checkbox('system_access[]', 'seller', in_array('seller', $user_access)); ?>>
+            <span>SELLER</span>
+          </label>
+          <label class="fancy-checkbox evamo-access-option">
+            <input type="checkbox" name="system_access[]" value="product" <?php echo set_checkbox('system_access[]', 'product', in_array('product', $user_access)); ?>>
+            <span>MANAGE PRODUCT</span>
+          </label>
+          <label class="fancy-checkbox evamo-access-option">
+            <input type="checkbox" name="system_access[]" value="store" <?php echo set_checkbox('system_access[]', 'store', in_array('store', $user_access)); ?>>
+            <span>MANAGE STORE</span>
+          </label>
+        </div>
+        <small class="text-muted">Select seller modules this user can access.</small>
+      </div>
     </div>
 </div>
 
@@ -95,16 +129,28 @@
   var roleSelect = document.getElementById('edit-user-role-select');
   var branchRow = document.getElementById('edit-user-branch-row');
   var branchSelect = document.getElementById('edit-user-branch-select');
+  var systemAccessBlock = document.getElementById('edit-seller-system-access');
+  var systemAccessChecks = systemAccessBlock ? systemAccessBlock.querySelectorAll('input[type="checkbox"]') : [];
 
   function toggleBranch() {
     if (!roleSelect || !branchRow || !branchSelect) {
       return;
     }
     var needsBranch = roleSelect.value === 'seller' || roleSelect.value === 'cashier';
+    var needsSystemAccess = roleSelect.value === 'seller';
     branchRow.style.display = needsBranch ? 'block' : 'none';
     branchSelect.required = needsBranch;
     if (!needsBranch) {
       branchSelect.value = '';
+    }
+    if (systemAccessBlock) {
+      systemAccessBlock.style.display = needsSystemAccess ? 'block' : 'none';
+      systemAccessChecks.forEach(function (checkbox) {
+        checkbox.disabled = !needsSystemAccess;
+        if (!needsSystemAccess) {
+          checkbox.checked = false;
+        }
+      });
     }
   }
 

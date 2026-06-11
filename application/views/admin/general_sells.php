@@ -36,7 +36,7 @@
       Today Profit <input type="" name="" readonly placeholder="Tsh<?php echo number_format($total_sell->total_profit); ?>" class="form-control">
 </div>
 <div class="col-md-3">
-     <a href="" data-toggle="modal" data-target="#addcontact2" class="btn btn-sm btn-primary"><i class="icon-magnifier"></i></a>
+     <a href="#seller-report-filter" class="btn btn-sm btn-primary"><i class="icon-magnifier"></i></a>
      <?php if (count($data) > 0) {
       ?>
      <a href="<?php echo base_url("admin/today_saled_report/{$user_id}/{$from}/{$to}"); ?>" class="btn btn-primary btn-sm" target="_blank"><i class="icon-printer"></i></a>
@@ -46,8 +46,50 @@
 </div>
 </div>
 <div class="body">
+    <div id="seller-report-filter" class="mb-3" style="margin-bottom:16px;">
+        <?php echo form_open("admin/filter_general_sellers/"); ?>
+        <?php $date = date("Y-m-d"); ?>
+        <div class="row clearfix">
+            <div class="col-md-4 col-sm-12">
+                <div class="form-group">
+                    <span>Seller</span>
+                    <select type="number" class="form-control" name="user_id" required>
+                        <option value="">select seller</option>
+                        <?php foreach ($all_seller as $all_sellers): ?>
+                            <option value="<?php echo $all_sellers->user_id; ?>" <?php echo ((string)$user_id === (string)$all_sellers->user_id) ? 'selected' : ''; ?>>
+                                <?php echo $all_sellers->full_name; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="form-group">
+                    <span>From</span>
+                    <input type="date" class="form-control" value="<?php echo html_escape($from ? $from : $date); ?>" name="from" required>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="form-group">
+                    <span>To</span>
+                    <input type="date" class="form-control" value="<?php echo html_escape($to ? $to : $date); ?>" name="to" required>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-12">
+                <div class="form-group">
+                    <span>&nbsp;</span>
+                    <button type="submit" class="btn btn-primary btn-block"><i class="icon-magnifier"></i> Filter</button>
+                </div>
+            </div>
+        </div>
+        <?php echo form_close(); ?>
+    </div>
+    <div class="form-group" style="max-width:360px;">
+        <span>Search table</span>
+        <input type="search" class="form-control seller-report-search" placeholder="Search seller, customer, product..." autocomplete="off">
+    </div>
     <div class="table-responsive">
-<table class="table table-hover js-basic-example dataTable table-custom">
+<table class="table table-hover js-basic-example dataTable table-custom seller-report-table">
             <thead class="thead-primary">
                 <tr>
 
@@ -66,7 +108,7 @@
             </thead>
             <tbody>
               <?php foreach ($data as $all_salles_today): ?>
-                <tr>
+                <tr data-report-row="1">
             <td><?php echo $all_salles_today->full_name; ?></td>
             <td><?php echo $all_salles_today->customer; ?></td>
             <td><?php echo $all_salles_today->name; ?></td>
@@ -107,46 +149,22 @@
 </div>
 
 
+<script>
+(function () {
+  var search = document.querySelector('.seller-report-search');
+  var rows = document.querySelectorAll('.seller-report-table tbody tr[data-report-row="1"]');
+
+  if (!search || !rows.length) {
+    return;
+  }
+
+  search.addEventListener('input', function () {
+    var term = search.value.toLowerCase().trim();
+    rows.forEach(function (row) {
+      row.style.display = row.textContent.toLowerCase().indexOf(term) !== -1 ? '' : 'none';
+    });
+  });
+})();
+</script>
+
 <?php include 'incs/footer.php'; ?>
-
-
-<div class="modal fade" id="addcontact2" tabindex="-1" role="dialog">
-<div class="modal-dialog" role="document">
-<div class="modal-content">
-<div class="modal-header">
-<h6 class="title" id="defaultModalLabel">Filter</h6>
-</div>
-<?php echo form_open("admin/filter_general_sellers/"); ?>
-<div class="modal-body">
-<div class="row clearfix">
-    <?php $date = date("Y-m-d"); ?>
-    <div class="col-md-12 col-12">
-      <span>Seller</span>
-
-      <select type="number" class="form-control" name="user_id" required>
-          <option value="">select seller</option>
-          <?php foreach ($all_seller as $all_sellers): ?>
-          <option value="<?php echo $all_sellers->user_id; ?>"><?php echo $all_sellers->full_name; ?></option>
-           <?php endforeach; ?>
-      </select>
-    </div>
-    <div class="col-md-6 col-6">
-      <span>From</span>
-      <input type="date" class="form-control" value="<?php echo $date; ?>" name="from" required>
-    </div>
-    <div class="col-md-6 col-6">
-      <span>To</span>
-      <input type="date" class="form-control" value="<?php echo $date; ?>" name="to" required>
-    </div>
-    </div>
-
-</div>
-<div class="modal-footer">
-<button type="submit" class="btn btn-primary">Filter</button>
-<button type="button" class="btn btn-secondary" data-dismiss="modal">CLOSE</button>
-</div>
-<?php echo form_close(); ?>
-</div>
-</div>
-</div>
-

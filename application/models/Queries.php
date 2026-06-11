@@ -311,7 +311,7 @@
      }
 
     public function get_all_sellers(){
-      $data = $this->db->query("SELECT * FROM tbl_user");
+      $data = $this->db->query("SELECT * FROM tbl_user WHERE role IN ('seller', 'admin') ORDER BY full_name ASC");
       return $data->result();
     }
 
@@ -1223,7 +1223,8 @@ public function get_today_salesretail_user($user_id){
       }
 
       public function view_user($user_id){
-  $data = $this->db->query("SELECT * FROM tbl_user WHERE user_id = '$user_id'");
+  $this->ensure_branch_table();
+  $data = $this->db->query("SELECT tbl_user.*, tbl_branch.branch_name FROM tbl_user LEFT JOIN tbl_branch ON tbl_branch.branch_id = tbl_user.branch_id WHERE tbl_user.user_id = '$user_id'");
   return $data->row();
  }
 
@@ -1240,7 +1241,7 @@ public function get_today_salesretail_user($user_id){
  }
 
  public function delete_privillage($id){
-  return $this->db->delete(' tbl_privillage',['id'=>$id]);
+  return $this->db->delete('tbl_privillage',['id'=>$id]);
  }
 
  public function get_userPrivillage($user_id){
@@ -1262,6 +1263,16 @@ public function get_today_salesretail_user($user_id){
   }
 
   return $this->db->insert_batch('tbl_privillage', $data);
+ }
+
+ public function replace_user_privillages($user_id, $privillages){
+  $this->db->where('user_id', $user_id)->delete('tbl_privillage');
+
+  if (empty($privillages)) {
+   return true;
+  }
+
+  return $this->insert_user_privillages($user_id, $privillages);
  }
 
  public function get_privillage_map(){

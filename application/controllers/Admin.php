@@ -999,18 +999,25 @@ public function genel_cashflow(){
       $my = $this->queries->get_mydata($user_id);
       $admin = $this->queries->get_usersEdit($user_id);
       $branches = $this->queries->get_branches();
+      $user_privillages = $this->queries->get_userPrivillage($user_id);
+      $user_access = array();
+      foreach ($user_privillages as $privillage) {
+        $user_access[] = $privillage->privillage;
+      }
         // print_r($admin);
         //     exit();
-      $this->load->view('admin/edit_users',['admin'=>$admin,'my'=>$my,'branches'=>$branches]);
+      $this->load->view('admin/edit_users',['admin'=>$admin,'my'=>$my,'branches'=>$branches,'user_access'=>$user_access]);
     }
 
     public function modify_admin($user_id){
       $this->form_validation->set_rules('full_name','Name','required');
     $this->form_validation->set_rules('phone_number','Phone number','required');
-    $this->form_validation->set_rules('role','privillage','required');
+    $this->form_validation->set_rules('role','privillage','required|callback_validate_seller_access');
     $this->form_validation->set_error_delimiters('<div class="text-danger">','</div>');
     if ($this->form_validation->run() ) {
       $data = $this->input->post();
+      $system_access = array_values(array_intersect((array) $this->input->post('system_access'), array('seller', 'product', 'store')));
+      unset($data['system_access']);
       if (($data['role'] === 'seller' || $data['role'] === 'cashier') && empty($data['branch_id'])) {
         $this->session->set_flashdata('error','Select branch for seller or cashier.');
         return redirect('admin/edit_user/'.$user_id);
@@ -1024,13 +1031,18 @@ public function genel_cashflow(){
       //      exit();
       $this->load->model('queries');
       if ($this->queries->update_admin($data,$user_id)) {
+        if ($data['role'] === 'seller') {
+          $this->queries->replace_user_privillages($user_id, $system_access);
+        } else {
+          $this->queries->replace_user_privillages($user_id, array());
+        }
         $this->session->set_flashdata('massage','Users Updated successfully');
       }else{
         $this->session->set_flashdata('error','Failed');
       }
       return redirect('admin/edit_user/'.$user_id);
     }
-    $this->edit_user();
+    $this->edit_user($user_id);
     }
 
 
@@ -1136,15 +1148,44 @@ public function general_sells_product(){
     $this->load->model('queries');
     $user_id = $this->session->userdata('user_id');
     $my = $this->queries->get_mydata($user_id);
-    $all_salles = $this->queries->get_sallesTodayData();
-    $total_sell = $this->queries->get_today_salesData();
-    $total_profit = $this->queries->get_today_profit();
-    
-    $data_employee = $this->queries->get_sallesTodayData_seller();
     $all_seller = $this->queries->get_all_sellers();
+    $selected_user_id = $this->input->get('user_id', TRUE);
+    if ($selected_user_id === null) {
+      $selected_user_id = $this->input->post('user_id', TRUE);
+    }
+    $from = $this->input->get('from', TRUE);
+    if ($from === null) {
+      $from = $this->input->post('from', TRUE);
+    }
+    $to = $this->input->get('to', TRUE);
+    if ($to === null) {
+      $to = $this->input->post('to', TRUE);
+    }
+
+    $today = date('Y-m-d');
+    $from = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$from) ? $from : $today;
+    $to = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$to) ? $to : $today;
+    if ($from > $to) {
+      $temp = $from;
+      $from = $to;
+      $to = $temp;
+    }
+
+    $is_filtered = !empty($selected_user_id);
+    if ($is_filtered) {
+      $all_salles = $this->queries->search_mauzo_seller_data((int)$selected_user_id, $from, $to);
+      $total_sell = $this->queries->search_profit_seller((int)$selected_user_id, $from, $to);
+      $total_profit = $total_sell;
+      $data_employee = $this->queries->search_mauzo_seller($from, $to);
+    } else {
+      $all_salles = $this->queries->get_sallesTodayData();
+      $total_sell = $this->queries->get_today_salesData();
+      $total_profit = $this->queries->get_today_profit();
+      $data_employee = $this->queries->get_sallesTodayData_seller();
+    }
      // print_r($all_seller);
      //       exit();
-    $this->load->view('admin/seller_sells',['my'=>$my,'all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'data_employee'=>$data_employee,'all_seller'=>$all_seller]);
+    $this->load->view('admin/seller_sells',['my'=>$my,'all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'data_employee'=>$data_employee,'all_seller'=>$all_seller,'selected_user_id'=>$selected_user_id,'from'=>$from,'to'=>$to,'is_filtered'=>$is_filtered]);
   }
 
  
@@ -1198,23 +1239,19 @@ public function general_sells_product(){
   }
 
    public function filter_general_sellers(){
-    $this->load->model('queries');
-    $user_id = $this->session->userdata('user_id');
-    $my = $this->queries->get_mydata($user_id);
-
     $from = $this->input->post('from');
     $to = $this->input->post('to');
     $user_id = $this->input->post('user_id');
-    $data = $this->queries->search_mauzo_seller_data($user_id,$from,$to);
-    $total_sell = $this->queries->search_profit_seller($user_id,$from,$to);
-    $user_data = $this->queries->get_user_data($user_id);
-    $all_seller = $this->queries->get_all_sellers();
-
-    //  echo "<pre>";
-    // print_r($all_seller);
-    //       exit();
-
-    $this->load->view('admin/general_sells',['my'=>$my,'data'=>$data,'user_data'=>$user_data,'total_sell'=>$total_sell,'from'=>$from,'to'=>$to,'user_data'=>$user_data,'all_seller'=>$all_seller,'user_id'=>$user_id]);
+    if (!$from) {
+      $from = $this->input->get('from');
+    }
+    if (!$to) {
+      $to = $this->input->get('to');
+    }
+    if (!$user_id) {
+      $user_id = $this->input->get('user_id');
+    }
+    return redirect('admin/general_sells_product?user_id='.(int)$user_id.'&from='.urlencode($from).'&to='.urlencode($to));
   }
 
 
@@ -2975,32 +3012,31 @@ public function prev_recod(){
    $my = $this->queries->get_mydata($user_id);
    $cutomer = $this->queries->view_user($user_id);
    $priv = $this->queries->get_privillage($user_id);
-    $this->load->view('admin/user_privillage',['my'=>$my,'user_id'=>$user_id,'cutomer'=>$cutomer,'priv'=>$priv]);
+   $user_access = array();
+   foreach ($priv as $privillage) {
+    $user_access[] = $privillage->privillage;
+   }
+    $this->load->view('admin/user_privillage',['my'=>$my,'user_id'=>$user_id,'cutomer'=>$cutomer,'priv'=>$priv,'user_access'=>$user_access]);
   }
 
   public function create_privillage($user_id){
-        $validation  = array( array('field'=> 'privillage[]','rules'=>'required'));
-          $this->form_validation->set_rules($validation);
-           if ($this->form_validation->run() == true) {
-               $privillage  = $this->input->post('privillage[]');
-               $user_id = $this->input->post('user_id');
-            
-              // print_r($user_id);
-              //     echo "<br>";
-              // print_r($privillage);
-              //     exit();
-              foreach ($privillage as $key => $value) {
-      $this->db->query("INSERT INTO  tbl_privillage(`privillage`,`user_id`) VALUES ('$value','$user_id')");
-           }   
-          $this->session->set_flashdata('massage','User Access Saved successfully');
-       
-           }
           $this->load->model('queries');
-          $emply = $this->queries->view_user($user_id);
-          $user_id = $emply->user_id;
-           // print_r($empl_id);
-           //    exit();
-           return redirect("admin/privillage/".$user_id); 
+          $posted_user_id = (int)$this->input->post('user_id');
+          $user_id = $posted_user_id ? $posted_user_id : (int)$user_id;
+          $user = $this->queries->view_user($user_id);
+
+          if (!$user || $user->role !== 'seller') {
+          $this->queries->replace_user_privillages($user_id, array());
+          $this->session->set_flashdata('error','Access privileges are only for seller users.');
+          return redirect("admin/privillage/".$user_id);
+          }
+
+          $privillage = array_values(array_intersect((array)$this->input->post('privillage'), array('seller', 'product', 'store')));
+
+          $this->queries->replace_user_privillages($user_id, $privillage);
+          $this->session->set_flashdata('massage','User access updated successfully');
+
+          return redirect("admin/privillage/".$user_id); 
        }
 
        public function remove_privillage($id){

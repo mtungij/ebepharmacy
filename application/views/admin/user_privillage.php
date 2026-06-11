@@ -46,33 +46,35 @@
                 <div class="col-md-12">
                     <div class="card">
                         <div class="header">
-                            <h2>Privillage List</h2>
+                            <h2>User Information</h2>
                         </div>
                         <div class="body">
-                            <?php echo form_open("admin/create_privillage/{$user_id}"); ?>
-                                <div class="form-group">
-                                    <label class="fancy-checkbox">
-                                        <input type="checkbox" name="privillage[]" value="seller">
-                                        <span>SELLER</span>
-                                    </label>
-                                    <label class="fancy-checkbox">
-                                        <input type="checkbox" name="privillage[]" value="product">
-                                        <span>MANAGE PRODUCT</span>
-                                    </label>
-                                    <input type="hidden" name="user_id" value="<?php echo $user_id; ?>">
-                                    <label class="fancy-checkbox">
-                                        <input type="checkbox" name="privillage[]" value="store">
-                                        <span>MANAGE STORE</span>
-                                    </label>
-                                </div>
-                               
-                              
-                                <br>
-                                <div class="text-center">
-                                <button type="submit" class="btn btn-primary">Save</button>
-                                <a href="<?php echo base_url("admin/users") ?>" class="btn btn-info"><i class="icon-arrow-left"></i></a>
-                                </div>
-                            <?php echo form_close(); ?>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-custom">
+                                    <tbody>
+                                        <tr>
+                                            <th style="width: 180px;">Full Name</th>
+                                            <td><?php echo html_escape($cutomer->full_name); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Phone Number</th>
+                                            <td><?php echo html_escape($cutomer->phone_number); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Role</th>
+                                            <td><?php echo html_escape($cutomer->role); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Branch</th>
+                                            <td><?php echo !empty($cutomer->branch_name) ? html_escape($cutomer->branch_name) : '-'; ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Registered Date</th>
+                                            <td><?php echo !empty($cutomer->created_at) ? html_escape(substr($cutomer->created_at, 0, 10)) : '-'; ?></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -80,29 +82,70 @@
                 <div class="col-md-12">
                     <div class="card">
                         <div class="header">
-                            <h2>Privillage (<?php echo $cutomer->full_name; ?>)</h2>
+                            <h2>Edit Access (<?php echo html_escape($cutomer->full_name); ?>)</h2>
                         </div>
                         <div class="body">
-                            <form id="advanced-form" data-parsley-validate novalidate>
+                            <?php $user_access = isset($user_access) ? $user_access : array(); ?>
+                            <?php if ($cutomer->role === 'seller'): ?>
+                            <?php echo form_open("admin/create_privillage/{$user_id}"); ?>
+                                <div class="form-group">
+                                    <label class="fancy-checkbox">
+                                        <input type="checkbox" name="privillage[]" value="seller" <?php echo in_array('seller', $user_access) ? 'checked' : ''; ?>>
+                                        <span>SELLER</span>
+                                    </label>
+                                    <label class="fancy-checkbox">
+                                        <input type="checkbox" name="privillage[]" value="product" <?php echo in_array('product', $user_access) ? 'checked' : ''; ?>>
+                                        <span>MANAGE PRODUCT</span>
+                                    </label>
+                                    <input type="hidden" name="user_id" value="<?php echo $user_id; ?>">
+                                    <label class="fancy-checkbox">
+                                        <input type="checkbox" name="privillage[]" value="store" <?php echo in_array('store', $user_access) ? 'checked' : ''; ?>>
+                                        <span>MANAGE STORE</span>
+                                    </label>
+                                </div>
+                               
+                              
+                                <br>
+                                <div class="text-center">
+                                <button type="submit" class="btn btn-primary">Update Access</button>
+                                <a href="<?php echo base_url("admin/users") ?>" class="btn btn-info"><i class="icon-arrow-left"></i></a>
+                                </div>
+                            <?php echo form_close(); ?>
+                            <?php else: ?>
+                                <div class="alert alert-info">
+                                    Access privileges are only for seller users.
+                                </div>
+                                <div class="text-center">
+                                    <a href="<?php echo base_url("admin/users") ?>" class="btn btn-info"><i class="icon-arrow-left"></i></a>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <?php if ($cutomer->role === 'seller'): ?>
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="header">
+                            <h2>Current Access</h2>
+                        </div>
+                        <div class="body">
                                 <div class="form-group">
                                     <?php if ($priv): ?>
                                     <?php foreach ($priv as $privs): ?>
-                                    <label class="control-inline fancy-checkbox">
-                                        <input type="checkbox" name="checkbox2" checked>
-                                        <span>
+                                    <span class="badge badge-info" style="margin: 0 6px 8px 0; padding: 8px 10px;">
                                         <?php if ($privs->privillage == 'seller') {
                                              ?>
-                                          <a href="<?php echo base_url("admin/remove_privillage/{$privs->id}") ?>"  onclick="return confirm('Are you sure?')"> SELLER </a> 
+                                          SELLER
                                          <?php }elseif ($privs->privillage == 'store') {
                                           ?>
-                                         <a href="<?php echo base_url("admin/remove_privillage/{$privs->id}") ?>"  onclick="return confirm('Are you sure?')"> MANAGE STORE </a>
+                                         MANAGE STORE
                                       <?php }elseif ($privs->privillage == 'product') {
                                        ?>
-                                       <a href="<?php echo base_url("admin/remove_privillage/{$privs->id}") ?>" onclick="return confirm('Are you sure?')">MANAGE PRODUCT</a>
+                                       MANAGE PRODUCT
                                        <?php } ?>
-                                                
-                                            </span>
-                                    </label>
+                                        <a href="<?php echo base_url("admin/remove_privillage/{$privs->id}") ?>" onclick="return confirm('Remove this access?')" style="color:#fff; margin-left:8px;">x</a>
+                                    </span>
                                    <?php endforeach; ?>
                                    <?php else: ?>
                                     <p style="color:red;">No Privillage</p>
@@ -112,10 +155,10 @@
                              
                                
                                 
-                            </form>
                         </div>
                     </div>
                 </div>
+                <?php endif; ?>
             </div>
 
 
@@ -125,10 +168,6 @@
 </div>
 
 <?php include 'incs/footer.php'; ?>
-
-
-
-
 
 
 
