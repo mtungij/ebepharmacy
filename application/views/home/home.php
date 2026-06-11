@@ -14,19 +14,7 @@
     <link rel="manifest" href="<?php echo base_url('manifest.webmanifest'); ?>">
     <link rel="apple-touch-icon" href="<?php echo base_url('assets/images/helixpos.png'); ?>">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        poppins: ['Poppins', 'Segoe UI', 'sans-serif']
-                    }
-                }
-            }
-        };
-    </script>
+    <link rel="stylesheet" href="<?php echo base_url('assets/admin/css/tailwind-local.css?v=20260611a'); ?>">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
