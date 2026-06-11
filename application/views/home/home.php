@@ -16,8 +16,6 @@
 
     <link rel="stylesheet" href="<?php echo base_url('assets/admin/css/tailwind-local.css?v=20260611a'); ?>">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-
         .evamo-bg-layer {
             background-image: linear-gradient(135deg, rgba(15, 23, 42, 0.52), rgba(6, 182, 212, 0.25)), url('<?php echo base_url(); ?>assets/images/background.jpg');
             background-size: cover;

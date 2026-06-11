@@ -1,7 +1,7 @@
 <?php include('incs/header.php'); ?>
 <?php include('incs/nav.php'); ?>
 <?php include('incs/side.php'); ?>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+<link rel="stylesheet" href="<?php echo base_url('assets/admin/vendor/cropperjs/cropper.min.css'); ?>">
 
 
 <div id="main-content">
@@ -205,7 +205,7 @@ html.evamo-dark .evamo-cropper-box {
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+<script src="<?php echo base_url('assets/admin/vendor/cropperjs/cropper.min.js'); ?>"></script>
 <script>
 (function () {
     var form = document.getElementById('shop-info-form');
@@ -331,4 +331,3 @@ html.evamo-dark .evamo-cropper-box {
 
 
 <?php include 'incs/footer.php'; ?>
-

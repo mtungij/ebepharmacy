@@ -1,7 +1,7 @@
 <?php include('incs/header.php'); ?>
 <?php include('incs/nav.php'); ?>
 <?php include('incs/side.php'); ?>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
+<link rel="stylesheet" href="<?php echo base_url('assets/admin/vendor/cropperjs/cropper.min.css'); ?>">
 
 
 <div id="main-content">
@@ -122,7 +122,7 @@
 
 
 <?php include 'incs/footer.php'; ?>
-<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+<script src="<?php echo base_url('assets/admin/vendor/cropperjs/cropper.min.js'); ?>"></script>
 <style>
 .evamo-cropper-modal {
   position: fixed;
@@ -244,4 +244,3 @@
   modal.querySelector('.evamo-cropper-overlay').addEventListener('click', closeModal);
 })();
 </script>
-

@@ -1,5 +1,5 @@
 <?php include('incs/header.php'); ?>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
+<link rel="stylesheet" href="<?php echo base_url('assets/admin/vendor/cropperjs/cropper.min.css'); ?>">
 <style>
 .evamo-passport-wrap {
   width: 100%;
@@ -229,7 +229,7 @@
 
 
 <?php include 'incs/footer.php'; ?>
-<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+<script src="<?php echo base_url('assets/admin/vendor/cropperjs/cropper.min.js'); ?>"></script>
 <style>
 .evamo-cropper-modal {
   position: fixed;
