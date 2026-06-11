@@ -107,15 +107,15 @@
                 <?php echo form_close(); ?>
 
                 <div class="mt-4 text-center">
-                    <a href="<?php echo base_url('home/create_account'); ?>" class="text-sm font-semibold text-cyan-700 hover:text-cyan-800 dark:text-cyan-300 dark:hover:text-cyan-200">
+                    <a href="<?php echo base_url('home/create_account'); ?>" class="auth-create-account">
                         Create account
                     </a>
                 </div>
 
                 <div class="mt-6 border-t border-gray-200 pt-5 dark:border-gray-700">
                     <p class="text-center text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Support</p>
-                    <a href="https://wa.me/255747384847" target="_blank" rel="noopener noreferrer" class="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-sm font-semibold text-green-700 transition hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:border-green-900/60 dark:bg-green-900/20 dark:text-green-300 dark:hover:bg-green-900/35 dark:focus:ring-offset-gray-900" aria-label="Unahitaji msaada? Wasiliana WhatsApp">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="h-5 w-5 shrink-0" aria-hidden="true">
+                    <a href="https://wa.me/255747384847" target="_blank" rel="noopener noreferrer" class="auth-whatsapp-link" aria-label="Unahitaji msaada? Wasiliana WhatsApp">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="auth-whatsapp-icon" aria-hidden="true">
                             <circle cx="16" cy="16" r="16" fill="#25D366"/>
                             <path fill="#FFFFFF" d="M26.5 15.8c0-5.7-4.6-10.3-10.3-10.3-5.7 0-10.3 4.6-10.3 10.3 0 1.8.5 3.5 1.4 5l-1.5 5.6 5.8-1.5c1.4.8 2.9 1.2 4.5 1.2h.1c5.7 0 10.3-4.6 10.3-10.3zm-10.3 8.6h-.1c-1.4 0-2.8-.4-4-1.1l-.3-.2-3.4.9.9-3.3-.2-.3a8.5 8.5 0 0 1-1.3-4.5c0-4.7 3.8-8.5 8.5-8.5 2.3 0 4.4.9 6 2.5a8.4 8.4 0 0 1 2.5 6c0 4.7-3.8 8.5-8.6 8.5zm4.7-6.3c-.3-.2-1.6-.8-1.8-.8-.2-.1-.4-.1-.6.2-.2.3-.7.8-.8 1-.2.2-.3.2-.6.1-1.8-.9-3-1.7-4.1-3.8-.1-.3 0-.4.1-.5.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.6-1.4-.9-2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.1s.9 2.4 1 2.6c.1.2 1.8 2.8 4.5 3.9.6.3 1.1.5 1.5.6.6.2 1.2.2 1.7.1.5-.1 1.6-.7 1.8-1.3.2-.6.2-1.1.2-1.2-.1-.2-.3-.2-.6-.4z"/>
                         </svg>
