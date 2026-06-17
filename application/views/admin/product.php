@@ -283,6 +283,16 @@ html.evamo-dark .card .header h2 {
 </div>
 </div>
 <?php endif; ?>
+<?php if ($das = $this->session->flashdata('error')): ?>
+<div class="row">
+<div class="col-md-12">
+<div class="alert alert-dismisible alert-danger">
+<a href="" class="close">&times;</a>
+<?php echo $das;?>
+</div>
+</div>
+</div>
+<?php endif; ?>
 <div class="row clearfix">
 <div class="col-lg-12 col-md-12 col-sm-12">
 <div class="card">
@@ -297,6 +307,17 @@ html.evamo-dark .card .header h2 {
               <span>Product name <span class="text-danger">*</span></span>
             <input type="text" autocomplete="off" required name="name" class="form-control" placeholder="product name">
             <?php echo form_error("name"); ?>
+        </div>
+    </div>
+       <div class="col-sm-6">
+      <div class="form-group">
+                <span>Category <span class="text-danger">*</span></span>
+            <select required name="category" class="form-control" style="width: 100%;">
+                <option value="">Select category</option>
+                <option value="Medicines" <?php echo set_select('category', 'Medicines'); ?>>Medicines</option>
+                <option value="Cosmetics" <?php echo set_select('category', 'Cosmetics'); ?>>Cosmetics</option>
+            </select>
+            <?php echo form_error("category"); ?>
         </div>
     </div>
        <div class="col-sm-6">
@@ -430,6 +451,38 @@ html.evamo-dark .card .header h2 {
 </div>
 </div>
 <div class="row clearfix">
+<div class="col-lg-12 col-md-12 col-sm-12">
+<div class="card">
+<div class="header">
+<h2>Import Products From Excel</h2>
+</div>
+<div class="body">
+<?php echo form_open_multipart("admin/import_product"); ?>
+<div class="row clearfix">
+    <div class="col-sm-8">
+      <div class="form-group">
+        <span>Excel file (.xlsx, .xls, .csv)</span>
+        <input type="file" name="attachment" class="form-control" accept=".xlsx,.xls,.csv" required>
+        <small class="text-muted">
+          Columns: Product Name, Category, Unit, Brand, Opening Quantity, Buying Price, Retail Price, Wholesale Price, Stock Alert Limit, Expiry Date, Branch ID.
+          If a branch is selected above, branch_id can be empty.
+          <a href="<?php echo base_url('assets/templates/product_import_template.csv'); ?>" download>Download template</a>
+        </small>
+      </div>
+    </div>
+    <div class="col-sm-4">
+      <div class="form-group">
+        <span>&nbsp;</span>
+        <button type="submit" class="btn btn-info btn-block">Import Products</button>
+      </div>
+    </div>
+</div>
+<?php echo form_close(); ?>
+</div>
+</div>
+</div>
+</div>
+<div class="row clearfix">
 <div class="col-lg-12">
 <div class="card">
 <div class="header">
@@ -450,6 +503,7 @@ html.evamo-dark .card .header h2 {
             <thead class="thead-primary">
                 <tr>
                     <th>Product name</th>
+                    <th>Category</th>
                     <th>Branch</th>
                     <th>Reason</th>
                     <th>Buy price</th>
@@ -467,6 +521,7 @@ html.evamo-dark .card .header h2 {
             <tr>
            
             <td><?php echo $products->name; ?></td>
+            <td><?php echo !empty($products->category) ? html_escape($products->category) : '-'; ?></td>
             <td><?php echo !empty($products->branch_name) ? $products->branch_name : '-'; ?></td>
             <td><?php echo (isset($products->reason) && $products->reason !== '') ? ucfirst($products->reason) : 'Purchased'; ?></td>
             <td>Tsh.<?php echo number_format($products->buy_price); ?>/=</td>

@@ -34,6 +34,17 @@
     </div>
        <div class="col-sm-3">
       <div class="form-group">
+        <span>Category</span>
+            <select required name="category" class="form-control">
+                <option value="">Select category</option>
+                <option value="Medicines" <?php echo (isset($productE->category) && $productE->category === 'Medicines') ? 'selected' : ''; ?>>Medicines</option>
+                <option value="Cosmetics" <?php echo (isset($productE->category) && $productE->category === 'Cosmetics') ? 'selected' : ''; ?>>Cosmetics</option>
+            </select>
+            <?php echo form_error("category"); ?>
+        </div>
+    </div>
+       <div class="col-sm-3">
+      <div class="form-group">
         <span>Unit</span>
             <input type="text"  autocomplete="off" value="<?php echo $productE->unit; ?>" required name="unit" class="form-control" placeholder="unit">
             <?php echo form_error("unit"); ?>
@@ -108,4 +119,3 @@
 
 
 <?php include 'incs/footer.php'; ?>
-

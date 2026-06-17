@@ -10,6 +10,9 @@ class Seller extends CI_Controller {
   $my = $this->queries->get_mydata($user_id);
 	$datay = $this->queries->get_productAll($branch_id ?: null);
   $cartItems = $this->cart->contents();
+  $cart_product_ids = array_column($cartItems, 'id');
+  $discount_rules = $this->queries->get_active_discount_rules($branch_id ?: null);
+  $product_categories = $this->queries->get_product_category_map($cart_product_ids);
   $limit = $this->queries->get_stock_limitData();
   $kwisha = $this->queries->get_bidhaa_kwisha($branch_id ?: null);
   $privillage = $this->queries->get_userPrivillage($user_id);
@@ -17,7 +20,7 @@ class Seller extends CI_Controller {
 	  // print_r($kwisha);
    //    echo "</pre>";
 	  //    exit(); 
-    $this->load->view('seller/index',['datay'=>$datay,'cartItems'=>$cartItems,'limit'=>$limit,'my'=>$my,'kwisha'=>$kwisha,'privillage'=>$privillage]);
+    $this->load->view('seller/index',['datay'=>$datay,'cartItems'=>$cartItems,'limit'=>$limit,'my'=>$my,'kwisha'=>$kwisha,'privillage'=>$privillage,'discount_rules'=>$discount_rules,'product_categories'=>$product_categories]);
 	}
 
 
@@ -41,6 +44,7 @@ class Seller extends CI_Controller {
             'ju_price' => $product['ju_price'],
             'buy_price' => $product['buy_price'],
             'name'    => $product['name'],
+            'category' => isset($product['category']) ? $product['category'] : '',
             'unit' => $product['unit'],
             'stock_balance' => $stockBalance,
         );
@@ -75,6 +79,7 @@ class Seller extends CI_Controller {
             'ju_price' => $product['ju_price'],
             'buy_price' => $product['buy_price'],
             'name'    => $product['name'],
+            'category' => isset($product['category']) ? $product['category'] : '',
             'unit' => $product['unit'],
             'stock_balance' => $stockBalance,
         );
@@ -161,12 +166,15 @@ class Seller extends CI_Controller {
 
    public function sell(){
       $this->load->model('queries');
+      $this->load->library('discountservice');
       $validation  = array( array('field'=> 'product_id[]','rules'=>'required'));
       $this->form_validation->set_rules($validation);
        if ($this->form_validation->run() == true) {
           $product_id  = $this->input->post('product_id[]');
           $quantity  = $this->input->post('quantity[]');
           $new_sell_price = $this->input->post('new_sell_price[]');
+          $discount_amount = $this->input->post('discount_amount[]');
+          $cart_discount_amount = (float)$this->input->post('cart_discount_amount');
           $total_sell_price = $this->input->post('total_sell_price[]');
           $profit = $this->input->post('profit[]');
           $user_id = $this->input->post('user_id[]');
@@ -175,19 +183,60 @@ class Seller extends CI_Controller {
           $total_price = $this->input->post('total_price');
           $sell_day = date("Y-m-d");
           $branch_id = (int) $this->session->userdata('branch_id');
+          $discounted_total_price = 0;
+          $original_cart_total = $this->discountservice->originalCartTotal($quantity, $new_sell_price);
+          $sale_items = $this->discountservice->cartLineItems($product_id, $quantity, $new_sell_price);
+          $cart_discount = $this->discountservice->applyCartTotalDiscount($sale_items, $cart_discount_amount, $branch_id, $user_id[0] ?? null, $original_cart_total);
+          if ($cart_discount_amount > 0 && !empty($cart_discount['blocked_reason'])) {
+            $this->session->set_flashdata('error', $cart_discount['blocked_reason']);
+            return redirect('cart/');
+          }
+          $cart_discount_allocations = $cart_discount['allocations'];
+          $used_discount_by_rule = [];
 
           // print_r($sell_status);
           //      exit();
   
           for($i=0; $i<count($product_id);$i++){
-            $allowed = $this->db->query("SELECT id FROM product WHERE id = '".(int)$product_id[$i]."' AND branch_id = '".$branch_id."'")->row();
+            $allowed = $this->db->query("SELECT id, buy_price FROM product WHERE id = '".(int)$product_id[$i]."' AND branch_id = '".$branch_id."'")->row();
             if (!$allowed) {
               $this->session->set_flashdata('error', 'One or more products are not available in your branch.');
               return redirect('seller/index');
             }
+            $qty_value = (float) $quantity[$i];
+            $sell_price_value = (float) $new_sell_price[$i];
+            $manual_discount_value = isset($discount_amount[$i]) ? (float)$discount_amount[$i] : 0;
+            $discount = $this->discountservice->applyManualDiscount($product_id[$i], $qty_value, $sell_price_value, $manual_discount_value, $branch_id, $user_id[$i], $original_cart_total, $used_discount_by_rule);
+            if ($manual_discount_value > 0 && !empty($discount['blocked_reason'])) {
+              $this->session->set_flashdata('error', $discount['blocked_reason']);
+              return redirect('cart/');
+            }
+            if (!empty($discount['discount_id'])) {
+              $rule_id = (int)$discount['discount_id'];
+              $used_discount_by_rule[$rule_id] = isset($used_discount_by_rule[$rule_id]) ? $used_discount_by_rule[$rule_id] + (float)$discount['discount_amount'] : (float)$discount['discount_amount'];
+            }
+            $cart_discount_value = isset($cart_discount_allocations[$i]) ? (float)$cart_discount_allocations[$i] : 0;
+            $line_total_before_discount = $sell_price_value * $qty_value;
+            $total_line_discount = min($line_total_before_discount, (float)$discount['discount_amount'] + $cart_discount_value);
+            $total_sell_value = $line_total_before_discount - $total_line_discount;
+            $final_sell_price_value = $qty_value > 0 ? $total_sell_value / $qty_value : $sell_price_value;
+            $profit_value = ($final_sell_price_value - (float) $allowed->buy_price) * $qty_value;
+            $discounted_total_price += $total_sell_value;
             $date = date("Y-m-d");
         $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`branch_id`,`sell_status`,`sell_day`,`customer`) 
-      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$branch_id."','".$sell_status[$i]."','$sell_day','$customer')");
+      VALUES ('".$product_id[$i]."','".$qty_value."','".$final_sell_price_value."','".$total_sell_value."','".$profit_value."','".$user_id[$i]."','".$branch_id."','".$sell_status[$i]."','$sell_day','$customer')");
+        $sell_id = $this->db->insert_id();
+        $this->discountservice->saveAudit([
+          'discount_id' => $cart_discount_value > 0 ? $cart_discount['discount_id'] : $discount['discount_id'],
+          'transaction_id' => $sell_id,
+          'product_id' => $product_id[$i],
+          'applied_by_user' => $user_id[$i],
+          'approved_by' => $discount['approved_by'],
+          'original_price' => $sell_price_value,
+          'discount_amount' => $total_line_discount,
+          'final_price' => $final_sell_price_value,
+          'quantity' => $qty_value,
+        ]);
         $this->db->query("INSERT INTO  tbl_stock_movement (`product_id`,`product_qnty`,`user_id`,`mov_status`,`date`) 
       VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$user_id[$i]."','SOLD','$date')");
           }
@@ -201,7 +250,7 @@ class Seller extends CI_Controller {
         $this->update_storedata($product_id[$i],$quantity[$i]);
             }
 
-          $this->insert_cashire_report($customer,$total_price);
+          $this->insert_cashire_report($customer,$discounted_total_price);
           $this->session->set_flashdata('massage','The product sold successfully');
        }
 
@@ -256,12 +305,15 @@ class Seller extends CI_Controller {
 
     public function sell_jumla(){
       $this->load->model('queries');
+      $this->load->library('discountservice');
       $validation  = array( array('field'=> 'product_id[]','rules'=>'required'));
       $this->form_validation->set_rules($validation);
        if ($this->form_validation->run() == true) {
           $product_id  = $this->input->post('product_id[]');
           $quantity  = $this->input->post('quantity[]');
           $new_sell_price = $this->input->post('new_sell_price[]');
+          $discount_amount = $this->input->post('discount_amount[]');
+          $cart_discount_amount = (float)$this->input->post('cart_discount_amount');
           $total_sell_price = $this->input->post('total_sell_price[]');
           $profit = $this->input->post('profit[]');
           $user_id = $this->input->post('user_id[]');
@@ -270,19 +322,60 @@ class Seller extends CI_Controller {
           $total_price = $this->input->post('total_price');
           $sell_day = date("Y-m-d");
           $branch_id = (int) $this->session->userdata('branch_id');
+          $discounted_total_price = 0;
+          $original_cart_total = $this->discountservice->originalCartTotal($quantity, $new_sell_price);
+          $sale_items = $this->discountservice->cartLineItems($product_id, $quantity, $new_sell_price);
+          $cart_discount = $this->discountservice->applyCartTotalDiscount($sale_items, $cart_discount_amount, $branch_id, $user_id[0] ?? null, $original_cart_total);
+          if ($cart_discount_amount > 0 && !empty($cart_discount['blocked_reason'])) {
+            $this->session->set_flashdata('error', $cart_discount['blocked_reason']);
+            return redirect('cart_jumla/');
+          }
+          $cart_discount_allocations = $cart_discount['allocations'];
+          $used_discount_by_rule = [];
 
           // print_r($sell_status);
           //    exit();
           $date_recept = date("Y-m-d H:i:s");
           $order_id = $this->insert_recept_number($date_recept);
           for($i=0; $i<count($product_id);$i++){
-            $allowed = $this->db->query("SELECT id FROM product WHERE id = '".(int)$product_id[$i]."' AND branch_id = '".$branch_id."'")->row();
+            $allowed = $this->db->query("SELECT id, buy_price FROM product WHERE id = '".(int)$product_id[$i]."' AND branch_id = '".$branch_id."'")->row();
             if (!$allowed) {
               $this->session->set_flashdata('error', 'One or more products are not available in your branch.');
               return redirect('seller/index');
             }
+        $qty_value = (float) $quantity[$i];
+        $sell_price_value = (float) $new_sell_price[$i];
+        $manual_discount_value = isset($discount_amount[$i]) ? (float)$discount_amount[$i] : 0;
+        $discount = $this->discountservice->applyManualDiscount($product_id[$i], $qty_value, $sell_price_value, $manual_discount_value, $branch_id, $user_id[$i], $original_cart_total, $used_discount_by_rule);
+        if ($manual_discount_value > 0 && !empty($discount['blocked_reason'])) {
+          $this->session->set_flashdata('error', $discount['blocked_reason']);
+          return redirect('cart_jumla/');
+        }
+        if (!empty($discount['discount_id'])) {
+          $rule_id = (int)$discount['discount_id'];
+          $used_discount_by_rule[$rule_id] = isset($used_discount_by_rule[$rule_id]) ? $used_discount_by_rule[$rule_id] + (float)$discount['discount_amount'] : (float)$discount['discount_amount'];
+        }
+        $cart_discount_value = isset($cart_discount_allocations[$i]) ? (float)$cart_discount_allocations[$i] : 0;
+        $line_total_before_discount = $sell_price_value * $qty_value;
+        $total_line_discount = min($line_total_before_discount, (float)$discount['discount_amount'] + $cart_discount_value);
+        $total_sell_value = $line_total_before_discount - $total_line_discount;
+        $final_sell_price_value = $qty_value > 0 ? $total_sell_value / $qty_value : $sell_price_value;
+        $profit_value = ($final_sell_price_value - (float) $allowed->buy_price) * $qty_value;
+        $discounted_total_price += $total_sell_value;
         $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`branch_id`,`sell_status`,`sell_day`,`customer`) 
-      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$branch_id."','".$sell_status[$i]."','$sell_day','$customer')");
+      VALUES ('".$product_id[$i]."','".$qty_value."','".$final_sell_price_value."','".$total_sell_value."','".$profit_value."','".$user_id[$i]."','".$branch_id."','".$sell_status[$i]."','$sell_day','$customer')");
+         $sell_id = $this->db->insert_id();
+         $this->discountservice->saveAudit([
+          'discount_id' => $cart_discount_value > 0 ? $cart_discount['discount_id'] : $discount['discount_id'],
+          'transaction_id' => $sell_id,
+          'product_id' => $product_id[$i],
+          'applied_by_user' => $user_id[$i],
+          'approved_by' => $discount['approved_by'],
+          'original_price' => $sell_price_value,
+          'discount_amount' => $total_line_discount,
+          'final_price' => $final_sell_price_value,
+          'quantity' => $qty_value,
+        ]);
          $this->db->query("INSERT INTO  tbl_stock_movement (`product_id`,`product_qnty`,`user_id`,`mov_status`,`date`) 
       VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$user_id[$i]."','SOLD','$sell_day')");
           }
@@ -290,7 +383,7 @@ class Seller extends CI_Controller {
           for ($i=0; $i<count($product_id); $i++) { 
         $this->update_storedata($product_id[$i],$quantity[$i]);
             }
-          $this->insert_cashire_report($customer,$total_price);
+          $this->insert_cashire_report($customer,$discounted_total_price);
           $this->session->set_flashdata('massage','The product sold successfully');
           //$this->cart->destroy();
        }

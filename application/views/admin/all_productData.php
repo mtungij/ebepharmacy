@@ -52,6 +52,7 @@
             <thead class="thead-primary">
                 <tr>
                     <th>Product name</th>
+                    <th>Category</th>
                     <th>Branch</th>
                     <th>Buy price</th>
                     <th>Retail Sale price</th>
@@ -61,6 +62,7 @@
             <tfoot>
                 <tr>
                     <th>Product name</th>
+                    <th>Category</th>
                     <th>Branch</th>
                     <th>Buy price</th>
                     <th>Retail Sale price</th>
@@ -72,6 +74,7 @@
             <tr>
            
             <td><?php echo $products->name; ?></td>
+            <td><?php echo !empty($products->category) ? html_escape($products->category) : '-'; ?></td>
             <td><?php echo !empty($products->branch_name) ? html_escape($products->branch_name) : '-'; ?></td>
             <td>Tsh.<?php echo number_format($products->buy_price); ?>/=</td>
             <td>

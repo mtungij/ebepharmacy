@@ -40,11 +40,15 @@
 </script>
 <link rel="stylesheet" href="<?php echo base_url() ?>assets/admin/aset/vendor/font-awesome/css/font-awesome.min.css">
 <link rel="stylesheet" href="<?php echo base_url() ?>assets/admin/aset/vendor/jquery-datatable/dataTables.bootstrap4.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
 
 <!-- MAIN CSS -->
 <link rel="stylesheet" href="<?php echo base_url() ?>assets/admin/css/main.css">
 <link rel="stylesheet" href="<?php echo base_url() ?>assets/admin/css/color_skins.css">
 <link rel="stylesheet" href="<?php echo base_url() ?>assets/admin/css/tailwind-bridge.css?v=20260601n">
+<link rel="stylesheet" href="<?php echo base_url('assets/admin/css/evamo-cart-responsive.css'); ?>">
 </head>
 <body class="theme-cyan">
 

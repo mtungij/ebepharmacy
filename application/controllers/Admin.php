@@ -284,6 +284,7 @@ class Admin extends CI_Controller {
 	public function create_product(){
     $selected_branch_id = $this->current_admin_branch_id();
 		$this->form_validation->set_rules('name','Product name','required');
+		$this->form_validation->set_rules('category','Category','required|in_list[Medicines,Cosmetics]');
 		$this->form_validation->set_rules('unit','Product unit','required');
 		$this->form_validation->set_rules('user_id','user','required');
 		$this->form_validation->set_rules('branch_id','branch','required');
@@ -307,6 +308,7 @@ class Admin extends CI_Controller {
       } else {
         unset($product['reason']);
       }
+      unset($product['min_selling_price']);
 
 			//  echo "<pre>";
 			// print_r($product);
@@ -468,6 +470,7 @@ class Admin extends CI_Controller {
 
     public function modify_product($id){
     $this->form_validation->set_rules('name','Product name','required');
+    $this->form_validation->set_rules('category','Category','required|in_list[Medicines,Cosmetics]');
     $this->form_validation->set_rules('unit','Product unit','required');
     $this->form_validation->set_rules('buy_price','buy price','required');
     $this->form_validation->set_rules('price','sell price','required');
@@ -478,6 +481,7 @@ class Admin extends CI_Controller {
     $this->form_validation->set_error_delimiters('<div class="text-danger">','</div>');
     if ($this->form_validation->run() ) {
          $data = $this->input->post();
+         unset($data['min_selling_price']);
          // echo "<pre>";
          // print_r($data);
          //  echo "</pre>";
@@ -1225,16 +1229,40 @@ public function general_sells_product(){
     $this->load->model('queries');
     $user_id = $this->session->userdata('user_id');
     $my = $this->queries->get_mydata($user_id);
-    $from = $this->input->post('from');
-    $to = $this->input->post('to');
-    $data = $this->queries->search_mauzo($from,$to);
-    $total_mauzo_pita = $this->queries->search_mauzoPita($from,$to);
-    $total_profit = $this->queries->search_profit($from,$to);
-    $seller_data = $this->queries->search_mauzo_seller($from,$to);
+    $branch_input = $this->input->post('branch_id', TRUE);
+    if ($branch_input === null) {
+      $branch_input = $this->input->get('branch_id', TRUE);
+    }
+    if ($branch_input !== null) {
+      if ($branch_input === '') {
+        $this->session->unset_userdata('admin_branch_id');
+        $selected_branch_id = null;
+      } else {
+        $selected_branch_id = (int)$branch_input;
+        $this->session->set_userdata('admin_branch_id', $selected_branch_id);
+      }
+    } else {
+      $selected_branch_id = $this->current_admin_branch_id();
+    }
+    $branches = $this->queries->get_branches();
+    $today = date('Y-m-d');
+    $from = $this->input->post('from', TRUE) ?: $this->input->get('from', TRUE);
+    $to = $this->input->post('to', TRUE) ?: $this->input->get('to', TRUE);
+    $from = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$from) ? $from : $today;
+    $to = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$to) ? $to : $today;
+    if ($from > $to) {
+      $temp = $from;
+      $from = $to;
+      $to = $temp;
+    }
+    $data = $this->queries->search_mauzo($from,$to,$selected_branch_id);
+    $total_mauzo_pita = $this->queries->search_mauzoPita($from,$to,$selected_branch_id);
+    $total_profit = $this->queries->search_profit($from,$to,$selected_branch_id);
+    $seller_data = $this->queries->search_mauzo_seller($from,$to,$selected_branch_id);
       //      echo "<pre>";
       // print_r($seller_data);
       //    exit();
-    $this->load->view('admin/mauzo_yaliopita',['data'=>$data,'total_mauzo_pita'=>$total_mauzo_pita,'total_profit'=>$total_profit,'my'=>$my,'from'=>$from,'to'=>$to,'seller_data'=>$seller_data]);
+    $this->load->view('admin/mauzo_yaliopita',['data'=>$data,'total_mauzo_pita'=>$total_mauzo_pita,'total_profit'=>$total_profit,'my'=>$my,'from'=>$from,'to'=>$to,'seller_data'=>$seller_data,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
      //$this->last_salesReport($from,$to);
   }
 
@@ -1281,18 +1309,20 @@ public function general_sells_product(){
 
     public function last_salesReport($from,$to){
    $this->load->model('queries');
-    $all_salles = $this->queries->search_mauzo($from,$to);
-    $total_mauzo_pita = $this->queries->search_mauzoPita($from,$to);
-    $total_profits = $this->queries->search_profit($from,$to);
+    $selected_branch_id = $this->current_admin_branch_id();
+    $branches = $this->queries->get_branches();
+    $all_salles = $this->queries->search_mauzo($from,$to,$selected_branch_id);
+    $total_mauzo_pita = $this->queries->search_mauzoPita($from,$to,$selected_branch_id);
+    $total_profits = $this->queries->search_profit($from,$to,$selected_branch_id);
     $shop = $this->queries->get_shop_infoData();
 
-    $seller_data = $this->queries->search_mauzo_seller($from,$to);
+    $seller_data = $this->queries->search_mauzo_seller($from,$to,$selected_branch_id);
      // echo "<pre>";
      //  print_r($all_salles);
      // echo "</pre>";
      //     exit();
     $mpdf = new \Mpdf\Mpdf();
-    $html = $this->load->view('admin/mauzo_yaliopita_report',['all_salles'=>$all_salles,'total_mauzo_pita'=>$total_mauzo_pita,'total_profits'=>$total_profits,'shop'=>$shop,'from'=>$from,'to'=>$to,'seller_data'=>$seller_data],true);
+    $html = $this->load->view('admin/mauzo_yaliopita_report',['all_salles'=>$all_salles,'total_mauzo_pita'=>$total_mauzo_pita,'total_profits'=>$total_profits,'shop'=>$shop,'from'=>$from,'to'=>$to,'seller_data'=>$seller_data,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id],true);
     $mpdf->SetFooter('Generated By (0) 629364847 & (0) 748470181');
         $mpdf->WriteHTML($html);
         $mpdf->Output();
@@ -2017,9 +2047,12 @@ public function password_check($oldpass)
   $branch_id = $this->current_admin_branch_id();
   $datay = $this->queries->get_productAll($branch_id);
   $cartItems = $this->cart->contents();
+  $cart_product_ids = array_column($cartItems, 'id');
+  $discount_rules = $this->queries->get_active_discount_rules($branch_id);
+  $product_categories = $this->queries->get_product_category_map($cart_product_ids);
   $limit = $this->queries->get_stock_limitData();
   $kwisha = $this->queries->get_bidhaa_kwisha($branch_id);
-  $this->load->view('admin/sell',['datay'=>$datay,'cartItems'=>$cartItems,'limit'=>$limit,'my'=>$my,'kwisha'=>$kwisha,'selected_branch_id'=>$branch_id]);
+  $this->load->view('admin/sell',['datay'=>$datay,'cartItems'=>$cartItems,'limit'=>$limit,'my'=>$my,'kwisha'=>$kwisha,'selected_branch_id'=>$branch_id,'discount_rules'=>$discount_rules,'product_categories'=>$product_categories]);
     }
 
 
@@ -2046,6 +2079,7 @@ public function password_check($oldpass)
             'ju_price' => $product['ju_price'],
             'buy_price' => $product['buy_price'],
             'name'    => $product['name'],
+            'category' => isset($product['category']) ? $product['category'] : '',
             'bland' => $product['bland'],
             'exp_date' => $product['exp_date'],
             'unit' => $product['unit'],
@@ -2084,6 +2118,7 @@ public function password_check($oldpass)
             'ju_price' => $product['ju_price'],
             'buy_price' => $product['buy_price'],
             'name'    => $product['name'],
+            'category' => isset($product['category']) ? $product['category'] : '',
             'unit' => $product['unit'],
             'stock_balance' => $stockBalance,
         );
@@ -2164,12 +2199,15 @@ public function password_check($oldpass)
 
  public function sell(){
   $this->load->model('queries');
+  $this->load->library('discountservice');
       $validation  = array( array('field'=> 'product_id[]','rules'=>'required'));
       $this->form_validation->set_rules($validation);
        if ($this->form_validation->run() == true) {
           $product_id  = $this->input->post('product_id[]');
           $quantity  = $this->input->post('quantity[]');
           $new_sell_price = $this->input->post('new_sell_price[]');
+          $discount_amount = $this->input->post('discount_amount[]');
+          $cart_discount_amount = (float)$this->input->post('cart_discount_amount');
           $total_sell_price = $this->input->post('total_sell_price[]');
           $profit = $this->input->post('profit[]');
           $user_id = $this->input->post('user_id[]');
@@ -2179,20 +2217,62 @@ public function password_check($oldpass)
           $sell_day = date("Y-m-d");
           $date_recept = date("Y-m-d H:i:s");
           $branch_id = $this->current_admin_branch_id();
+          $discounted_total_price = 0;
+          $original_cart_total = $this->discountservice->originalCartTotal($quantity, $new_sell_price);
+          $sale_items = $this->discountservice->cartLineItems($product_id, $quantity, $new_sell_price);
+          $cart_discount = $this->discountservice->applyCartTotalDiscount($sale_items, $cart_discount_amount, $branch_id, $user_id[0] ?? null, $original_cart_total);
+          if ($cart_discount_amount > 0 && !empty($cart_discount['blocked_reason'])) {
+            $this->session->set_flashdata('error', $cart_discount['blocked_reason']);
+            return redirect('admin_cart/');
+          }
+          $cart_discount_allocations = $cart_discount['allocations'];
+          $used_discount_by_rule = [];
 
           // print_r($sell_status);
           //      exit();
           $order_id = $this->insert_recept_number($date_recept);
           for($i=0; $i<count($product_id);$i++){
             $branch_sql = $branch_id ? " AND branch_id = '".(int)$branch_id."'" : "";
-            $allowed = $this->db->query("SELECT id FROM product WHERE id = '".(int)$product_id[$i]."' $branch_sql")->row();
+            $allowed = $this->db->query("SELECT id, buy_price, branch_id FROM product WHERE id = '".(int)$product_id[$i]."' $branch_sql")->row();
             if (!$allowed) {
               $this->session->set_flashdata('error', 'One or more products are not available in the selected branch.');
               return redirect('admin/admin_sell');
             }
+            $sale_branch_id = $branch_id ? (int)$branch_id : (int)$allowed->branch_id;
+            $qty_value = (float) $quantity[$i];
+            $sell_price_value = (float) $new_sell_price[$i];
+            $manual_discount_value = isset($discount_amount[$i]) ? (float)$discount_amount[$i] : 0;
+            $discount = $this->discountservice->applyManualDiscount($product_id[$i], $qty_value, $sell_price_value, $manual_discount_value, $sale_branch_id, $user_id[$i], $original_cart_total, $used_discount_by_rule);
+            if ($manual_discount_value > 0 && !empty($discount['blocked_reason'])) {
+              $this->session->set_flashdata('error', $discount['blocked_reason']);
+              return redirect('admin_cart/');
+            }
+            if (!empty($discount['discount_id'])) {
+              $rule_id = (int)$discount['discount_id'];
+              $used_discount_by_rule[$rule_id] = isset($used_discount_by_rule[$rule_id]) ? $used_discount_by_rule[$rule_id] + (float)$discount['discount_amount'] : (float)$discount['discount_amount'];
+            }
+            $cart_discount_value = isset($cart_discount_allocations[$i]) ? (float)$cart_discount_allocations[$i] : 0;
+            $line_total_before_discount = $sell_price_value * $qty_value;
+            $total_line_discount = min($line_total_before_discount, (float)$discount['discount_amount'] + $cart_discount_value);
+            $total_sell_value = $line_total_before_discount - $total_line_discount;
+            $final_sell_price_value = $qty_value > 0 ? $total_sell_value / $qty_value : $sell_price_value;
+            $profit_value = ($final_sell_price_value - (float) $allowed->buy_price) * $qty_value;
+            $discounted_total_price += $total_sell_value;
             $date = date("Y-m-d");
        $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`branch_id`,`sell_status`,`sell_day`,`customer`) 
-      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$branch_id."','".$sell_status[$i]."','$sell_day','$customer')");
+      VALUES ('".$product_id[$i]."','".$qty_value."','".$final_sell_price_value."','".$total_sell_value."','".$profit_value."','".$user_id[$i]."','".$sale_branch_id."','".$sell_status[$i]."','$sell_day','$customer')");
+        $sell_id = $this->db->insert_id();
+        $this->discountservice->saveAudit([
+          'discount_id' => $cart_discount_value > 0 ? $cart_discount['discount_id'] : $discount['discount_id'],
+          'transaction_id' => $sell_id,
+          'product_id' => $product_id[$i],
+          'applied_by_user' => $user_id[$i],
+          'approved_by' => $discount['approved_by'],
+          'original_price' => $sell_price_value,
+          'discount_amount' => $total_line_discount,
+          'final_price' => $final_sell_price_value,
+          'quantity' => $qty_value,
+        ]);
    
          
         $this->record_stock_movement($product_id[$i], $quantity[$i], $user_id[$i], 'SOLD', $date);
@@ -2207,7 +2287,7 @@ public function password_check($oldpass)
               //print_r($data[$i]->quantity);
             }
 
-          $this->insert_cashire_report($customer,$total_price);
+          $this->insert_cashire_report($customer,$discounted_total_price);
           $this->session->set_flashdata('massage','The product sold successfully');
           
        }
@@ -2230,12 +2310,15 @@ public function password_check($oldpass)
 
      public function sell_jumla(){
         $this->load->model('queries');
+        $this->load->library('discountservice');
       $validation  = array( array('field'=> 'product_id[]','rules'=>'required'));
       $this->form_validation->set_rules($validation);
        if ($this->form_validation->run() == true) {
           $product_id  = $this->input->post('product_id[]');
           $quantity  = $this->input->post('quantity[]');
           $new_sell_price = $this->input->post('new_sell_price[]');
+          $discount_amount = $this->input->post('discount_amount[]');
+          $cart_discount_amount = (float)$this->input->post('cart_discount_amount');
           $total_sell_price = $this->input->post('total_sell_price[]');
           $profit = $this->input->post('profit[]');
           $user_id = $this->input->post('user_id[]');
@@ -2244,6 +2327,16 @@ public function password_check($oldpass)
           $total_price = $this->input->post('total_price');
           $sell_day = date("Y-m-d");
           $branch_id = $this->current_admin_branch_id();
+          $discounted_total_price = 0;
+          $original_cart_total = $this->discountservice->originalCartTotal($quantity, $new_sell_price);
+          $sale_items = $this->discountservice->cartLineItems($product_id, $quantity, $new_sell_price);
+          $cart_discount = $this->discountservice->applyCartTotalDiscount($sale_items, $cart_discount_amount, $branch_id, $user_id[0] ?? null, $original_cart_total);
+          if ($cart_discount_amount > 0 && !empty($cart_discount['blocked_reason'])) {
+            $this->session->set_flashdata('error', $cart_discount['blocked_reason']);
+            return redirect('admin_cart_jumla/');
+          }
+          $cart_discount_allocations = $cart_discount['allocations'];
+          $used_discount_by_rule = [];
 
           // print_r($sell_status);
           //      exit();
@@ -2251,13 +2344,45 @@ public function password_check($oldpass)
            $order_id = $this->insert_recept_number($date_recept);
           for($i=0; $i<count($product_id);$i++){
             $branch_sql = $branch_id ? " AND branch_id = '".(int)$branch_id."'" : "";
-            $allowed = $this->db->query("SELECT id FROM product WHERE id = '".(int)$product_id[$i]."' $branch_sql")->row();
+            $allowed = $this->db->query("SELECT id, buy_price, branch_id FROM product WHERE id = '".(int)$product_id[$i]."' $branch_sql")->row();
             if (!$allowed) {
               $this->session->set_flashdata('error', 'One or more products are not available in the selected branch.');
               return redirect('admin/admin_sell');
             }
+        $sale_branch_id = $branch_id ? (int)$branch_id : (int)$allowed->branch_id;
+        $qty_value = (float) $quantity[$i];
+        $sell_price_value = (float) $new_sell_price[$i];
+        $manual_discount_value = isset($discount_amount[$i]) ? (float)$discount_amount[$i] : 0;
+        $discount = $this->discountservice->applyManualDiscount($product_id[$i], $qty_value, $sell_price_value, $manual_discount_value, $sale_branch_id, $user_id[$i], $original_cart_total, $used_discount_by_rule);
+        if ($manual_discount_value > 0 && !empty($discount['blocked_reason'])) {
+          $this->session->set_flashdata('error', $discount['blocked_reason']);
+          return redirect('admin_cart_jumla/');
+        }
+        if (!empty($discount['discount_id'])) {
+          $rule_id = (int)$discount['discount_id'];
+          $used_discount_by_rule[$rule_id] = isset($used_discount_by_rule[$rule_id]) ? $used_discount_by_rule[$rule_id] + (float)$discount['discount_amount'] : (float)$discount['discount_amount'];
+        }
+        $cart_discount_value = isset($cart_discount_allocations[$i]) ? (float)$cart_discount_allocations[$i] : 0;
+        $line_total_before_discount = $sell_price_value * $qty_value;
+        $total_line_discount = min($line_total_before_discount, (float)$discount['discount_amount'] + $cart_discount_value);
+        $total_sell_value = $line_total_before_discount - $total_line_discount;
+        $final_sell_price_value = $qty_value > 0 ? $total_sell_value / $qty_value : $sell_price_value;
+        $profit_value = ($final_sell_price_value - (float) $allowed->buy_price) * $qty_value;
+        $discounted_total_price += $total_sell_value;
         $this->db->query("INSERT INTO  tbl_sell (`product_id`,`quantity` ,`new_sell_price`,`total_sell_price`,`profit`,`user_id`,`branch_id`,`sell_status`,`sell_day`,`customer`) 
-      VALUES ('".$product_id[$i]."','".$quantity[$i]."','".$new_sell_price[$i]."','".$total_sell_price[$i]."','".$profit[$i]."','".$user_id[$i]."','".$branch_id."','".$sell_status[$i]."','$sell_day','$customer')");
+      VALUES ('".$product_id[$i]."','".$qty_value."','".$final_sell_price_value."','".$total_sell_value."','".$profit_value."','".$user_id[$i]."','".$sale_branch_id."','".$sell_status[$i]."','$sell_day','$customer')");
+    $sell_id = $this->db->insert_id();
+    $this->discountservice->saveAudit([
+      'discount_id' => $cart_discount_value > 0 ? $cart_discount['discount_id'] : $discount['discount_id'],
+      'transaction_id' => $sell_id,
+      'product_id' => $product_id[$i],
+      'applied_by_user' => $user_id[$i],
+      'approved_by' => $discount['approved_by'],
+      'original_price' => $sell_price_value,
+      'discount_amount' => $total_line_discount,
+      'final_price' => $final_sell_price_value,
+      'quantity' => $qty_value,
+    ]);
     $this->record_stock_movement($product_id[$i], $quantity[$i], $user_id[$i], 'SOLD', $sell_day);
           }
           
@@ -2266,7 +2391,7 @@ public function password_check($oldpass)
               //print_r($data[$i]->product_id);
               //print_r($data[$i]->quantity);
             }  
-          $this->insert_cashire_report($customer,$total_price);
+          $this->insert_cashire_report($customer,$discounted_total_price);
           $this->session->set_flashdata('massage','The product sold successfully');
           //$this->cart->destroy();
        }
@@ -2520,6 +2645,163 @@ public function password_check($oldpass)
 
     
 
+    private function require_admin_role(){
+      if ($this->session->userdata('role') !== 'admin') {
+        $this->session->set_flashdata('error', 'Only admin can manage discounts.');
+        return false;
+      }
+
+      return true;
+    }
+
+    public function discounts(){
+      if (!$this->require_admin_role()) {
+        return redirect('admin/index');
+      }
+      $this->load->model('queries');
+      $user_id = $this->session->userdata('user_id');
+      $my = $this->queries->get_mydata($user_id);
+      $discounts = $this->queries->get_discount_rules();
+      $this->load->view('admin/discounts', ['my' => $my, 'discounts' => $discounts]);
+    }
+
+    public function create_discount(){
+      if (!$this->require_admin_role()) {
+        return redirect('admin/index');
+      }
+      $this->load->model('queries');
+      $this->save_discount_rule();
+    }
+
+    public function edit_discount($discount_id){
+      if (!$this->require_admin_role()) {
+        return redirect('admin/index');
+      }
+      $this->load->model('queries');
+      $user_id = $this->session->userdata('user_id');
+      $my = $this->queries->get_mydata($user_id);
+      $discount = $this->queries->get_discount_rule($discount_id);
+      if (!$discount) {
+        $this->session->set_flashdata('error', 'Discount rule not found.');
+        return redirect('admin/discounts');
+      }
+      $this->load->view('admin/discount_form', $this->discount_form_data($my, $discount));
+    }
+
+    public function update_discount($discount_id){
+      if (!$this->require_admin_role()) {
+        return redirect('admin/index');
+      }
+      $this->load->model('queries');
+      $this->save_discount_rule($discount_id);
+    }
+
+    public function delete_discount($discount_id){
+      if (!$this->require_admin_role()) {
+        return redirect('admin/index');
+      }
+      $this->load->model('queries');
+      if ($this->queries->delete_discount_rule($discount_id)) {
+        $this->session->set_flashdata('massage', 'Discount deleted successfully.');
+      } else {
+        $this->session->set_flashdata('error', 'Failed to delete discount.');
+      }
+      return redirect('admin/discounts');
+    }
+
+    public function discount_audit(){
+      if (!$this->require_admin_role()) {
+        return redirect('admin/index');
+      }
+      $this->load->model('queries');
+      $user_id = $this->session->userdata('user_id');
+      $my = $this->queries->get_mydata($user_id);
+      $audit = $this->queries->get_discount_audit();
+      $this->load->view('admin/discount_audit', ['my' => $my, 'audit' => $audit]);
+    }
+
+    private function save_discount_rule($discount_id = null){
+      $this->form_validation->set_rules('discount_name', 'Discount name', 'required');
+      $this->form_validation->set_rules('discount_type', 'Discount type', 'required|in_list[percentage,fixed]');
+      $this->form_validation->set_rules('discount_basis', 'Calculate discount from', 'required|in_list[line,cart]');
+      $this->form_validation->set_rules('applies_to', 'Applies to', 'required|in_list[product,category]');
+      $this->form_validation->set_rules('discount_value', 'Discount value', 'required|numeric');
+      $this->form_validation->set_rules('start_date', 'Start date', 'required');
+      $this->form_validation->set_rules('end_date', 'End date', 'required');
+      $this->form_validation->set_error_delimiters('<div class="text-danger">','</div>');
+
+      $user_id = $this->session->userdata('user_id');
+      $my = $this->queries->get_mydata($user_id);
+      $discount = $discount_id ? $this->queries->get_discount_rule($discount_id) : null;
+
+      if ($this->form_validation->run()) {
+        $applies_to = $this->input->post('applies_to', TRUE);
+        $data = [
+          'discount_name' => $this->input->post('discount_name', TRUE),
+          'discount_type' => $this->input->post('discount_type', TRUE),
+          'discount_basis' => $this->input->post('discount_basis', TRUE) === 'cart' ? 'cart' : 'line',
+          'applies_to' => $applies_to,
+          'discount_value' => (float)$this->input->post('discount_value', TRUE),
+          'product_id' => null,
+          'category' => $applies_to === 'category' ? $this->input->post('category', TRUE) : null,
+          'brand' => null,
+          'customer_group' => null,
+          'branch_id' => $this->input->post('branch_id', TRUE) !== '' ? (int)$this->input->post('branch_id', TRUE) : null,
+          'min_purchase_amount' => (float)$this->input->post('min_purchase_amount', TRUE),
+          'max_discount_per_transaction' => null,
+          'limit_per_customer' => null,
+          'start_date' => $this->input->post('start_date', TRUE),
+          'end_date' => $this->input->post('end_date', TRUE),
+          'start_time' => null,
+          'end_time' => null,
+          'requires_manager_approval' => 0,
+          'allow_below_min_price' => 0,
+          'status' => $this->input->post('status', TRUE) === 'inactive' ? 'inactive' : 'active',
+        ];
+
+        if ($applies_to === 'product' && !$this->input->post('all_products')) {
+          $product_ids = (array)$this->input->post('product_ids');
+          $product_ids = array_values(array_filter(array_map('intval', $product_ids)));
+          if (empty($product_ids)) {
+            $this->session->set_flashdata('error', 'Select at least one product or choose All products.');
+            return redirect($discount_id ? 'admin/edit_discount/'.$discount_id : 'admin/create_discount');
+          }
+        } else {
+          $product_ids = [null];
+        }
+
+        if ($discount_id) {
+          $data['product_id'] = $applies_to === 'product' ? $product_ids[0] : null;
+          $data['updated_at'] = date('Y-m-d H:i:s');
+          $this->queries->update_discount_rule($discount_id, $data);
+          $this->session->set_flashdata('massage', 'Discount updated successfully.');
+        } else {
+          $data['created_by'] = $user_id;
+          foreach ($product_ids as $pid) {
+            $row = $data;
+            $row['product_id'] = $applies_to === 'product' ? $pid : null;
+            $this->queries->insert_discount_rule($row);
+          }
+          $this->session->set_flashdata('massage', 'Discount created successfully.');
+        }
+
+        return redirect('admin/discounts');
+      }
+
+      $this->load->view('admin/discount_form', $this->discount_form_data($my, $discount));
+    }
+
+    private function discount_form_data($my, $discount = null){
+      return [
+        'my' => $my,
+        'discount' => $discount,
+        'products' => $this->queries->get_productAll(),
+        'branches' => $this->queries->get_branches(),
+        'categories' => $this->queries->get_product_categories(),
+        'brands' => $this->queries->get_product_brands(),
+      ];
+    }
+
     //insert cashire record
      public function insert_cashire_report($customer,$total_price){
     $date = date("Y-m-d");
@@ -2588,86 +2870,131 @@ public function import_execel(){
 
 
 public function import_product(){
-            if(!empty($_FILES['attachment']['name'])){
-                $config['upload_path'] = './assets/admin/img/';
-                $config['allowed_types'] = 'text|csv';
-                $config['file_name'] = $_FILES['attachment']['name'];
+  if (empty($_FILES['attachment']['name'])) {
+    $this->session->set_flashdata('error', 'Please choose an Excel or CSV file.');
+    return redirect('admin/product');
+  }
 
-                //Load upload library and initialize configuration
-                $this->load->library('upload',$config);
-                $this->upload->initialize($config);
-                
-                if($this->upload->do_upload('attachment')){
-                    $uploadData = $this->upload->data();
-                    $attachment = $uploadData['file_name'];
-                }else{
-                    $attachment = '';
-                }
-            }else{
-                $attachment = '';
-            }
-            
-            //Prepare array of user data
-            $data = array(
-            'attachment' => $config['upload_path'].$attachment,
-            );
-              // echo "<pre>";
-            // print_r($data);
-             // echo "</pre>";
-              // exit();
-              $path = $config['upload_path'].$attachment;
-           // $this->load->library('SpreadsheetReader');
-              $Reader = new SpreadsheetReader($path);
-              $totalSheet = count($Reader->sheets());
+  $upload_path = FCPATH . 'uploads/product_imports/';
+  if (!is_dir($upload_path)) {
+    @mkdir($upload_path, 0775, true);
+  }
 
-              for($i=0; $i <$totalSheet;$i++){
-                $Reader->ChangeSheet($i);
+  $config['upload_path'] = $upload_path;
+  $config['allowed_types'] = 'xls|xlsx|csv';
+  $config['encrypt_name'] = true;
 
-                foreach($Reader as $row){
-                  $name = ($row[0]);
-                  $price = ($row[1]);
-                  $ju_price = ($row[2]);
-                  $quantity = ($row[3]);
-                  $buy_price = ($row[4]);
-                  $unit = ($row[5]);
-                  if($name != "name" || $price != "price" || $ju_price != "ju_price" || $quantity != "quantity" || $buy_price != "buy_price" || $unit != "unit"  ){
-                  $data = array(
-                  'name' => $name,
-                  'price' => $price,
-                  'ju_price' => $ju_price,
-                  'quantity' => $quantity,
-                  'buy_price' => $buy_price,
-                  'unit' => $unit,
-                  );
-                  $balance = $data['quantity'];
-                  $out_balance = 0;
-                  $total_buy = $data['buy_price'] * $data['quantity'];
-                  $total_sell = $data['price'] * $data['quantity'];
-                  $total_ju = $data['ju_price'] * $data['quantity'];
-                  //$buy_price = $data['buy_price'];
-                     // echo "<pre>";
-                     // print_r($username);
-                     //  echo "</pre>"; 
-                     //    //exit();
-              $this->load->model('queries');
-              $product_id = $this->queries->insert_excell_product($data);
-               $this->insert_store($product_id,$balance,$out_balance,$total_buy,$total_sell,$total_ju);
+  $this->load->library('upload', $config);
+  $this->upload->initialize($config);
 
-                  }else{
-                    echo "don`t enter";
-                  }
-                
-                }
-              }
+  if (!$this->upload->do_upload('attachment')) {
+    $this->session->set_flashdata('error', strip_tags($this->upload->display_errors()));
+    return redirect('admin/product');
+  }
 
-            //Pass user data to model
-            //Storing insertion status message.
-            if($product_id > 0){
-                $this->session->set_flashdata('massage','successfully');
-            }else{
-                $this->session->set_flashdata('error','Data failed!!');
-            }
-            return redirect('admin/import_execel');
+  $uploadData = $this->upload->data();
+  $path = $uploadData['full_path'];
+  $selected_branch_id = $this->current_admin_branch_id();
+  $user_id = (int)$this->session->userdata('user_id');
+  $imported = 0;
+  $skipped = 0;
+
+  try {
+    $Reader = new SpreadsheetReader($path);
+    $sheets = $Reader->Sheets();
+
+    $this->load->model('queries');
+    $this->db->trans_start();
+
+    foreach ($sheets as $sheet_index => $sheet_name) {
+      $Reader->ChangeSheet($sheet_index);
+      $row_number = 0;
+
+      foreach ($Reader as $row) {
+        $row_number++;
+        if ($row_number === 1) {
+          continue;
+        }
+
+        $name = trim((string)($row[0] ?? ''));
+        if ($name === '') {
+          $skipped++;
+          continue;
+        }
+
+        if ($this->queries->check_productName($name)) {
+          $skipped++;
+          continue;
+        }
+
+        $category = trim((string)($row[1] ?? ''));
+        $unit = trim((string)($row[2] ?? ''));
+        $branch_id = $selected_branch_id ?: (int)($row[10] ?? 0);
+        $quantity = (float)($row[4] ?? 0);
+        $buy_price = (float)($row[5] ?? 0);
+        $price = (float)($row[6] ?? 0);
+        $ju_price = (float)($row[7] ?? 0);
+
+        if (!in_array($category, ['Medicines', 'Cosmetics'], true) || $unit === '' || $branch_id <= 0 || $quantity <= 0 || $buy_price <= 0 || ($price <= 0 && $ju_price <= 0)) {
+          $skipped++;
+          continue;
+        }
+
+        $product = [
+          'name' => $name,
+          'category' => $category,
+          'unit' => $unit,
+          'bland' => trim((string)($row[3] ?? '')),
+          'quantity' => $quantity,
+          'buy_price' => $buy_price,
+          'price' => $price,
+          'ju_price' => $ju_price,
+          'stock_limit' => (float)($row[8] ?? 0),
+          'exp_date' => trim((string)($row[9] ?? '')),
+          'branch_id' => $branch_id,
+          'user_id' => $user_id,
+        ];
+
+        if ($this->db->field_exists('reason', 'product')) {
+          $product['reason'] = 'purchased';
+        }
+
+        $product_id = $this->queries->insert_product($product);
+        if ($product_id > 0) {
+          $out_balance = 0;
+          $total_buy = $buy_price * $quantity;
+          $total_sell = $price * $quantity;
+          $total_ju = $ju_price * $quantity;
+          $this->insert_store($product_id, $quantity, $out_balance, $total_buy, $total_sell, $total_ju, $branch_id);
+          $this->insert_product_main_store($product_id, $quantity, $total_buy, $total_sell, $total_ju, $out_balance);
+          $this->record_stock_movement($product_id, $quantity, $user_id, 'PURCHASED');
+          $imported++;
+        } else {
+          $skipped++;
+        }
+      }
+    }
+
+    $this->db->trans_complete();
+  } catch (Exception $e) {
+    @unlink($path);
+    $this->session->set_flashdata('error', 'Import failed: '.$e->getMessage());
+    return redirect('admin/product');
+  }
+
+  @unlink($path);
+
+  if ($imported > 0) {
+    $message = 'Imported '.$imported.' product(s).';
+    if ($skipped > 0) {
+      $message .= ' Skipped '.$skipped.' row(s).';
+    }
+    $this->session->set_flashdata('massage', $message);
+  } else {
+    $this->session->set_flashdata('error', 'No products imported. Check your file columns and required values.');
+  }
+
+  return redirect('admin/product');
   }
 
 

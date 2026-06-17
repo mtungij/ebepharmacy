@@ -18,7 +18,19 @@
 
 body {
   color: #111827;
+  font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
   font-weight: 600;
+}
+
+button,
+input,
+select,
+textarea,
+.form-control,
+.btn,
+.dropdown-menu,
+.modal {
+  font-family: inherit;
 }
 
 h1,

@@ -32,14 +32,20 @@
                 <?php if(count($data) == 0){ ?>
             
         <?php }else{ ?>
-            <a href="<?php echo base_url("admin/last_salesReport/{$from}/{$to}") ?>" target="_blank" class="btn btn-info"><i class="icon-printer"></i>Print</a>
+            <?php $print_query = !empty($selected_branch_id) ? '?branch_id='.(int)$selected_branch_id : ''; ?>
+            <a href="<?php echo base_url("admin/last_salesReport/{$from}/{$to}").$print_query; ?>" target="_blank" class="btn btn-info"><i class="icon-printer"></i>Print</a>
             <?php } ?>
             </div>
         </div>
         </div>
         </div>
         <div  class="row">
-          <?php $date = date("Y-m-d"); ?>
+          <?php
+            $date = date("Y-m-d");
+            $from_value = !empty($from) ? $from : $date;
+            $to_value = !empty($to) ? $to : $date;
+            $selected_branch_id = isset($selected_branch_id) ? $selected_branch_id : null;
+          ?>
     <div class="col-md-3">
        
           From : 
@@ -49,7 +55,7 @@
      <?php }else{ ?>
           <?php echo date('F, j, Y', strtotime($from)) ?>
           <?php } ?>
-           <input type="date" required value="<?php echo $date; ?>"   name="from" class="form-control">
+           <input type="date" required value="<?php echo html_escape($from_value); ?>"   name="from" class="form-control">
     </div>
     <div class="col-md-3">
           To:
@@ -59,7 +65,21 @@
      <?php }else{ ?>
           <?php echo date('F, j, Y', strtotime($to)) ?>
           <?php } ?>
-          <input type="date" name="to" required  value="<?php echo $date; ?>" class="form-control">
+          <input type="date" name="to" required  value="<?php echo html_escape($to_value); ?>" class="form-control">
+    </div>
+
+    <div class="col-md-2">
+          Branch:
+          <select name="branch_id" class="form-control">
+              <option value="">All Branches</option>
+              <?php if (!empty($branches)): ?>
+                  <?php foreach ($branches as $branch): ?>
+                      <option value="<?php echo $branch->branch_id; ?>" <?php echo ((string)$selected_branch_id === (string)$branch->branch_id) ? 'selected' : ''; ?>>
+                          <?php echo html_escape($branch->branch_name); ?>
+                      </option>
+                  <?php endforeach; ?>
+              <?php endif; ?>
+          </select>
     </div>
 
     <div class="col-md-2">
@@ -67,15 +87,15 @@
     <button type="submit" class="btn btn-info ">Get Data</button>
     </div>
 
-    <div class="col-md-2">
+    <div class="col-md-1">
     Total Sale
-     <input readonly  placeholder="<?php echo number_format( $total_mauzo_pita->total_sell); ?>/=" class="form-control">
+     <input readonly  placeholder="<?php echo number_format((float) $total_mauzo_pita->total_sell); ?>/=" class="form-control">
         
     </div>
-    <div class="col-md-2">
+    <div class="col-md-1">
     Profit
 
-     <input readonly  placeholder="<?php echo number_format($total_profit->total_profit); ?>/=" class="form-control">
+     <input readonly  placeholder="<?php echo number_format((float) $total_profit->total_profit); ?>/=" class="form-control">
     </div>
     </div>
     </div>
@@ -88,6 +108,7 @@
 
                     
                     <th>Seller</th>
+                    <th>Branch</th>
                     <th>Customer</th>
                      <th>Product name</th>
                     <th>Quantity</th>
@@ -103,6 +124,7 @@
               <?php foreach ($data as $all_salles_today): ?>
                 <tr>
             <td><?php echo $all_salles_today->full_name; ?></td>
+            <td><?php echo !empty($all_salles_today->branch_name) ? html_escape($all_salles_today->branch_name) : '-'; ?></td>
             <td><?php echo $all_salles_today->customer; ?></td>
             <td><?php echo $all_salles_today->name; ?></td>
             <td><?php echo $all_salles_today->qnty ; ?> <?php echo $all_salles_today->unit ; ?></td>
@@ -132,6 +154,7 @@
                 <td></td>
                 <td></td>
                 <td></td>
+                <td></td>
                 <td><b>SELLER SUMMARY</b></td>
                 <td></td>
                 <td></td>
@@ -140,6 +163,7 @@
             </tr>
        <?php foreach ($seller_data as $seller_datas): ?>
             <tr>
+                <td></td>
                 <td></td>
                 <td></td>
                 <td><b><?php echo $seller_datas->full_name; ?></b></td>
@@ -165,4 +189,3 @@
 
 
 <?php include 'incs/footer.php'; ?>
-

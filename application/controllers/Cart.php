@@ -14,11 +14,14 @@ class Cart extends CI_Controller{
         $data = array();
         // Retrieve cart data from the session
         $cartItems = $this->cart->contents();
+        $cart_product_ids = array_column($cartItems, 'id');
+        $discount_rules = $this->queries->get_active_discount_rules($branch_id ?: null);
+        $product_categories = $this->queries->get_product_category_map($cart_product_ids);
         // print_r($cartItems);
         //      exit();
         $privillage = $this->queries->get_userPrivillage($user_id);
         // Load the cart view
-        $this->load->view('seller/cart',['cartItems'=>$cartItems,'datay'=>$datay,'limit'=>$limit,'my'=>$my,'kwisha'=>$kwisha,'privillage'=>$privillage]);
+        $this->load->view('seller/cart',['cartItems'=>$cartItems,'datay'=>$datay,'limit'=>$limit,'my'=>$my,'kwisha'=>$kwisha,'privillage'=>$privillage,'discount_rules'=>$discount_rules,'product_categories'=>$product_categories]);
     }
 
   

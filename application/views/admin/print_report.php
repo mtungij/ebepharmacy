@@ -77,6 +77,7 @@ tr:nth-child(even) {
   <tr>
     <th style="font-size:12px;">S/No.</th>
     <th style="font-size:12px;">Product name</th>
+    <th style="font-size:12px;">Category</th>
     <th style="font-size:12px;">Branch</th>
     <th style="font-size:12px;">Quantity</th>
     <th style="font-size:12px;">Buying price</th>
@@ -91,6 +92,7 @@ tr:nth-child(even) {
  <tr>
     <td style="font-size:12px;"><?php echo $no++; ?></td>
     <td style="font-size:12px;"><?php echo $datas->name; ?></td>
+    <td style="font-size:12px;"><?php echo !empty($datas->category) ? html_escape($datas->category) : '-'; ?></td>
     <td style="font-size:12px;"><?php echo $datas->branch_name ? html_escape($datas->branch_name) : '-'; ?></td>
     <td style="font-size:12px;"><?php echo $datas->balance; ?></td>
     <td style="font-size:12px;"><?php echo number_format($datas->buy_price); ?></td>
@@ -123,6 +125,5 @@ tr:nth-child(even) {
 
 </body>
 </html>
-
 
 

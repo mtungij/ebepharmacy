@@ -2,6 +2,21 @@
 <?php include('incs/nav.php'); ?>
 <?php include('incs/side.php'); ?>
 <script src="<?php echo base_url('assets/admin/js/jquery.js'); ?>"></script>
+<?php
+  $evamo_discount_rules = [];
+  foreach (($discount_rules ?? []) as $rule) {
+    $evamo_discount_rules[] = [
+      'discount_name' => $rule->discount_name,
+      'discount_type' => $rule->discount_type,
+      'discount_basis' => isset($rule->discount_basis) ? $rule->discount_basis : 'line',
+      'applies_to' => $rule->applies_to,
+      'discount_value' => (float)$rule->discount_value,
+      'product_id' => $rule->product_id !== null ? (int)$rule->product_id : null,
+      'category' => $rule->category,
+      'min_purchase_amount' => (float)$rule->min_purchase_amount,
+    ];
+  }
+?>
 <style>
 #evamoQuantityWarningModal {
   position: fixed;
@@ -164,15 +179,169 @@ function formatTsh(amount){
   return 'Tsh.' + value.toLocaleString('en-US') + '/=';
 }
 
+function updateChangeDue(totalDue){
+  var paidInput = document.getElementById('evamo-amount-paid-input');
+  var changeText = document.getElementById('evamo-change-due-text');
+  var changeHidden = document.getElementById('evamo-change-due-input');
+  var paid = Number(paidInput ? paidInput.value || 0 : 0);
+  if (!Number.isFinite(paid) || paid < 0) {
+    paid = 0;
+  }
+  var payableTotal = Number(totalDue || 0);
+  var changeDue = Math.max(0, paid - payableTotal);
+  if (changeText) {
+    changeText.textContent = formatTsh(changeDue);
+  }
+  if (changeHidden) {
+    changeHidden.value = changeDue;
+  }
+}
+
+var evamoDiscountRules = <?php echo json_encode($evamo_discount_rules); ?>;
+
+function evamoOriginalCartTotal(){
+  var total = 0;
+  document.querySelectorAll('.evamo-cart-row').forEach(function(row){
+    var qtyInput = row.querySelector('.evamo-qty-input');
+    if (!qtyInput) {
+      return;
+    }
+    var qty = Number(qtyInput.value || qtyInput.getAttribute('data-old-qty') || 0);
+    var price = Number(qtyInput.getAttribute('data-price') || 0);
+    total += qty * price;
+  });
+  return total;
+}
+
+function evamoRuleMatchesRow(rule, row){
+  var productId = Number(row.getAttribute('data-product-id') || 0);
+  var category = row.getAttribute('data-category') || '';
+  if (rule.applies_to === 'product') {
+    return !rule.product_id || Number(rule.product_id) === productId;
+  }
+  if (rule.applies_to === 'category') {
+    return rule.category && rule.category === category;
+  }
+  return false;
+}
+
+function evamoRuleDiscountAmount(rule, lineTotal, qty, cartTotal){
+  var baseTotal = rule.discount_basis === 'cart' ? cartTotal : lineTotal;
+  if (rule.discount_type === 'percentage') {
+    return baseTotal * (Number(rule.discount_value || 0) / 100);
+  }
+  if (rule.discount_basis === 'cart') {
+    return Number(rule.discount_value || 0);
+  }
+  return Number(rule.discount_value || 0) * qty;
+}
+function updateAvailableDiscounts(){
+  var originalTotal = evamoOriginalCartTotal();
+  var cartDiscountInput = document.getElementById("evamo-cart-discount-input");
+  var cartDiscountHint = document.getElementById("evamo-cart-discount-hint");
+  var bestCartRule = null;
+  var bestCartAmount = 0;
+  var cartDiscountRow = document.querySelector(".evamo-cart-discount-row");
+  var hasCartDiscountRule = evamoDiscountRules.some(function(rule){ return rule.discount_basis === "cart"; });
+
+  if (cartDiscountRow) {
+    cartDiscountRow.style.display = hasCartDiscountRule ? "" : "none";
+  }
+  if (!hasCartDiscountRule && cartDiscountInput && cartDiscountHint) {
+    cartDiscountInput.value = 0;
+    cartDiscountInput.readOnly = true;
+    cartDiscountInput.removeAttribute("max");
+    cartDiscountHint.textContent = "";
+  }
+
+  evamoDiscountRules.forEach(function(rule){
+    if (rule.discount_basis !== "cart" || originalTotal < Number(rule.min_purchase_amount || 0)) {
+      return;
+    }
+    var matchesCart = false;
+    document.querySelectorAll(".evamo-cart-row").forEach(function(row){
+      if (evamoRuleMatchesRow(rule, row)) {
+        matchesCart = true;
+      }
+    });
+    if (!matchesCart) {
+      return;
+    }
+    var amount = evamoRuleDiscountAmount(rule, 0, 0, originalTotal);
+    if (amount > bestCartAmount) {
+      bestCartAmount = amount;
+      bestCartRule = rule;
+    }
+  });
+
+  if (cartDiscountInput && cartDiscountHint) {
+    if (bestCartRule && bestCartAmount > 0) {
+      cartDiscountInput.value = bestCartAmount;
+      cartDiscountInput.readOnly = true;
+      cartDiscountInput.setAttribute("max", bestCartAmount);
+      cartDiscountHint.textContent = "Available cart total discount: " + formatTsh(bestCartAmount) + " (" + bestCartRule.discount_name + ")";
+      cartDiscountHint.className = "text-success";
+    } else {
+      cartDiscountInput.value = 0;
+      cartDiscountInput.readOnly = true;
+      cartDiscountInput.removeAttribute("max");
+      cartDiscountHint.textContent = evamoDiscountRules.some(function(rule){ return rule.discount_basis === "cart"; }) ? "No cart total discount available yet" : "";
+      cartDiscountHint.className = "text-muted";
+    }
+  }
+
+  document.querySelectorAll(".evamo-cart-row").forEach(function(row){
+    var qtyInput = row.querySelector(".evamo-qty-input");
+    var discountInput = row.querySelector(".evamo-discount-input");
+    var hint = row.querySelector(".evamo-discount-hint");
+    if (!qtyInput || !discountInput || !hint) {
+      return;
+    }
+    var qty = Number(qtyInput.value || qtyInput.getAttribute("data-old-qty") || 0);
+    var price = Number(qtyInput.getAttribute("data-price") || 0);
+    var lineTotal = qty * price;
+    var best = null;
+    var bestAmount = 0;
+    evamoDiscountRules.forEach(function(rule){
+      if (rule.discount_basis === "cart") {
+        return;
+      }
+      if (!evamoRuleMatchesRow(rule, row) || originalTotal < Number(rule.min_purchase_amount || 0)) {
+        return;
+      }
+      var amount = evamoRuleDiscountAmount(rule, lineTotal, qty, originalTotal);
+      if (amount > bestAmount) {
+        bestAmount = amount;
+        best = rule;
+      }
+    });
+    if (best && bestAmount > 0) {
+      discountInput.readOnly = false;
+      discountInput.setAttribute("max", bestAmount);
+      hint.textContent = "Available item discount: " + formatTsh(bestAmount) + " (" + best.discount_name + ")";
+      hint.className = "evamo-discount-hint text-success";
+    } else {
+      discountInput.value = 0;
+      discountInput.readOnly = true;
+      discountInput.removeAttribute("max");
+      hint.textContent = evamoDiscountRules.some(function(rule){ return rule.discount_basis !== "cart"; }) ? "No item discount available yet" : "";
+      hint.className = "evamo-discount-hint text-muted";
+    }
+  });
+}
+
 function recalculateCartTotals(){
   var grandTotal = 0;
   var totalItems = 0;
+  updateAvailableDiscounts();
 
   document.querySelectorAll('.evamo-cart-row').forEach(function(row){
     var qtyInput = row.querySelector('.evamo-qty-input');
     var qtyHidden = row.querySelector('.evamo-qty-hidden');
+    var discountInput = row.querySelector('.evamo-discount-input');
     var rowTotalText = row.querySelector('.evamo-row-total-text');
     var rowTotalHidden = row.querySelector('.evamo-row-total-hidden');
+    var profitHidden = row.querySelector('.evamo-profit-hidden');
 
     if(!qtyInput){
       return;
@@ -188,7 +357,20 @@ function recalculateCartTotals(){
     }
 
     var price = Number(qtyInput.getAttribute('data-price') || 0);
-    var subtotal = qty * price;
+    var buyPrice = Number(qtyInput.getAttribute('data-buy-price') || 0);
+    var lineSubtotal = qty * price;
+    var discount = Number(discountInput ? discountInput.value || 0 : 0);
+    if (!Number.isFinite(discount) || discount < 0) {
+      discount = 0;
+    }
+    if (discount > lineSubtotal) {
+      discount = lineSubtotal;
+      if (discountInput) {
+        discountInput.value = discount;
+      }
+    }
+    var subtotal = lineSubtotal - discount;
+    var profit = subtotal - (buyPrice * qty);
     totalItems += qty;
     grandTotal += subtotal;
 
@@ -201,7 +383,23 @@ function recalculateCartTotals(){
     if (rowTotalHidden) {
       rowTotalHidden.value = subtotal;
     }
+    if (profitHidden) {
+      profitHidden.value = profit;
+    }
   });
+
+  var cartDiscountInput = document.getElementById("evamo-cart-discount-input");
+  var cartDiscount = Number(cartDiscountInput ? cartDiscountInput.value || 0 : 0);
+  if (!Number.isFinite(cartDiscount) || cartDiscount < 0) {
+    cartDiscount = 0;
+  }
+  if (cartDiscount > grandTotal) {
+    cartDiscount = grandTotal;
+    if (cartDiscountInput) {
+      cartDiscountInput.value = cartDiscount;
+    }
+  }
+  grandTotal -= cartDiscount;
 
   var grandTotalText = document.getElementById('evamo-grand-total-text');
   var grandTotalHidden = document.getElementById('evamo-grand-total-input');
@@ -211,6 +409,7 @@ function recalculateCartTotals(){
   if (grandTotalHidden) {
     grandTotalHidden.value = grandTotal;
   }
+  updateChangeDue(grandTotal);
 
   var itemCountText = document.getElementById('evamo-item-count-text');
   if (itemCountText) {
@@ -271,15 +470,15 @@ function updateCartItem(obj, rowid,item_id){
 
   recalculateCartTotals();
 
-    $.get("<?php echo base_url('seller/updateItemQty/'); ?>",{rowid:rowid, qty:normalizedQty,item_id:item_id}, function(resp){
-        if(resp == 'ok'){
+    $.get("<?php echo base_url('admin/updateItemQty/'); ?>",{rowid:rowid, qty:normalizedQty,item_id:item_id}, function(resp){
+        if(String(resp).trim() == 'ok'){
       obj.setAttribute('data-old-qty', normalizedQty);
       recalculateCartTotals();
         }else{
-      obj.value = 1;
-      obj.setAttribute('data-old-qty', 1);
+      obj.value = oldQty;
+      obj.setAttribute('data-old-qty', oldQty);
       recalculateCartTotals();
-      showQuantityWarning(maxStock > 0 ? 'Only ' + maxStock + ' item(s) available in stock. Quantity has been reset to 1.' : 'Selected quantity is not available. Quantity has been reset to 1.');
+      showQuantityWarning(maxStock > 0 ? 'Only ' + maxStock + ' item(s) available in stock.' : 'Selected quantity is not available.');
         }
     });
 }
@@ -292,6 +491,10 @@ document.addEventListener('DOMContentLoaded', function(){
   }
   if (closeButton) {
     closeButton.addEventListener('click', hideQuantityWarning);
+  }
+  var paidInput = document.getElementById('evamo-amount-paid-input');
+  if (paidInput) {
+    paidInput.addEventListener('input', recalculateCartTotals);
   }
   recalculateCartTotals();
 });
@@ -453,7 +656,7 @@ document.addEventListener('DOMContentLoaded', function(){
             <?php foreach ($cartItems as $item):
                 $company_id = ""; 
                 ?>
-            <tr class="evamo-cart-row">
+            <tr class="evamo-cart-row" data-product-id="<?php echo (int)$item['id']; ?>" data-category="<?php echo html_escape($product_categories[$item['id']] ?? ($item['category'] ?? '')); ?>">
             <td data-label="Name"><b><?php echo $item['name']; ?></b></td>
             <td data-label="Price(Tsh)">Tsh.<?php echo number_format($item['price']); ?>/=
               <input type="hidden" name="new_sell_price[]" value="<?php echo $item['price']; ?>">
@@ -464,7 +667,7 @@ document.addEventListener('DOMContentLoaded', function(){
               $cart_id = $item["rowid"];
               $item_id = $item["id"];
                  ?>
-      <input type="number" value="<?php echo $item["qty"]; ?>" data-old-qty="<?php echo $item["qty"]; ?>" data-max-stock="<?php echo isset($item['stock_balance']) ? $item['stock_balance'] : ''; ?>" data-price="<?php echo $item['price']; ?>" oninput="scheduleCartItemUpdate(this, '<?php echo $cart_id; ?>','<?php echo $item_id; ?>')" min="1" class="form-control evamo-qty-input" style="width: 80px">
+      <input type="number" value="<?php echo $item["qty"]; ?>" data-old-qty="<?php echo $item["qty"]; ?>" data-max-stock="<?php echo isset($item['stock_balance']) ? $item['stock_balance'] : ''; ?>" data-price="<?php echo $item['price']; ?>" data-buy-price="<?php echo $item['buy_price']; ?>" oninput="scheduleCartItemUpdate(this, '<?php echo $cart_id; ?>','<?php echo $item_id; ?>')" min="1" class="form-control evamo-qty-input" style="width: 80px">
      <!-- <select type="number" class="form-control" id='cartp' onchange="updateCartItem(this, '<?php echo $cart_id; ?>','<?php echo $item_id; ?>')" style="width: 80px">
        <option value="<?php echo $item["qty"]; ?>"><?php echo $item["qty"]; ?></option>
        <option value="0.25">Robo</option>
@@ -474,8 +677,9 @@ document.addEventListener('DOMContentLoaded', function(){
        <input type="hidden" name="quantity[]" value="<?php echo $item["qty"]; ?>" class="evamo-qty-hidden">
             </td> 
             <td data-label="Total(Tsh)"><span class="evamo-row-total-text"><?php echo 'Tsh.'.number_format($item["subtotal"]).'/='; ?></span>
+              <input type="hidden" name="discount_amount[]" value="0">
               <input type="hidden" name="total_sell_price[]" value="<?php echo $item["subtotal"]; ?>" class="evamo-row-total-hidden">
-            <input type="hidden" name="profit[]" value="<?php echo $item['subtotal'] - $item['buy_price'] * $item['qty']; ?>">
+            <input type="hidden" name="profit[]" value="<?php echo $item['subtotal'] - $item['buy_price'] * $item['qty']; ?>" class="evamo-profit-hidden">
             <input type="hidden" name="product_id[]" value="<?php echo $item['id']; ?>">
             <input type="hidden" name="sell_status[]" value="retail">
             </td> 
@@ -483,6 +687,13 @@ document.addEventListener('DOMContentLoaded', function(){
             <td data-label="Action"><a href="<?php echo base_url('admin_cart/removeItem/'.$item["rowid"]); ?>" class="btn btn-danger btn-sm"><i class=" icon-close"></i></a><?php //echo $products->p_name; ?></td>
               </tr>
     <?php endforeach; ?>
+              <tr class="evamo-cart-discount-row">
+                <th>Cart Discount</th>
+                <th></th>
+                <th></th>
+                <th><input type="number" id="evamo-cart-discount-input" name="cart_discount_amount" value="0" min="0" class="form-control" readonly oninput="recalculateCartTotals()" style="width: 120px"><small id="evamo-cart-discount-hint" class="text-muted" style="display:block;margin-top:4px;"></small></th>
+                <th></th>
+              </tr>
               <tr class="evamo-cart-summary-row">
                 <th>Total</th>
                 <th></th>
@@ -492,6 +703,20 @@ document.addEventListener('DOMContentLoaded', function(){
                   <input type="hidden" id="evamo-grand-total-input" name="total_price" value="<?php echo $this->cart->total(); ?>">
                     <?php } ?>
                   </th>
+                <th></th>
+              </tr>
+              <tr class="evamo-cart-amount-paid-row">
+                <th>Amount Paid</th>
+                <th></th>
+                <th></th>
+                <th><input type="number" id="evamo-amount-paid-input" name="amount_paid" value="" min="0" class="form-control" oninput="recalculateCartTotals()" style="width: 120px"></th>
+                <th></th>
+              </tr>
+              <tr class="evamo-cart-change-row">
+                <th>Change Due</th>
+                <th></th>
+                <th></th>
+                <th><span id="evamo-change-due-text">Tsh.0/=</span><input type="hidden" id="evamo-change-due-input" name="change_due" value="0"></th>
                 <th></th>
               </tr>
               <tr class="evamo-cart-customer-row">
@@ -572,5 +797,3 @@ document.addEventListener('DOMContentLoaded', function(){
         </div>
     </div>
 </div> -->
-
-

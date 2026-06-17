@@ -19,11 +19,14 @@ class Admin_cart extends CI_Controller{
         $data = array();
         // Retrieve cart data from the session
         $cartItems = $this->cart->contents();
+        $cart_product_ids = array_column($cartItems, 'id');
+        $discount_rules = $this->queries->get_active_discount_rules($branch_id);
+        $product_categories = $this->queries->get_product_category_map($cart_product_ids);
         // print_r($data);
         //      exit();
         
         // Load the cart view
-        $this->load->view('admin/sell',['cartItems'=>$cartItems,'datay'=>$datay,'limit'=>$limit,'my'=>$my,'kwisha'=>$kwisha,'selected_branch_id'=>$branch_id]);
+        $this->load->view('admin/sell',['cartItems'=>$cartItems,'datay'=>$datay,'limit'=>$limit,'my'=>$my,'kwisha'=>$kwisha,'selected_branch_id'=>$branch_id,'discount_rules'=>$discount_rules,'product_categories'=>$product_categories]);
     }
 
     

@@ -55,6 +55,7 @@
             <select class="form-control" required name="role" id="user-role-select">
                 <option value="">Select privillage</option>
                 <option value="admin" <?php echo set_select('role', 'admin'); ?>>admin</option>
+                <option value="manager" <?php echo set_select('role', 'manager'); ?>>manager</option>
                 <option value="seller" <?php echo set_select('role', 'seller'); ?>>seller</option>
                 <option value="cashier" <?php echo set_select('role', 'cashier'); ?>>cashier</option>
             </select>

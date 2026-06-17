@@ -1,0 +1,191 @@
+.evamo-cart-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.evamo-cart-table {
+  min-width: 560px;
+}
+
+.evamo-cart-table th,
+.evamo-cart-table td {
+  vertical-align: middle;
+}
+
+.evamo-cart-table .evamo-qty-input,
+.evamo-cart-table #evamo-cart-discount-input,
+.evamo-cart-table #evamo-amount-paid-input {
+  max-width: 100%;
+}
+
+#evamo-cart-discount-input,
+#evamo-amount-paid-input {
+  width: 120px;
+}
+
+#evamo-cart-discount-hint {
+  white-space: normal;
+}
+
+@media (max-width: 767.98px) {
+  .evamo-cart-table-wrap {
+    overflow-x: visible;
+  }
+
+  .evamo-cart-table {
+    min-width: 0;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+  }
+
+  .evamo-cart-table thead {
+    display: none;
+  }
+
+  .evamo-cart-table,
+  .evamo-cart-table tbody,
+  .evamo-cart-table tr,
+  .evamo-cart-table td,
+  .evamo-cart-table th {
+    display: block;
+    width: 100%;
+  }
+
+  .evamo-cart-row {
+    border: 1px solid #e7edf3;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+  }
+
+  .evamo-cart-row td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 12px !important;
+    border: 0;
+    border-bottom: 1px solid #eef2f7;
+    text-align: right;
+  }
+
+  .evamo-cart-row td:last-child {
+    border-bottom: 0;
+  }
+
+  .evamo-cart-row td::before {
+    content: attr(data-label);
+    flex: 0 0 38%;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .evamo-cart-row td > * {
+    max-width: 62%;
+  }
+
+  .evamo-cart-row td[data-label="Name"] {
+    align-items: flex-start;
+  }
+
+  .evamo-cart-row td[data-label="Name"] b {
+    display: block;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+  }
+
+  .evamo-cart-row td[data-label="Quantity"] .evamo-qty-input {
+    width: 96px !important;
+    margin-left: auto;
+  }
+
+  .evamo-cart-row td[data-label="Action"] .btn {
+    margin-left: auto;
+  }
+
+  .evamo-cart-discount-row,
+  .evamo-cart-summary-row,
+  .evamo-cart-amount-paid-row,
+  .evamo-cart-change-row {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid #dbe7f0;
+    border-radius: 8px;
+    background: #f8fafc;
+  }
+
+  .evamo-cart-discount-row th,
+  .evamo-cart-summary-row th,
+  .evamo-cart-amount-paid-row th,
+  .evamo-cart-change-row th {
+    display: none;
+    width: auto;
+    padding: 0 !important;
+    border: 0;
+    background: transparent;
+    text-align: left;
+  }
+
+  .evamo-cart-discount-row th:first-child,
+  .evamo-cart-discount-row th:nth-last-child(2),
+  .evamo-cart-summary-row th:first-child,
+  .evamo-cart-summary-row th:nth-last-child(2),
+  .evamo-cart-amount-paid-row th:first-child,
+  .evamo-cart-amount-paid-row th:nth-last-child(2),
+  .evamo-cart-change-row th:first-child,
+  .evamo-cart-change-row th:nth-last-child(2) {
+    display: block;
+  }
+
+  .evamo-cart-discount-row th:first-child,
+  .evamo-cart-summary-row th:first-child,
+  .evamo-cart-amount-paid-row th:first-child,
+  .evamo-cart-change-row th:first-child {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .evamo-cart-discount-row th:nth-last-child(2),
+  .evamo-cart-summary-row th:nth-last-child(2),
+  .evamo-cart-amount-paid-row th:nth-last-child(2),
+  .evamo-cart-change-row th:nth-last-child(2) {
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .evamo-cart-discount-row #evamo-cart-discount-input,
+  .evamo-cart-amount-paid-row #evamo-amount-paid-input {
+    width: 100% !important;
+  }
+
+  .evamo-cart-customer-row td {
+    display: block;
+    width: 100%;
+    padding: 0 !important;
+    border: 0;
+  }
+
+  .evamo-cart-customer-row table,
+  .evamo-cart-customer-row tbody,
+  .evamo-cart-customer-row tr,
+  .evamo-cart-customer-row td {
+    display: block;
+    width: 100%;
+  }
+
+  .evamo-cart-customer-row .form-control,
+  .evamo-cart-customer-row .btn {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}

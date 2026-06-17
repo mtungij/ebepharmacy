@@ -271,12 +271,95 @@
      }
 
      public function get_edit_peoduct($id){
+      $this->ensure_branch_table();
       $product = $this->db->query("SELECT * FROM product JOIN tbl_store ON tbl_store.product_id = product.id WHERE id = '$id'");
        return $product->row();
      }
 
      public function  update_product($data,$id){
+      $this->ensure_branch_table();
       return $this->db->where('id',$id)->update('product',$data);
+     }
+
+     public function get_discount_rules(){
+      $this->ensure_discount_tables();
+      $data = $this->db->query("SELECT d.*, p.name AS product_name, b.branch_name FROM tbl_discount_rules d LEFT JOIN product p ON p.id = d.product_id LEFT JOIN tbl_branch b ON b.branch_id = d.branch_id ORDER BY d.discount_id DESC");
+      return $data->result();
+     }
+
+     public function get_discount_rule($discount_id){
+      $this->ensure_discount_tables();
+      return $this->db->where('discount_id', $discount_id)->get('tbl_discount_rules')->row();
+     }
+
+     public function insert_discount_rule($data){
+      $this->ensure_discount_tables();
+      $this->db->insert('tbl_discount_rules', $data);
+      return $this->db->insert_id();
+     }
+
+     public function update_discount_rule($discount_id, $data){
+      $this->ensure_discount_tables();
+      return $this->db->where('discount_id', $discount_id)->update('tbl_discount_rules', $data);
+     }
+
+     public function delete_discount_rule($discount_id){
+      $this->ensure_discount_tables();
+      return $this->db->delete('tbl_discount_rules', ['discount_id' => $discount_id]);
+     }
+
+     public function get_discount_audit($limit = 200){
+      $this->ensure_discount_tables();
+      $limit = (int)$limit;
+      $data = $this->db->query("SELECT a.*, d.discount_name, p.name AS product_name, u.full_name AS applied_by_name, approver.full_name AS approved_by_name FROM tbl_discount_audit a LEFT JOIN tbl_discount_rules d ON d.discount_id = a.discount_id LEFT JOIN product p ON p.id = a.product_id LEFT JOIN tbl_user u ON u.user_id = a.applied_by_user LEFT JOIN tbl_user approver ON approver.user_id = a.approved_by ORDER BY a.audit_id DESC LIMIT $limit");
+      return $data->result();
+     }
+
+     public function get_active_discount_rules($branch_id = null){
+      $this->ensure_discount_tables();
+      $today = date('Y-m-d');
+      $branch_sql = $branch_id ? " AND (branch_id IS NULL OR branch_id = 0 OR branch_id = ".(int)$branch_id.")" : "";
+      $data = $this->db->query("
+        SELECT discount_id, discount_name, discount_type, discount_basis, applies_to, discount_value, product_id, category, min_purchase_amount
+        FROM tbl_discount_rules
+        WHERE status = 'active'
+          AND start_date <= '$today'
+          AND end_date >= '$today'
+          AND applies_to IN ('product', 'category')
+          $branch_sql
+        ORDER BY min_purchase_amount ASC, discount_value DESC
+      ");
+      return $data->result();
+     }
+
+     public function get_product_category_map($product_ids = []){
+      $ids = array_values(array_unique(array_filter(array_map('intval', (array)$product_ids))));
+      if (empty($ids)) {
+        return [];
+      }
+
+      $rows = $this->db
+        ->select('id, category')
+        ->where_in('id', $ids)
+        ->get('product')
+        ->result();
+
+      $map = [];
+      foreach ($rows as $row) {
+        $map[(int)$row->id] = $row->category;
+      }
+      return $map;
+     }
+
+     public function get_product_categories(){
+      $this->ensure_branch_table();
+      $data = $this->db->query("SELECT DISTINCT category FROM product WHERE category IS NOT NULL AND category != '' ORDER BY category ASC");
+      return $data->result();
+     }
+
+     public function get_product_brands(){
+      $data = $this->db->query("SELECT DISTINCT bland AS brand FROM product WHERE bland IS NOT NULL AND bland != '' ORDER BY bland ASC");
+      return $data->result();
      }
 
      public function remove_product($id){
@@ -290,13 +373,15 @@
 
 
      //new search product out
-     public function search_mauzo($from,$to){
-      $mauzo = $this->db->query("SELECT  s.sell_id,s.user_id,s.product_id,s.quantity as qnty, s.new_sell_price,s.total_sell_price,s.profit,s.sell_status,s.sell_day,s.created_at as creat ,u.full_name,u.phone_number,u.img,u.role,u.status,u.password,u.created_at,p.id,p.user_id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.stat,p.created_at,p.modified,p.ju_price,s.customer FROM tbl_sell s JOIN product p ON p.id = s.product_id JOIN tbl_user u ON u.user_id = s.user_id WHERE s.sell_day between '$from' and '$to'");
+     public function search_mauzo($from,$to,$branch_id = null){
+      $branch_sql = $branch_id ? " AND COALESCE(NULLIF(s.branch_id, 0), p.branch_id) = " . (int)$branch_id : "";
+      $mauzo = $this->db->query("SELECT  s.sell_id,s.user_id,s.product_id,s.quantity as qnty, s.new_sell_price,s.total_sell_price,s.profit,s.sell_status,s.sell_day,s.created_at as creat ,u.full_name,u.phone_number,u.img,u.role,u.status,u.password,u.created_at,p.id,p.user_id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.stat,p.created_at,p.modified,p.ju_price,s.customer, b.branch_name FROM tbl_sell s JOIN product p ON p.id = s.product_id JOIN tbl_user u ON u.user_id = s.user_id LEFT JOIN tbl_branch b ON b.branch_id = COALESCE(NULLIF(s.branch_id, 0), p.branch_id) WHERE s.sell_day between '$from' and '$to' $branch_sql ORDER BY s.sell_day DESC, s.created_at DESC");
       return $mauzo->result();
      }
 
-        public function search_mauzo_seller($from,$to){
-      $mauzo = $this->db->query("SELECT  s.sell_id,s.user_id,s.product_id,s.quantity as qnty, s.new_sell_price,s.total_sell_price,s.profit,s.sell_status,s.sell_day,s.created_at as creat ,u.full_name,u.phone_number,u.img,u.role,u.status,u.password,u.created_at,p.id,p.user_id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.stat,p.created_at,p.modified,p.ju_price,s.customer,SUM(s.total_sell_price) AS total_mauzo FROM tbl_sell s JOIN product p ON p.id = s.product_id JOIN tbl_user u ON u.user_id = s.user_id WHERE s.sell_day between '$from' and '$to' GROUP BY s.user_id");
+        public function search_mauzo_seller($from,$to,$branch_id = null){
+      $branch_sql = $branch_id ? " AND COALESCE(NULLIF(s.branch_id, 0), p.branch_id) = " . (int)$branch_id : "";
+      $mauzo = $this->db->query("SELECT  s.sell_id,s.user_id,s.product_id,s.quantity as qnty, s.new_sell_price,s.total_sell_price,s.profit,s.sell_status,s.sell_day,s.created_at as creat ,u.full_name,u.phone_number,u.img,u.role,u.status,u.password,u.created_at,p.id,p.user_id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.stat,p.created_at,p.modified,p.ju_price,s.customer,SUM(s.total_sell_price) AS total_mauzo FROM tbl_sell s JOIN product p ON p.id = s.product_id JOIN tbl_user u ON u.user_id = s.user_id WHERE s.sell_day between '$from' and '$to' $branch_sql GROUP BY s.user_id");
       return $mauzo->result();
      }
 
@@ -315,13 +400,15 @@
       return $data->result();
     }
 
-      public function search_mauzoPita($from,$to){
-      $mauzo = $this->db->query("SELECT SUM(total_sell_price) AS total_sell  FROM tbl_sell WHERE sell_day  between  '$from' and '$to'");
+      public function search_mauzoPita($from,$to,$branch_id = null){
+      $branch_sql = $branch_id ? " AND COALESCE(NULLIF(s.branch_id, 0), p.branch_id) = " . (int)$branch_id : "";
+      $mauzo = $this->db->query("SELECT SUM(s.total_sell_price) AS total_sell  FROM tbl_sell s JOIN product p ON p.id = s.product_id WHERE s.sell_day  between  '$from' and '$to' $branch_sql");
       return $mauzo->row();
      }
 
-     public function search_profit($from,$to){
-      $mauzo = $this->db->query("SELECT SUM(profit) AS total_profit  FROM tbl_sell WHERE sell_day  between  '$from' and '$to'");
+     public function search_profit($from,$to,$branch_id = null){
+      $branch_sql = $branch_id ? " AND COALESCE(NULLIF(s.branch_id, 0), p.branch_id) = " . (int)$branch_id : "";
+      $mauzo = $this->db->query("SELECT SUM(s.profit) AS total_profit  FROM tbl_sell s JOIN product p ON p.id = s.product_id WHERE s.sell_day  between  '$from' and '$to' $branch_sql");
       return $mauzo->row();
      }
 
@@ -437,9 +524,76 @@
           $this->db->query("ALTER TABLE `product` ADD `branch_id` int(11) DEFAULT NULL AFTER `user_id`");
         }
 
+        if ($this->db->table_exists('product') && !$this->db->field_exists('category', 'product')) {
+          $this->db->query("ALTER TABLE `product` ADD `category` varchar(50) DEFAULT NULL AFTER `name`");
+        }
+
         if ($this->db->table_exists('tbl_store') && !$this->db->field_exists('branch_id', 'tbl_store')) {
           $this->db->query("ALTER TABLE `tbl_store` ADD `branch_id` int(11) DEFAULT NULL AFTER `product_id`");
         }
+
+        $this->ensure_discount_tables();
+
+        return true;
+      }
+
+      public function ensure_discount_tables(){
+        $this->db->query("
+          CREATE TABLE IF NOT EXISTS `tbl_discount_rules` (
+            `discount_id` int(11) NOT NULL AUTO_INCREMENT,
+            `discount_name` varchar(150) NOT NULL,
+            `discount_type` enum('percentage','fixed') NOT NULL,
+            `discount_basis` enum('line','cart') NOT NULL DEFAULT 'line',
+            `applies_to` enum('product','category','brand','cart','customer_group') NOT NULL,
+            `discount_value` decimal(12,2) NOT NULL DEFAULT 0,
+            `product_id` int(11) DEFAULT NULL,
+            `category` varchar(50) DEFAULT NULL,
+            `brand` varchar(150) DEFAULT NULL,
+            `customer_group` varchar(100) DEFAULT NULL,
+            `branch_id` int(11) DEFAULT NULL,
+            `min_purchase_amount` decimal(12,2) DEFAULT 0,
+            `max_discount_per_transaction` decimal(12,2) DEFAULT NULL,
+            `limit_per_customer` int(11) DEFAULT NULL,
+            `start_date` date NOT NULL,
+            `end_date` date NOT NULL,
+            `start_time` time DEFAULT NULL,
+            `end_time` time DEFAULT NULL,
+            `requires_manager_approval` tinyint(1) NOT NULL DEFAULT 0,
+            `allow_below_min_price` tinyint(1) NOT NULL DEFAULT 0,
+            `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+            `created_by` int(11) DEFAULT NULL,
+            `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+            `updated_at` timestamp NULL DEFAULT NULL,
+            PRIMARY KEY (`discount_id`),
+            KEY `branch_id` (`branch_id`),
+            KEY `product_id` (`product_id`),
+            KEY `status` (`status`)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        ");
+
+        if ($this->db->table_exists('tbl_discount_rules') && !$this->db->field_exists('discount_basis', 'tbl_discount_rules')) {
+          $this->db->query("ALTER TABLE `tbl_discount_rules` ADD `discount_basis` enum('line','cart') NOT NULL DEFAULT 'line' AFTER `discount_type`");
+        }
+
+        $this->db->query("
+          CREATE TABLE IF NOT EXISTS `tbl_discount_audit` (
+            `audit_id` int(11) NOT NULL AUTO_INCREMENT,
+            `discount_id` int(11) DEFAULT NULL,
+            `transaction_id` int(11) DEFAULT NULL,
+            `product_id` int(11) DEFAULT NULL,
+            `applied_by_user` int(11) DEFAULT NULL,
+            `approved_by` int(11) DEFAULT NULL,
+            `original_price` decimal(12,2) NOT NULL DEFAULT 0,
+            `discount_amount` decimal(12,2) NOT NULL DEFAULT 0,
+            `final_price` decimal(12,2) NOT NULL DEFAULT 0,
+            `quantity` decimal(12,2) NOT NULL DEFAULT 0,
+            `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+            PRIMARY KEY (`audit_id`),
+            KEY `discount_id` (`discount_id`),
+            KEY `transaction_id` (`transaction_id`),
+            KEY `product_id` (`product_id`)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        ");
 
         return true;
       }
@@ -1069,7 +1223,7 @@ public function get_today_salesretail_user($user_id){
   public function get_sales_profit_report($from, $to, $branch_id = null){
     $from = $this->db->escape_str($from);
     $to = $this->db->escape_str($to);
-    $branch_sql = $branch_id ? " AND s.branch_id = " . (int)$branch_id : "";
+    $branch_sql = $branch_id ? " AND COALESCE(NULLIF(s.branch_id, 0), p.branch_id) = " . (int)$branch_id : "";
     $data = $this->db->query("
       SELECT
         p.name AS product_name,
@@ -1082,9 +1236,9 @@ public function get_today_salesretail_user($user_id){
         COALESCE(SUM(s.profit), 0) AS profit
       FROM tbl_sell s
       JOIN product p ON p.id = s.product_id
-      LEFT JOIN tbl_branch b ON b.branch_id = s.branch_id
+      LEFT JOIN tbl_branch b ON b.branch_id = COALESCE(NULLIF(s.branch_id, 0), p.branch_id)
       WHERE s.sell_day BETWEEN '$from' AND '$to' $branch_sql
-      GROUP BY s.sell_day, s.product_id, p.name, p.unit, s.sell_status, s.branch_id, b.branch_name
+      GROUP BY s.sell_day, s.product_id, p.name, p.unit, s.sell_status, COALESCE(NULLIF(s.branch_id, 0), p.branch_id), b.branch_name
       ORDER BY s.sell_day DESC, p.name ASC
     ");
     return $data->result();
@@ -1093,14 +1247,15 @@ public function get_today_salesretail_user($user_id){
   public function get_sales_profit_report_totals($from, $to, $branch_id = null){
     $from = $this->db->escape_str($from);
     $to = $this->db->escape_str($to);
-    $branch_sql = $branch_id ? " AND branch_id = " . (int)$branch_id : "";
+    $branch_sql = $branch_id ? " AND COALESCE(NULLIF(s.branch_id, 0), p.branch_id) = " . (int)$branch_id : "";
     $data = $this->db->query("
       SELECT
-        COALESCE(SUM(quantity), 0) AS qty_sold,
-        COALESCE(SUM(total_sell_price), 0) AS sales_amount,
-        COALESCE(SUM(profit), 0) AS profit
-      FROM tbl_sell
-      WHERE sell_day BETWEEN '$from' AND '$to' $branch_sql
+        COALESCE(SUM(s.quantity), 0) AS qty_sold,
+        COALESCE(SUM(s.total_sell_price), 0) AS sales_amount,
+        COALESCE(SUM(s.profit), 0) AS profit
+      FROM tbl_sell s
+      JOIN product p ON p.id = s.product_id
+      WHERE s.sell_day BETWEEN '$from' AND '$to' $branch_sql
     ");
     return $data->row();
   }

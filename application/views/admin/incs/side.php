@@ -220,6 +220,12 @@ if ($_SESSION['role'] == 'admin') {
                         </li>
 
                         <li><a href="<?php echo base_url("admin/view_product_movement") ?>"><?php echo evamo_heroicon('chart'); ?><span>Frequency Movement</span></a></li>
+                        <li><a href="javascript:void(0);" class="has-arrow"><?php echo evamo_heroicon('banknotes'); ?><span>Discounts</span></a>
+                            <ul>
+                                <li><a href="<?php echo base_url("admin/discounts") ?>">Discount Rules</a></li>
+                                <li><a href="<?php echo base_url("admin/discount_audit") ?>">Discount Audit</a></li>
+                            </ul>
+                        </li>
 
                         <li><a href="javascript:void(0);" class="has-arrow"><?php echo evamo_heroicon('chart'); ?><span>Today Sales</span></a>
                             <ul>

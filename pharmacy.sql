@@ -49,6 +49,7 @@ CREATE TABLE `product` (
   `user_id` int(11) DEFAULT NULL,
   `branch_id` int(11) DEFAULT NULL,
   `name` text DEFAULT NULL,
+  `category` varchar(50) DEFAULT NULL,
   `price` int(11) DEFAULT NULL,
   `ju_price` int(11) DEFAULT NULL,
   `pro_price` int(11) DEFAULT NULL,
@@ -62,6 +63,59 @@ CREATE TABLE `product` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `modified` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for table `tbl_discount_rules`
+--
+
+CREATE TABLE `tbl_discount_rules` (
+  `discount_id` int(11) NOT NULL,
+  `discount_name` varchar(150) NOT NULL,
+  `discount_type` enum('percentage','fixed') NOT NULL,
+  `discount_basis` enum('line','cart') NOT NULL DEFAULT 'line',
+  `applies_to` enum('product','category','brand','cart','customer_group') NOT NULL,
+  `discount_value` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `product_id` int(11) DEFAULT NULL,
+  `category` varchar(50) DEFAULT NULL,
+  `brand` varchar(150) DEFAULT NULL,
+  `customer_group` varchar(100) DEFAULT NULL,
+  `branch_id` int(11) DEFAULT NULL,
+  `min_purchase_amount` decimal(12,2) DEFAULT 0.00,
+  `max_discount_per_transaction` decimal(12,2) DEFAULT NULL,
+  `limit_per_customer` int(11) DEFAULT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `start_time` time DEFAULT NULL,
+  `end_time` time DEFAULT NULL,
+  `requires_manager_approval` tinyint(1) NOT NULL DEFAULT 0,
+  `allow_below_min_price` tinyint(1) NOT NULL DEFAULT 0,
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_discount_audit`
+--
+
+CREATE TABLE `tbl_discount_audit` (
+  `audit_id` int(11) NOT NULL,
+  `discount_id` int(11) DEFAULT NULL,
+  `transaction_id` int(11) DEFAULT NULL,
+  `product_id` int(11) DEFAULT NULL,
+  `applied_by_user` int(11) DEFAULT NULL,
+  `approved_by` int(11) DEFAULT NULL,
+  `original_price` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `discount_amount` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `final_price` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `quantity` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
 
 --
 -- Dumping data for table `product`
@@ -6188,6 +6242,24 @@ ALTER TABLE `product`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `tbl_discount_rules`
+--
+ALTER TABLE `tbl_discount_rules`
+  ADD PRIMARY KEY (`discount_id`),
+  ADD KEY `branch_id` (`branch_id`),
+  ADD KEY `product_id` (`product_id`),
+  ADD KEY `status` (`status`);
+
+--
+-- Indexes for table `tbl_discount_audit`
+--
+ALTER TABLE `tbl_discount_audit`
+  ADD PRIMARY KEY (`audit_id`),
+  ADD KEY `discount_id` (`discount_id`),
+  ADD KEY `transaction_id` (`transaction_id`),
+  ADD KEY `product_id` (`product_id`);
+
+--
 -- Indexes for table `tbl_cashire`
 --
 ALTER TABLE `tbl_cashire`
@@ -6349,6 +6421,18 @@ ALTER TABLE `cash_flow`
 --
 ALTER TABLE `product`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1433;
+
+--
+-- AUTO_INCREMENT for table `tbl_discount_rules`
+--
+ALTER TABLE `tbl_discount_rules`
+  MODIFY `discount_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `tbl_discount_audit`
+--
+ALTER TABLE `tbl_discount_audit`
+  MODIFY `audit_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `tbl_cashire`
