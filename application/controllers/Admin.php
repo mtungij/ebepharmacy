@@ -1993,9 +1993,9 @@ public function password_check($oldpass)
     $this->load->model('queries');
     $user_id = $this->session->userdata('user_id');
     $my = $this->queries->get_mydata($user_id);
-    $from = $this->input->post('from', true);
-    $to = $this->input->post('to', true);
-    $sell_status = $this->input->post('sell_status', true);
+    $from = $this->input->post('from', true) ?: $this->input->get('from', true);
+    $to = $this->input->post('to', true) ?: $this->input->get('to', true);
+    $sell_status = $this->input->post('sell_status', true) ?: $this->input->get('sell_status', true);
 
     if (!$from || !$to || !$sell_status) {
       $this->load->view('admin/previous_data',[

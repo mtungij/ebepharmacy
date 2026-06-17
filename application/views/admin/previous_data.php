@@ -16,7 +16,7 @@
 </div>
 </div>
 <?php endif; ?>
-   <?php echo form_open("admin/privious_data"); ?>
+   <form method="get" action="<?php echo base_url('admin/privious_data'); ?>">
 <div class="row clearfix">
 <div class="col-lg-12">
 <div class="card">
@@ -40,6 +40,11 @@
     </div>
     <div  class="row">
     
+<?php
+  $date = date("Y-m-d");
+  $from_value = !empty($from) ? $from : $date;
+  $to_value = !empty($to) ? $to : $date;
+?>
 <div class="col-md-2">
    
       From : 
@@ -49,7 +54,7 @@
  <?php }else{ ?>
       <?php echo date('F, j, Y', strtotime($from)) ?>
       <?php } ?>
-       <input type="date" required  placeholder="01/01/0000" name="from" class="form-control">
+       <input type="date" required value="<?php echo html_escape($from_value); ?>" placeholder="01/01/0000" name="from" class="form-control">
 </div>
 <div class="col-md-2">
       To:
@@ -59,7 +64,7 @@
  <?php }else{ ?>
       <?php echo date('F, j, Y', strtotime($to)) ?>
       <?php } ?>
-      <input type="date" name="to" required  placeholder="01/01/0000" class="form-control">
+      <input type="date" name="to" required value="<?php echo html_escape($to_value); ?>" placeholder="01/01/0000" class="form-control">
 </div>
 <div class="col-md-2">
   Sales Status: <?php 
@@ -71,8 +76,8 @@ echo "Retail";
 ?>
   <select type="text" name="sell_status" class="form-control" required>
     <option value="">Select</option>
-    <option value="retail">Retailsales</option>
-    <option value="whole">WholeSale</option>
+    <option value="retail" <?php echo $sell_status === 'retail' ? 'selected' : ''; ?>>Retailsales</option>
+    <option value="whole" <?php echo $sell_status === 'whole' ? 'selected' : ''; ?>>WholeSale</option>
   </select>
 </div>
 
@@ -108,7 +113,7 @@ echo "Retail";
 </div>
 </div>
 </div>
-<?php echo form_close(); ?>
+</form>
 <div class="body">
     <div class="table-responsive">
 <table class="table table-hover js-basic-example dataTable table-custom">
@@ -171,4 +176,3 @@ echo "Retail";
 
 
 <?php include 'incs/footer.php'; ?>
-
