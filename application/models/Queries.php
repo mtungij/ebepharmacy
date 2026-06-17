@@ -118,21 +118,21 @@
      public function get_today_sales_cashire($branch_id = null){
       $date = date("Y-m-d");
       $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
-       $data = $this->db->query("SELECT SUM(total_sell_price) AS TotalItemsOrdered FROM tbl_sell WHERE  created_at >= '$date' $branch_sql");
+       $data = $this->db->query("SELECT SUM(total_sell_price) AS TotalItemsOrdered FROM tbl_sell WHERE DATE(COALESCE(NULLIF(sell_day, ''), created_at)) = '$date' $branch_sql");
        return $data->row();
      }
 
        public function get_today_salesData($branch_id = null){
       $date = date("Y-m-d");
       $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
-       $data = $this->db->query("SELECT SUM(total_sell_price) AS TotalItemsOrdered FROM tbl_sell WHERE  created_at >= '$date' $branch_sql");
+       $data = $this->db->query("SELECT SUM(total_sell_price) AS TotalItemsOrdered FROM tbl_sell WHERE DATE(COALESCE(NULLIF(sell_day, ''), created_at)) = '$date' $branch_sql");
        return $data->row();
      }
 
      public function get_today_profit($branch_id = null){
       $date = date("Y-m-d");
       $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
-       $data = $this->db->query("SELECT SUM(profit) AS Totalprofit FROM tbl_sell WHERE  created_at >= '$date' $branch_sql");
+       $data = $this->db->query("SELECT SUM(profit) AS Totalprofit FROM tbl_sell WHERE DATE(COALESCE(NULLIF(sell_day, ''), created_at)) = '$date' $branch_sql");
        return $data->row();
      }
 
@@ -802,7 +802,7 @@ public function get_today_salesretail_user($user_id){
       public function get_today_salesretail_cashire($branch_id = null){
       $date = date("Y-m-d");
       $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
-       $data = $this->db->query("SELECT SUM(total_sell_price) AS Totalretail FROM tbl_sell WHERE sell_status = 'retail' AND created_at >= '$date' $branch_sql");
+       $data = $this->db->query("SELECT SUM(total_sell_price) AS Totalretail FROM tbl_sell WHERE sell_status = 'retail' AND DATE(COALESCE(NULLIF(sell_day, ''), created_at)) = '$date' $branch_sql");
        return $data->row();
      }
 
@@ -813,7 +813,7 @@ public function get_today_salesretail_user($user_id){
       public function get_today_salesWhole_cashire($branch_id = null){
       $date = date("Y-m-d");
       $branch_sql = $branch_id !== null ? " AND branch_id = " . (int) $branch_id : "";
-       $data = $this->db->query("SELECT SUM(total_sell_price) AS Totalwhole FROM tbl_sell WHERE sell_status = 'whole' AND created_at >= '$date' $branch_sql");
+       $data = $this->db->query("SELECT SUM(total_sell_price) AS Totalwhole FROM tbl_sell WHERE sell_status = 'whole' AND DATE(COALESCE(NULLIF(sell_day, ''), created_at)) = '$date' $branch_sql");
        return $data->row();
      }
 
