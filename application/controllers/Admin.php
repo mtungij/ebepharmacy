@@ -107,8 +107,249 @@ class Admin extends CI_Controller {
 		 //     exit();
     $this->load->view('admin/index',['all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'today_retail_sales'=>$today_retail_sales,'today_wholesale_sales'=>$today_wholesale_sales,'total_matumiz'=>$total_matumiz,'total_sell_data'=>$total_sell_data,'mishahara_data'=>$mishahara_data,'my'=>$my,'total_huduma'=>$total_huduma,'years'=>$years,'datamonth'=>$datamonth,'today_indirect_exp'=>$today_indirect_exp,'all_matumiz_all'=>$all_matumiz_all,'all_sell_all'=>$all_sell_all,'mishahara_data_all'=>$mishahara_data_all,'huduma_all'=>$huduma_all,'huduma_all'=>$huduma_all,'inderect_expenses_all'=>$inderect_expenses_all,'total_profit_all'=>$total_profit_all,'fastmoving_medicines'=>$fastmoving_medicines,'slowmoving_medicines'=>$slowmoving_medicines,'medicine_movement_summary'=>$medicine_movement_summary,'zero_balance_medicines'=>$zero_balance_medicines,'empty_products_count'=>$empty_products_count,'purchased_today_count'=>$purchased_today_count,'adjusted_today_count'=>$adjusted_today_count,'metric_mode'=>$metric_mode,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
 	}
+  public function dashboard_card($type = 'today_sales'){
+    $data = $this->dashboard_card_dataset($type);
+    $this->load->view('admin/dashboard_card_detail', $data);
+  }
 
+  public function dashboard_card_export($type = 'today_sales', $format = 'excel'){
+    $data = $this->dashboard_card_dataset($type);
+    $filename = 'dashboard-' . preg_replace('/[^a-z0-9_-]+/i', '-', $data['type']) . '-' . date('Y-m-d');
 
+    if ($format === 'pdf') {
+      $html = $this->dashboard_card_pdf_html($data);
+      $mpdf = new \Mpdf\Mpdf(['orientation' => 'L']);
+      $mpdf->WriteHTML($html);
+      $mpdf->Output($filename . '.pdf', 'D');
+      return;
+    }
+
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
+    $output = fopen('php://output', 'w');
+    fputcsv($output, $data['columns']);
+    foreach ($data['rows'] as $row) {
+      fputcsv($output, $row);
+    }
+    fclose($output);
+    exit;
+  }
+
+  private function dashboard_card_dataset($type){
+    $allowed = [
+      'today_sales',
+      'today_profit',
+      'today_cashout',
+      'gross_total',
+      'total_products',
+      'empty_products',
+      'purchased_today',
+      'adjusted_today',
+    ];
+
+    if (!in_array($type, $allowed, true)) {
+      $type = 'today_sales';
+    }
+
+    $this->load->model('queries');
+    $today = date('Y-m-d');
+    $branch_id = $this->current_admin_branch_id();
+    $branch_sql = $branch_id ? ' AND COALESCE(NULLIF(s.branch_id, 0), p.branch_id) = ' . (int) $branch_id : '';
+    $product_branch_sql = $branch_id ? ' AND p.branch_id = ' . (int) $branch_id : '';
+    $cash_branch_sql = $branch_id ? ' AND c.branch_id = ' . (int) $branch_id : '';
+    $sale_date = "DATE(COALESCE(NULLIF(s.sell_day, ''), s.created_at))";
+    $sale_datetime = "COALESCE(NULLIF(s.sell_day, ''), s.created_at)";
+
+    $titles = [
+      'today_sales' => 'Today Sales Details',
+      'today_profit' => 'Today Profit Details',
+      'today_cashout' => 'Today Cashout Details',
+      'gross_total' => 'Gross Total Summary',
+      'total_products' => 'Total Products Details',
+      'empty_products' => 'Empty Products Details',
+      'purchased_today' => 'Purchased Today Details',
+      'adjusted_today' => 'Adjusted Today Details',
+    ];
+
+    $columns = [];
+    $rows = [];
+
+    if ($type === 'today_sales' || $type === 'today_profit') {
+      $columns = ['Date', 'Seller', 'Branch', 'Customer', 'Product', 'Quantity', 'Sale Type', 'Unit Price', 'Total Price', 'Profit'];
+      $result = $this->db->query("
+        SELECT $sale_datetime AS sale_date, u.full_name, b.branch_name, s.customer, p.name AS product_name,
+          s.quantity, s.sell_status, s.new_sell_price, s.total_sell_price, s.profit
+        FROM tbl_sell s
+        JOIN product p ON p.id = s.product_id
+        JOIN tbl_user u ON u.user_id = s.user_id
+        LEFT JOIN tbl_branch b ON b.branch_id = COALESCE(NULLIF(s.branch_id, 0), p.branch_id)
+        WHERE $sale_date = " . $this->db->escape($today) . " $branch_sql
+        ORDER BY $sale_datetime DESC, s.sell_id DESC
+      ")->result();
+
+      foreach ($result as $item) {
+        $rows[] = [
+          $this->format_dashboard_date($item->sale_date),
+          $item->full_name,
+          $item->branch_name ?: 'All Branches',
+          $item->customer,
+          $item->product_name,
+          $item->quantity,
+          $item->sell_status,
+          number_format((float) $item->new_sell_price),
+          number_format((float) $item->total_sell_price),
+          number_format((float) $item->profit),
+        ];
+      }
+    } elseif ($type === 'today_cashout') {
+      $columns = ['Date', 'Type', 'Name', 'Description', 'User', 'Amount'];
+      $cash_rows = $this->db->query("
+        SELECT c.created AS item_date, 'Cash Flow' AS item_type, c.name, c.description, u.full_name, c.price AS amount
+        FROM cash_flow c
+        LEFT JOIN tbl_user u ON u.user_id = c.user_id
+        WHERE DATE(c.created) = " . $this->db->escape($today) . " $cash_branch_sql
+        ORDER BY c.created DESC
+      ")->result();
+
+      foreach ($cash_rows as $item) {
+        $rows[] = [$this->format_dashboard_date($item->item_date), $item->item_type, $item->name, $item->description, $item->full_name, number_format((float) $item->amount)];
+      }
+
+      $payroll_rows = $this->db->query("
+        SELECT m.date AS item_date, 'Payroll' AS item_type, u.full_name AS name, '' AS description, u.full_name, m.pay_amount AS amount
+        FROM tbl_mishahara m
+        LEFT JOIN tbl_user u ON u.user_id = m.user_id
+        WHERE DATE(m.date) = " . $this->db->escape($today) . "
+        ORDER BY m.date DESC
+      ")->result();
+
+      foreach ($payroll_rows as $item) {
+        $rows[] = [$this->format_dashboard_date($item->item_date), $item->item_type, $item->name, $item->description, $item->full_name, number_format((float) $item->amount)];
+      }
+
+      $payment_rows = $this->db->query("
+        SELECT pay_date AS item_date, 'Indirect Payment' AS item_type, pay_by AS name, CONCAT('Order #', order_id) AS description, '' AS full_name, pay_amount AS amount
+        FROM tbl_payment
+        WHERE DATE(pay_date) = " . $this->db->escape($today) . "
+        ORDER BY pay_date DESC
+      ")->result();
+
+      foreach ($payment_rows as $item) {
+        $rows[] = [$this->format_dashboard_date($item->item_date), $item->item_type, $item->name, $item->description, $item->full_name, number_format((float) $item->amount)];
+      }
+    } elseif ($type === 'gross_total') {
+      $columns = ['Item', 'Amount'];
+      $sales = (float) ($this->queries->get_All_salesData($branch_id)->TotalItemsOrdered ?? 0);
+      $profit = (float) ($this->queries->get_total_profit($branch_id)->total_profit ?? 0);
+      $expenses = (float) ($this->queries->All_totalMatumizi($branch_id)->matumiz ?? 0);
+      $payroll = (float) ($this->queries->get_sumPayrol()->mishahara ?? 0);
+      $indirect = (float) ($this->queries->get_total_indirect_expenses()->total_paid_expenses ?? 0);
+      $gross = $profit - ($expenses + $payroll) + ($sales - $profit - $indirect);
+      $rows = [
+        ['Total Sales', number_format($sales)],
+        ['Total Profit', number_format($profit)],
+        ['Cash Flow Expenses', number_format($expenses)],
+        ['Payroll', number_format($payroll)],
+        ['Indirect Expenses', number_format($indirect)],
+        ['Gross Total', number_format($gross)],
+      ];
+    } elseif ($type === 'total_products' || $type === 'empty_products') {
+      $columns = ['Product', 'Category', 'Brand', 'Branch', 'Unit', 'Balance', 'Buying Price', 'Retail Price', 'Wholesale Price', 'Stock Limit', 'Expiry Date'];
+      $empty_sql = $type === 'empty_products' ? ' AND COALESCE(s.balance, 0) = 0' : '';
+      $result = $this->db->query("
+        SELECT p.name, p.category, p.bland, b.branch_name, p.unit, s.balance, p.buy_price, p.price, p.ju_price, p.stock_limit, p.exp_date
+        FROM product p
+        LEFT JOIN tbl_store s ON s.product_id = p.id
+        LEFT JOIN tbl_branch b ON b.branch_id = p.branch_id
+        WHERE 1=1 $product_branch_sql $empty_sql
+        ORDER BY p.name ASC
+      ")->result();
+
+      foreach ($result as $item) {
+        $rows[] = [
+          $item->name,
+          $item->category,
+          $item->bland,
+          $item->branch_name ?: 'All Branches',
+          $item->unit,
+          number_format((float) $item->balance),
+          number_format((float) $item->buy_price),
+          number_format((float) $item->price),
+          number_format((float) $item->ju_price),
+          number_format((float) $item->stock_limit),
+          $item->exp_date,
+        ];
+      }
+    } else {
+      $columns = ['Date', 'Product', 'Branch', 'Unit', 'Quantity', 'Status', 'User'];
+      $status_sql = $type === 'purchased_today' ? "UPPER(TRIM(m.mov_status)) = 'PURCHASED'" : "UPPER(TRIM(m.mov_status)) LIKE 'ADJUSTED%'";
+      $result = $this->db->query("
+        SELECT m.date AS movement_date, p.name AS product_name, b.branch_name, p.unit, m.product_qnty, m.mov_status, u.full_name
+        FROM tbl_stock_movement m
+        JOIN product p ON p.id = m.product_id
+        LEFT JOIN tbl_branch b ON b.branch_id = p.branch_id
+        LEFT JOIN tbl_user u ON u.user_id = m.user_id
+        WHERE DATE(m.date) = " . $this->db->escape($today) . " AND $status_sql $product_branch_sql
+        ORDER BY m.date DESC, m.id DESC
+      ")->result();
+
+      foreach ($result as $item) {
+        $rows[] = [
+          $this->format_dashboard_date($item->movement_date),
+          $item->product_name,
+          $item->branch_name ?: 'All Branches',
+          $item->unit,
+          number_format((float) $item->product_qnty),
+          $item->mov_status,
+          $item->full_name,
+        ];
+      }
+    }
+
+    return [
+      'type' => $type,
+      'title' => $titles[$type],
+      'columns' => $columns,
+      'rows' => $rows,
+      'today' => $today,
+      'branches' => $this->queries->get_branches(),
+      'selected_branch_id' => $branch_id,
+    ];
+  }
+
+  private function dashboard_card_pdf_html($data){
+    $html = '<style>body{font-family:sans-serif;font-size:11px;color:#111827}h2{margin:0 0 4px}.meta{color:#64748b;margin-bottom:12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #d1d5db;padding:6px;text-align:left}th{background:#f3f4f6}</style>';
+    $html .= '<h2>' . html_escape($data['title']) . '</h2>';
+    $html .= '<div class="meta">Generated on ' . html_escape(date('F j, Y g:i a')) . '</div>';
+    $html .= '<table><thead><tr>';
+    foreach ($data['columns'] as $column) {
+      $html .= '<th>' . html_escape($column) . '</th>';
+    }
+    $html .= '</tr></thead><tbody>';
+
+    if (empty($data['rows'])) {
+      $html .= '<tr><td colspan="' . count($data['columns']) . '">No records found.</td></tr>';
+    } else {
+      foreach ($data['rows'] as $row) {
+        $html .= '<tr>';
+        foreach ($row as $cell) {
+          $html .= '<td>' . html_escape((string) $cell) . '</td>';
+        }
+        $html .= '</tr>';
+      }
+    }
+
+    $html .= '</tbody></table>';
+    return $html;
+  }
+
+  private function format_dashboard_date($value){
+    if (!$value || strtotime($value) === false) {
+      return '';
+    }
+
+    return date('F j, Y g:i a', strtotime($value));
+  }
 
 	public function users(){
 		$this->load->model('queries');

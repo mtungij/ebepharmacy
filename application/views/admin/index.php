@@ -20,6 +20,7 @@ $all_indirect_total = (float) (is_object($inderect_expenses_all) ? ($inderect_ex
 
 $gross_total = $all_profit_total - ($all_expense_total + $all_payroll_total) + ($all_sales_total - $all_profit_total - $all_indirect_total);
 $selected_branch_id = isset($selected_branch_id) ? $selected_branch_id : null;
+$dashboard_branch_query = $selected_branch_id ? '?branch_id=' . (int) $selected_branch_id : '';
 $product_total_sql = 'SELECT * FROM product';
 if ($selected_branch_id) {
     $product_total_sql .= ' WHERE branch_id = ' . (int) $selected_branch_id;
@@ -176,6 +177,19 @@ if (!empty($datamonth)) {
   color: #fff;
   box-shadow: 0 14px 28px rgba(15, 23, 42, 0.16);
   min-width: 0;
+}
+
+a.kpi-card,
+a.kpi-card:hover,
+a.kpi-card:focus {
+  color: #fff;
+  display: block;
+  text-decoration: none;
+}
+
+a.kpi-card:focus {
+  outline: 3px solid rgba(20, 184, 166, 0.35);
+  outline-offset: 3px;
 }
 
 .kpi-card:before {
@@ -576,7 +590,7 @@ html.evamo-dark .trend-chip.down {
             </select>
           <?php echo form_close(); ?>
         </div>
-        <div class="kpi-card kpi-sales">
+        <a class="kpi-card kpi-sales" href="<?php echo base_url('admin/dashboard_card/today_sales') . $dashboard_branch_query; ?>">
           <div class="kpi-label">Today Sales</div>
           <div class="kpi-value">Tsh <?php echo number_format($today_sales_total); ?></div>
           <div class="kpi-note">
@@ -587,9 +601,9 @@ html.evamo-dark .trend-chip.down {
             <span class="meta">Retail: Tsh <?php echo number_format($today_retail_sales_total); ?> · Wholesale: Tsh <?php echo number_format($today_wholesale_sales_total); ?></span>
             <span class="meta">Sales type: wholesale and retail combined</span>
           </div>
-        </div>
+        </a>
 
-        <div class="kpi-card kpi-profit">
+        <a class="kpi-card kpi-profit" href="<?php echo base_url('admin/dashboard_card/today_profit') . $dashboard_branch_query; ?>">
           <div class="kpi-label">Today Profit</div>
           <div class="kpi-value">Tsh <?php echo number_format($today_profit_total); ?></div>
           <div class="kpi-note">
@@ -599,9 +613,9 @@ html.evamo-dark .trend-chip.down {
             </span>
             <span class="meta">vs previous 7 days</span>
           </div>
-        </div>
+        </a>
 
-        <div class="kpi-card kpi-cashout">
+        <a class="kpi-card kpi-cashout" href="<?php echo base_url('admin/dashboard_card/today_cashout') . $dashboard_branch_query; ?>">
           <div class="kpi-label">Today Cashout</div>
           <div class="kpi-value">Tsh <?php echo number_format($today_cashout_total); ?></div>
           <div class="kpi-note">
@@ -611,9 +625,9 @@ html.evamo-dark .trend-chip.down {
             </span>
             <span class="meta">vs previous 7 days (lower is better)</span>
           </div>
-        </div>
+        </a>
 
-        <div class="kpi-card kpi-gross">
+        <a class="kpi-card kpi-gross" href="<?php echo base_url('admin/dashboard_card/gross_total') . $dashboard_branch_query; ?>">
           <div class="kpi-label">Gross Total</div>
           <div class="kpi-value">Tsh <?php echo number_format($gross_total); ?></div>
           <div class="kpi-note">
@@ -623,31 +637,31 @@ html.evamo-dark .trend-chip.down {
             </span>
             <span class="meta">products: <?php echo number_format($product_total); ?></span>
           </div>
-        </div>
+        </a>
 
-        <div class="kpi-card kpi-total-products">
+        <a class="kpi-card kpi-total-products" href="<?php echo base_url('admin/dashboard_card/total_products') . $dashboard_branch_query; ?>">
           <div class="kpi-label">Total Products</div>
           <div class="kpi-value"><?php echo number_format((int) ($product_total ?? 0)); ?></div>
           <div class="kpi-note"><span class="meta">All product SKUs</span></div>
-        </div>
+        </a>
 
-        <div class="kpi-card kpi-empty">
+        <a class="kpi-card kpi-empty" href="<?php echo base_url('admin/dashboard_card/empty_products') . $dashboard_branch_query; ?>">
           <div class="kpi-label">Empty Products</div>
           <div class="kpi-value"><?php echo number_format((int) ($empty_products_count ?? 0)); ?></div>
           <div class="kpi-note"><span class="meta">Products with zero balance</span></div>
-        </div>
+        </a>
 
-        <div class="kpi-card kpi-purchased-today">
+        <a class="kpi-card kpi-purchased-today" href="<?php echo base_url('admin/dashboard_card/purchased_today') . $dashboard_branch_query; ?>">
           <div class="kpi-label">Purchased Today (SKUs)</div>
           <div class="kpi-value"><?php echo number_format((int) ($purchased_today_count ?? 0)); ?></div>
           <div class="kpi-note"><span class="meta">Distinct products purchased today</span></div>
-        </div>
+        </a>
 
-        <div class="kpi-card kpi-adjusted-today">
+        <a class="kpi-card kpi-adjusted-today" href="<?php echo base_url('admin/dashboard_card/adjusted_today') . $dashboard_branch_query; ?>">
           <div class="kpi-label">Adjusted Today (SKUs)</div>
           <div class="kpi-value"><?php echo number_format((int) ($adjusted_today_count ?? 0)); ?></div>
           <div class="kpi-note"><span class="meta">Distinct products adjusted today</span></div>
-        </div>
+        </a>
       </div>
 
       <div class="chart-grid">
