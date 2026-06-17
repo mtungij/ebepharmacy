@@ -16,7 +16,7 @@
 </div>
 </div>
 <?php endif; ?>
-   <?php echo form_open("admin/curent_sells"); ?>
+   <form method="get" action="<?php echo base_url('admin/curent_sells'); ?>">
 <div class="row clearfix">
 <div class="col-lg-12">
 <div class="card">
@@ -99,7 +99,7 @@
     </div>
     </div>
     </div>
-    <?php echo form_close(); ?>
+    </form>
 <div class="body">
     <div class="table-responsive">
 <table class="table table-hover js-basic-example dataTable table-custom">

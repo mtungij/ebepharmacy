@@ -1311,6 +1311,13 @@ public function general_sells_product(){
    $this->load->model('queries');
     $selected_branch_id = $this->current_admin_branch_id();
     $branches = $this->queries->get_branches();
+    $from = date('Y-m-d', strtotime($from));
+    $to = date('Y-m-d', strtotime($to));
+    if ($from > $to) {
+      $temp = $from;
+      $from = $to;
+      $to = $temp;
+    }
     $all_salles = $this->queries->search_mauzo($from,$to,$selected_branch_id);
     $total_mauzo_pita = $this->queries->search_mauzoPita($from,$to,$selected_branch_id);
     $total_profits = $this->queries->search_profit($from,$to,$selected_branch_id);
