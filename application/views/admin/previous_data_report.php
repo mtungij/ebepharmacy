@@ -104,7 +104,7 @@ tr:nth-child(even) {
                  }
                ?>
     </td>
-    <td style="font-size:12px;"><?php  echo  date('F, j, Y, g:j a', strtotime($all_sallesdata->creat)); ?></td>
+    <td style="font-size:12px;"><?php echo date('F, j, Y, g:i a', strtotime($all_sallesdata->creat)); ?></td>
   </tr>
  <?php endforeach; ?>
  <tr>
@@ -130,7 +130,6 @@ tr:nth-child(even) {
 
 </body>
 </html>
-
 
 
 

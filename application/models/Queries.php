@@ -377,8 +377,9 @@
       $from = date('Y-m-d', strtotime($from));
       $to = date('Y-m-d', strtotime($to));
       $branch_sql = $branch_id ? " AND COALESCE(NULLIF(s.branch_id, 0), p.branch_id) = " . (int)$branch_id : "";
-      $sale_date = "DATE(COALESCE(NULLIF(s.sell_day, ''), s.created_at))";
-      $mauzo = $this->db->query("SELECT  s.sell_id,s.user_id,s.product_id,s.quantity as qnty, s.new_sell_price,s.total_sell_price,s.profit,s.sell_status,s.sell_day,s.created_at as creat ,u.full_name,u.phone_number,u.img,u.role,u.status,u.password,u.created_at,p.id,p.user_id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.stat,p.created_at,p.modified,p.ju_price,s.customer, b.branch_name FROM tbl_sell s JOIN product p ON p.id = s.product_id JOIN tbl_user u ON u.user_id = s.user_id LEFT JOIN tbl_branch b ON b.branch_id = COALESCE(NULLIF(s.branch_id, 0), p.branch_id) WHERE $sale_date BETWEEN ".$this->db->escape($from)." AND ".$this->db->escape($to)." $branch_sql ORDER BY $sale_date DESC, s.created_at DESC");
+      $sale_datetime = "COALESCE(NULLIF(s.sell_day, ''), s.created_at)";
+      $sale_date = "DATE($sale_datetime)";
+      $mauzo = $this->db->query("SELECT  s.sell_id,s.user_id,s.product_id,s.quantity as qnty, s.new_sell_price,s.total_sell_price,s.profit,s.sell_status,s.sell_day,$sale_datetime as creat ,u.full_name,u.phone_number,u.img,u.role,u.status,u.password,u.created_at,p.id,p.user_id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.stat,p.created_at,p.modified,p.ju_price,s.customer, b.branch_name FROM tbl_sell s JOIN product p ON p.id = s.product_id JOIN tbl_user u ON u.user_id = s.user_id LEFT JOIN tbl_branch b ON b.branch_id = COALESCE(NULLIF(s.branch_id, 0), p.branch_id) WHERE $sale_date BETWEEN ".$this->db->escape($from)." AND ".$this->db->escape($to)." $branch_sql ORDER BY $sale_date DESC, s.created_at DESC");
       return $mauzo->result();
      }
 
@@ -386,16 +387,18 @@
       $from = date('Y-m-d', strtotime($from));
       $to = date('Y-m-d', strtotime($to));
       $branch_sql = $branch_id ? " AND COALESCE(NULLIF(s.branch_id, 0), p.branch_id) = " . (int)$branch_id : "";
-      $sale_date = "DATE(COALESCE(NULLIF(s.sell_day, ''), s.created_at))";
-      $mauzo = $this->db->query("SELECT  s.sell_id,s.user_id,s.product_id,s.quantity as qnty, s.new_sell_price,s.total_sell_price,s.profit,s.sell_status,s.sell_day,s.created_at as creat ,u.full_name,u.phone_number,u.img,u.role,u.status,u.password,u.created_at,p.id,p.user_id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.stat,p.created_at,p.modified,p.ju_price,s.customer,SUM(s.total_sell_price) AS total_mauzo FROM tbl_sell s JOIN product p ON p.id = s.product_id JOIN tbl_user u ON u.user_id = s.user_id WHERE $sale_date BETWEEN ".$this->db->escape($from)." AND ".$this->db->escape($to)." $branch_sql GROUP BY s.user_id");
+      $sale_datetime = "COALESCE(NULLIF(s.sell_day, ''), s.created_at)";
+      $sale_date = "DATE($sale_datetime)";
+      $mauzo = $this->db->query("SELECT  s.sell_id,s.user_id,s.product_id,s.quantity as qnty, s.new_sell_price,s.total_sell_price,s.profit,s.sell_status,s.sell_day,$sale_datetime as creat ,u.full_name,u.phone_number,u.img,u.role,u.status,u.password,u.created_at,p.id,p.user_id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.stat,p.created_at,p.modified,p.ju_price,s.customer,SUM(s.total_sell_price) AS total_mauzo FROM tbl_sell s JOIN product p ON p.id = s.product_id JOIN tbl_user u ON u.user_id = s.user_id WHERE $sale_date BETWEEN ".$this->db->escape($from)." AND ".$this->db->escape($to)." $branch_sql GROUP BY s.user_id");
       return $mauzo->result();
      }
 
      public function search_mauzo_seller_data($user_id,$from,$to){
       $from = date('Y-m-d', strtotime($from));
       $to = date('Y-m-d', strtotime($to));
-      $sale_date = "DATE(COALESCE(NULLIF(s.sell_day, ''), s.created_at))";
-      $mauzo = $this->db->query("SELECT  s.sell_id,s.user_id,s.product_id,s.quantity as qnty, s.new_sell_price,s.total_sell_price,s.profit,s.sell_status,s.sell_day,s.created_at as creat ,u.full_name,u.phone_number,u.img,u.role,u.status,u.password,u.created_at,p.id,p.user_id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.stat,p.created_at,p.modified,p.ju_price,s.customer FROM tbl_sell s JOIN product p ON p.id = s.product_id JOIN tbl_user u ON u.user_id = s.user_id WHERE $sale_date BETWEEN ".$this->db->escape($from)." AND ".$this->db->escape($to)." AND s.user_id = ".(int)$user_id);
+      $sale_datetime = "COALESCE(NULLIF(s.sell_day, ''), s.created_at)";
+      $sale_date = "DATE($sale_datetime)";
+      $mauzo = $this->db->query("SELECT  s.sell_id,s.user_id,s.product_id,s.quantity as qnty, s.new_sell_price,s.total_sell_price,s.profit,s.sell_status,s.sell_day,$sale_datetime as creat ,u.full_name,u.phone_number,u.img,u.role,u.status,u.password,u.created_at,p.id,p.user_id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.stat,p.created_at,p.modified,p.ju_price,s.customer FROM tbl_sell s JOIN product p ON p.id = s.product_id JOIN tbl_user u ON u.user_id = s.user_id WHERE $sale_date BETWEEN ".$this->db->escape($from)." AND ".$this->db->escape($to)." AND s.user_id = ".(int)$user_id);
       return $mauzo->result();
      }
 
@@ -858,8 +861,9 @@ public function get_today_salesretail_user($user_id){
       $from = date('Y-m-d', strtotime($from));
       $to = date('Y-m-d', strtotime($to));
       $sell_status = $this->db->escape($sell_status);
-      $sale_date = "DATE(COALESCE(NULLIF(s.sell_day, ''), s.created_at))";
-      $mauzo = $this->db->query("SELECT  s.sell_id,s.user_id,s.product_id,s.quantity as qnty, s.new_sell_price,s.total_sell_price,s.profit,s.sell_status,s.created_at as creat ,u.full_name,u.phone_number,u.img,u.role,u.status,u.password,u.created_at,p.id,p.user_id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.stat,p.created_at,p.modified,p.ju_price,s.customer FROM tbl_sell s JOIN product p ON p.id = s.product_id JOIN tbl_user u ON u.user_id = s.user_id WHERE $sale_date BETWEEN ".$this->db->escape($from)." AND ".$this->db->escape($to)." AND s.sell_status = $sell_status ORDER BY $sale_date DESC, s.created_at DESC");
+      $sale_datetime = "COALESCE(NULLIF(s.sell_day, ''), s.created_at)";
+      $sale_date = "DATE($sale_datetime)";
+      $mauzo = $this->db->query("SELECT  s.sell_id,s.user_id,s.product_id,s.quantity as qnty, s.new_sell_price,s.total_sell_price,s.profit,s.sell_status,$sale_datetime as creat ,u.full_name,u.phone_number,u.img,u.role,u.status,u.password,u.created_at,p.id,p.user_id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.stat,p.created_at,p.modified,p.ju_price,s.customer FROM tbl_sell s JOIN product p ON p.id = s.product_id JOIN tbl_user u ON u.user_id = s.user_id WHERE $sale_date BETWEEN ".$this->db->escape($from)." AND ".$this->db->escape($to)." AND s.sell_status = $sell_status ORDER BY $sale_date DESC, s.created_at DESC");
       return $mauzo->result();
      }
 

@@ -153,7 +153,7 @@ echo "Retail";
                ?>
             </td>
             <td>
-                <?php  echo  date('F, j, Y, g:j a', strtotime($all_salles_today->creat)); ?>
+                <?php echo date('F, j, Y, g:i a', strtotime($all_salles_today->creat)); ?>
                    
                 </td>
 
