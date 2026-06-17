@@ -39,7 +39,7 @@
       $selected_branch_id = isset($selected_branch_id) ? $selected_branch_id : null;
       $print_query = $selected_branch_id ? '?branch_id=' . (int) $selected_branch_id : '';
     ?>
-    <a href="<?php echo base_url("admin/curent_sells"); ?>" class="btn btn-info"><i class="icon-calendar"></i>Previous Sels</a>
+    <a href="<?php echo base_url("admin/curent_sells").$print_query; ?>" class="btn btn-info"><i class="icon-calendar"></i>Previous Sales</a>
      <a href="<?php echo base_url("admin/today_salles_report".$print_query); ?>" class="btn btn-info" target="_blank"><i class="icon-printer"></i>Print</a>
 </div>
 </div>

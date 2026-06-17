@@ -1986,9 +1986,31 @@ public function password_check($oldpass)
     $this->load->model('queries');
     $user_id = $this->session->userdata('user_id');
     $my = $this->queries->get_mydata($user_id);
-    $from = $this->input->post('from');
-    $to = $this->input->post('to');
-    $sell_status = $this->input->post('sell_status');
+    $from = $this->input->post('from', true);
+    $to = $this->input->post('to', true);
+    $sell_status = $this->input->post('sell_status', true);
+
+    if (!$from || !$to || !$sell_status) {
+      $this->load->view('admin/previous_data',[
+        'my'=>$my,
+        'data'=>[],
+        'from'=>'',
+        'to'=>'',
+        'sell_status'=>'',
+        'total_selldata'=>(object)['total_sell_data'=>0],
+        'total_profit'=>(object)['total_profitData'=>0],
+      ]);
+      return;
+    }
+
+    $from = date('Y-m-d', strtotime($from));
+    $to = date('Y-m-d', strtotime($to));
+    if ($from > $to) {
+      $tmp = $from;
+      $from = $to;
+      $to = $tmp;
+    }
+
     $data = $this->queries->search_mauzoWhole_retail($from,$to,$sell_status);
     $total_selldata = $this->queries->search_mauzoPitaData($from,$to,$sell_status);
     $total_profit = $this->queries->search_profitData($from,$to,$sell_status);
@@ -2000,6 +2022,13 @@ public function password_check($oldpass)
 
     public function print_previousData($from,$to,$sell_status){
     $this->load->model('queries');
+    $from = date('Y-m-d', strtotime($from));
+    $to = date('Y-m-d', strtotime($to));
+    if ($from > $to) {
+      $tmp = $from;
+      $from = $to;
+      $to = $tmp;
+    }
     $data = $this->queries->search_mauzoWhole_retail($from,$to,$sell_status);
     $total_selldata = $this->queries->search_mauzoPitaData($from,$to,$sell_status);
     $total_profit = $this->queries->search_profitData($from,$to,$sell_status);
