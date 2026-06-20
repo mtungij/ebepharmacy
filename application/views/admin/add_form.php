@@ -278,7 +278,7 @@ html.evamo-dark .select2-container--default .select2-results__option--highlighte
             <select class="form-control" name="reason" required>
                 <option value="">Select reason</option>
                 <option value="purchased">Purchased</option>
-                <option value="adjusted">Adjusted</option>
+                <option value="adjusted">Adjust</option>
             </select>
         </div>
     </div>

@@ -24,7 +24,7 @@
       <h2>Product List</b> </h2>
           <div class="pull-right">
    <a href="<?php echo base_url("admin/product_add_Store"); ?>" class="btn btn-info"><i class="icon-pencil">Add Product</i></a> 
-   <a href="<?php echo base_url("admin/adjust_product_stoo"); ?>" class="btn btn-danger"><i class="icon-pencil">Adjust Product</i></a>
+   <!-- <a href="</?php echo base_url("admin/adjust_product_stoo"); ?>" class="btn btn-danger"><i class="icon-pencil">Adjust Product</i></a> -->
     <a href="<?php echo base_url("admin/print_expired_product"); ?>" class=" btn btn-danger" target="_blank">Expired Product</a>
  <!--    <a href="<?php //echo base_url("admin/print_product_available_store") ?>" class=" btn btn-primary" target="_blank">Print report</a> -->
 </div>
