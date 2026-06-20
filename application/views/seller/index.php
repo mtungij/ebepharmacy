@@ -548,20 +548,6 @@ document.addEventListener('DOMContentLoaded', function(){
                   </th>
                 <th></th>
               </tr>
-              <tr class="evamo-cart-amount-paid-row">
-                <th>Amount Paid</th>
-                <th></th>
-                <th></th>
-                <th><input type="number" id="evamo-amount-paid-input" name="amount_paid" value="" min="0" class="form-control" oninput="recalculateCartTotals()" style="width: 120px"></th>
-                <th></th>
-              </tr>
-              <tr class="evamo-cart-change-row">
-                <th>Change Due</th>
-                <th></th>
-                <th></th>
-                <th><span id="evamo-change-due-text">Tsh.0/=</span><input type="hidden" id="evamo-change-due-input" name="change_due" value="0"></th>
-                <th></th>
-              </tr>
               <tr class="evamo-cart-customer-row">
               <td colspan="5">
                   <input type="text" name="customer" class="form-control evamo-cart-customer-input" required placeholder="Customer name" autocomplete="off">

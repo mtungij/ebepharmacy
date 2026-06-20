@@ -4,6 +4,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 @require_once './assets/library/SpreadsheetReader.php';
 
 class Admin extends CI_Controller {
+  private function allowed_product_categories(){
+    return ['Medicines', 'Cosmetics', 'Skin Care', 'Medical Equipment'];
+  }
+
   private function current_admin_branch_id(){
     $branch_id = $this->input->get('branch_id', TRUE);
 
@@ -284,7 +288,7 @@ class Admin extends CI_Controller {
 	public function create_product(){
     $selected_branch_id = $this->current_admin_branch_id();
 		$this->form_validation->set_rules('name','Product name','required');
-		$this->form_validation->set_rules('category','Category','required|in_list[Medicines,Cosmetics]');
+		$this->form_validation->set_rules('category','Category','required|in_list['.implode(',', $this->allowed_product_categories()).']');
 		$this->form_validation->set_rules('unit','Product unit','required');
 		$this->form_validation->set_rules('user_id','user','required');
 		$this->form_validation->set_rules('branch_id','branch','required');
@@ -470,7 +474,7 @@ class Admin extends CI_Controller {
 
     public function modify_product($id){
     $this->form_validation->set_rules('name','Product name','required');
-    $this->form_validation->set_rules('category','Category','required|in_list[Medicines,Cosmetics]');
+    $this->form_validation->set_rules('category','Category','required|in_list['.implode(',', $this->allowed_product_categories()).']');
     $this->form_validation->set_rules('unit','Product unit','required');
     $this->form_validation->set_rules('buy_price','buy price','required');
     $this->form_validation->set_rules('price','sell price','required');
@@ -2971,7 +2975,7 @@ public function import_product(){
         $price = (float)($row[6] ?? 0);
         $ju_price = (float)($row[7] ?? 0);
 
-        if (!in_array($category, ['Medicines', 'Cosmetics'], true) || $unit === '' || $branch_id <= 0 || $quantity <= 0 || $buy_price <= 0 || ($price <= 0 && $ju_price <= 0)) {
+        if (!in_array($category, $this->allowed_product_categories(), true) || $unit === '' || $branch_id <= 0 || $quantity <= 0 || $buy_price <= 0 || ($price <= 0 && $ju_price <= 0)) {
           $skipped++;
           continue;
         }

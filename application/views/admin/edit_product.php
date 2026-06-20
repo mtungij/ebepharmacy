@@ -39,6 +39,8 @@
                 <option value="">Select category</option>
                 <option value="Medicines" <?php echo (isset($productE->category) && $productE->category === 'Medicines') ? 'selected' : ''; ?>>Medicines</option>
                 <option value="Cosmetics" <?php echo (isset($productE->category) && $productE->category === 'Cosmetics') ? 'selected' : ''; ?>>Cosmetics</option>
+                <option value="Skin Care" <?php echo (isset($productE->category) && $productE->category === 'Skin Care') ? 'selected' : ''; ?>>Skin Care</option>
+                <option value="Medical Equipment" <?php echo (isset($productE->category) && $productE->category === 'Medical Equipment') ? 'selected' : ''; ?>>Medical Equipment</option>
             </select>
             <?php echo form_error("category"); ?>
         </div>
@@ -106,7 +108,7 @@
       </div>
     </div>
 </div>
-<?php form_close(); ?>
+<?php echo form_close(); ?>
 </div>
 </div>
 </div>

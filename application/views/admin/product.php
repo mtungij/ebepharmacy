@@ -316,6 +316,8 @@ html.evamo-dark .card .header h2 {
                 <option value="">Select category</option>
                 <option value="Medicines" <?php echo set_select('category', 'Medicines'); ?>>Medicines</option>
                 <option value="Cosmetics" <?php echo set_select('category', 'Cosmetics'); ?>>Cosmetics</option>
+                <option value="Skin Care" <?php echo set_select('category', 'Skin Care'); ?>>Skin Care</option>
+                <option value="Medical Equipment" <?php echo set_select('category', 'Medical Equipment'); ?>>Medical Equipment</option>
             </select>
             <?php echo form_error("category"); ?>
         </div>
@@ -445,7 +447,7 @@ html.evamo-dark .card .header h2 {
       </div>
     </div>
 </div>
-<?php form_close(); ?>
+<?php echo form_close(); ?>
 </div>
 </div>
 </div>

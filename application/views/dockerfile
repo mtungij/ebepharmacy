@@ -1,10 +1,10 @@
 docker run -it -d \
-  --label traefik.http.routers.micapharmaceuticals.rule=Host\(\`micapharmaceuticals.phamasoft.com\`\) \
-  --label traefik.http.routers.micapharmaceuticals.tls.certresolver=lets-encrypt \
-  --label traefik.http.routers.micapharmaceuticals.tls=true \
-  --label traefik.http.routers.micapharmaceuticals.service=micapharmaceuticals-credit-http \
-  --label traefik.http.services.micapharmaceuticals-credit-http.loadbalancer.server.port=80 \
-  --name micapharmaceuticals \
+  --label traefik.http.routers.el-raphapharmacy.rule=Host\(\`el-raphapharmacy.phamasoft.com\`\) \
+  --label traefik.http.routers.el-raphapharmacy.tls.certresolver=lets-encrypt \
+  --label traefik.http.routers.el-raphapharmacy.tls=true \
+  --label traefik.http.routers.el-raphapharmacy.service=el-raphapharmacy-credit-http \
+  --label traefik.http.services.el-raphapharmacy-credit-http.loadbalancer.server.port=80 \
+  --name el-raphapharmacy \
   --network web \
   --restart always \
   --expose 80 \
