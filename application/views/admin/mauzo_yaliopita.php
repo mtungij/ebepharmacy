@@ -112,6 +112,7 @@
                     <th>Customer</th>
                      <th>Product name</th>
                     <th>Quantity</th>
+                    <th>Buy price</th>
                     <th>Sale price</th>
                     <th>Total price</th>
                     <th>Profit</th>
@@ -129,6 +130,7 @@
             <td><?php echo $all_salles_today->customer; ?></td>
             <td><?php echo $all_salles_today->name; ?></td>
             <td><?php echo $all_salles_today->qnty ; ?> <?php echo $all_salles_today->unit ; ?></td>
+            <td><?php echo  number_format($all_salles_today->buy_price); ?>/=</td>
             <td><?php echo  number_format($all_salles_today->new_sell_price); ?>/=</td>
             <td><?php echo  number_format($all_salles_today->total_sell_price); ?>/=</td>
             <td><?php echo  number_format($all_salles_today->profit); ?>/=</td>
@@ -153,7 +155,7 @@
             </tbody>
 
             <tr>
-                <td colspan="10"><b>SELLER SUMMARY</b></td>
+                <td colspan="11"><b>SELLER SUMMARY</b></td>
             </tr>
        <?php foreach ($seller_data as $seller_datas): ?>
             <tr>
@@ -162,6 +164,7 @@
                 <td></td>
                 <td></td>
                 <td><b><?php echo $seller_datas->full_name; ?></b></td>
+                <td></td>
                 <td></td>
                 <td><b><?php echo $seller_datas->total_mauzo; ?></b></td>
                 <td></td>
