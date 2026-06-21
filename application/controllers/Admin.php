@@ -172,6 +172,66 @@ class Admin extends CI_Controller {
     return redirect('admin/branches');
   }
 
+  public function edit_branch($branch_id = null){
+    if ($branch_id === null || $branch_id === '') {
+      $branch_id = $this->input->get('branch_id', true);
+    }
+    $branch_id = (int) $branch_id;
+    $this->load->model('queries');
+    $user_id = $this->session->userdata('user_id');
+    $my = $this->queries->get_mydata($user_id);
+    $branch = $this->queries->get_branch($branch_id);
+
+    if (!$branch) {
+      $this->session->set_flashdata('error', 'Branch not found.');
+      return redirect('admin/branches');
+    }
+
+    $this->load->view('admin/edit_branch', [
+      'my' => $my,
+      'branch' => $branch,
+    ]);
+  }
+
+  public function update_branch($branch_id = null){
+    if ($branch_id === null || $branch_id === '') {
+      $branch_id = $this->input->post('branch_id', true);
+    }
+    $branch_id = (int) $branch_id;
+    $this->form_validation->set_rules('branch_name', 'branch name', 'required|trim');
+    $this->form_validation->set_rules('location', 'location', 'required|trim');
+    $this->form_validation->set_rules('phone', 'phone', 'required|trim');
+    $this->form_validation->set_rules('email', 'email', 'trim|valid_email');
+    $this->form_validation->set_rules('status', 'status', 'required|in_list[open,closed]');
+    $this->form_validation->set_error_delimiters('<div class="text-danger">', '</div>');
+
+    if (!$branch_id) {
+      $this->session->set_flashdata('error', 'Invalid branch selected.');
+      return redirect('admin/branches');
+    }
+
+    if (!$this->form_validation->run()) {
+      return $this->edit_branch($branch_id);
+    }
+
+    $this->load->model('queries');
+    $data = [
+      'branch_name' => $this->input->post('branch_name', true),
+      'location' => $this->input->post('location', true),
+      'phone' => $this->input->post('phone', true),
+      'email' => $this->input->post('email', true),
+      'status' => $this->input->post('status', true) ?: 'open',
+    ];
+
+    if ($this->queries->update_branch($branch_id, $data)) {
+      $this->session->set_flashdata('massage', 'Branch updated successfully');
+    } else {
+      $this->session->set_flashdata('error', 'Failed to update branch');
+    }
+
+    return redirect('admin/branches');
+  }
+
   public function backfill_branch_data(){
     $this->load->model('queries');
     $main_branch = $this->queries->get_main_branch();

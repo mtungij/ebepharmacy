@@ -166,6 +166,22 @@
         color: #78350f;
     }
 
+    .branch-edit-btn {
+        border: 0;
+        border-radius: 6px;
+        padding: 6px 10px;
+        background: #e0f2fe;
+        color: #0369a1;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .branch-edit-btn:hover,
+    .branch-edit-btn:focus {
+        background: #bae6fd;
+        color: #075985;
+    }
+
     @media (max-width: 991.98px) {
         .branches-layout {
             grid-template-columns: 1fr;
@@ -210,6 +226,7 @@
                                 <th>Phone</th>
                                 <th>Email</th>
                                 <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -226,11 +243,14 @@
                                         <td><?php echo $branch->phone; ?></td>
                                         <td><?php echo $branch->email; ?></td>
                                         <td><span class="branch-status"><?php echo $branch->status; ?></span></td>
+                                        <!-- <td>
+                                            <a class="branch-edit-btn" href="<?php echo base_url('admin/edit_branch').'?branch_id='.(int)$branch->branch_id; ?>">Edit</a>
+                                        </td> -->
                                     </tr>
                                 <?php } ?>
                             <?php } else { ?>
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted">No branches registered yet.</td>
+                                    <td colspan="6" class="text-center text-muted">No branches registered yet.</td>
                                 </tr>
                             <?php } ?>
                         </tbody>

@@ -114,6 +114,7 @@
                     <th>Quantity</th>
                     <th>Sale price</th>
                     <th>Total price</th>
+                    <th>Profit</th>
                     <th>Seles Staus</th>
                     <th>Time</th>
                   
@@ -130,6 +131,7 @@
             <td><?php echo $all_salles_today->qnty ; ?> <?php echo $all_salles_today->unit ; ?></td>
             <td><?php echo  number_format($all_salles_today->new_sell_price); ?>/=</td>
             <td><?php echo  number_format($all_salles_today->total_sell_price); ?>/=</td>
+            <td><?php echo  number_format($all_salles_today->profit); ?>/=</td>
             <td>
                <?php 
                $da = $all_salles_today->ju_price - $all_salles_today->new_sell_price;
@@ -151,25 +153,18 @@
             </tbody>
 
             <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td><b>SELLER SUMMARY</b></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td colspan="10"><b>SELLER SUMMARY</b></td>
             </tr>
        <?php foreach ($seller_data as $seller_datas): ?>
             <tr>
                 <td></td>
                 <td></td>
                 <td></td>
+                <td></td>
                 <td><b><?php echo $seller_datas->full_name; ?></b></td>
                 <td></td>
-                <td></td>
                 <td><b><?php echo $seller_datas->total_mauzo; ?></b></td>
+                <td></td>
                 <td></td>
                 <td></td>
             </tr>

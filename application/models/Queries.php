@@ -667,6 +667,20 @@
         return $this->db->insert('tbl_branch', $data);
       }
 
+      public function get_branch($branch_id){
+        $this->ensure_branch_table();
+        return $this->db
+          ->where('branch_id', (int)$branch_id)
+          ->limit(1)
+          ->get('tbl_branch')
+          ->row();
+      }
+
+      public function update_branch($branch_id, $data){
+        $this->ensure_branch_table();
+        return $this->db->where('branch_id', (int)$branch_id)->update('tbl_branch', $data);
+      }
+
       public function get_main_branch(){
         $this->ensure_branch_table();
         $main = $this->db
