@@ -456,9 +456,9 @@ html.evamo-dark .card .header h2 {
 <div class="col-lg-12 col-md-12 col-sm-12">
 <div class="card">
 <div class="header">
-<h2>Import Products From Excel</h2>
+<!-- <h2>Import Products From Excel</h2> -->
 </div>
-<div class="body">
+<!-- <div class="body">
 <?php echo form_open_multipart("admin/import_product"); ?>
 <div class="row clearfix">
     <div class="col-sm-8">
@@ -480,7 +480,7 @@ html.evamo-dark .card .header h2 {
     </div>
 </div>
 <?php echo form_close(); ?>
-</div>
+</div> -->
 </div>
 </div>
 </div>
