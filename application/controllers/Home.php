@@ -129,11 +129,6 @@ if ($userexit->role == 'admin') {
    // exit();
     if ($userexit->status == 'open') {
 $this->session->set_userdata($sessionData);
-$passportRoute = $this->get_passport_upload_route($userexit->role);
-if (empty(trim($userexit->img ?? ''))) {
-    $this->session->set_flashdata('ms','Please upload passport first');
-    return redirect($passportRoute);
-}
 $this->session->set_flashdata('massage','Login Successfully');
 return redirect('admin/index');
 }elseif ($userexit->status == 'close') {
@@ -155,11 +150,6 @@ $this->session->set_flashdata('ms','Account closed');
     // print_r($sessionData);
 if ($userexit->status =='open') {
 $this->session->set_userdata($sessionData);
-$passportRoute = $this->get_passport_upload_route($userexit->role);
-if (empty(trim($userexit->img ?? ''))) {
-    $this->session->set_flashdata('ms','Please upload passport first');
-    return redirect($passportRoute);
-}
 $this->session->set_flashdata('massage','Login Successfully');
           return redirect("seller/index");
     }elseif($userexit->status == 'close'){
@@ -181,11 +171,6 @@ $this->session->set_flashdata('massage','account closed');
     //     exit();
 if ($userexit->status =='open') {
 $this->session->set_userdata($sessionData);
-$passportRoute = $this->get_passport_upload_route($userexit->role);
-if (empty(trim($userexit->img ?? ''))) {
-    $this->session->set_flashdata('ms','Please upload passport first');
-    return redirect($passportRoute);
-}
 $this->session->set_flashdata('massage','Login Successfully');
           return redirect("cashire/dashboard");
     }elseif($userexit->status == 'close'){
