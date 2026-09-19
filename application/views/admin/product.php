@@ -96,91 +96,6 @@
     vertical-align: middle;
 }
 
-@media (prefers-color-scheme: dark) {
-    .evamo-product-form-grid .form-group {
-        background: #111827 !important;
-        border-color: #334155 !important;
-    }
-
-    .evamo-product-form-grid .form-group > span {
-        color: #cbd5e1 !important;
-        background: transparent !important;
-    }
-
-    .evamo-product-form-grid input,
-    .evamo-product-form-grid select,
-    .evamo-product-form-grid textarea,
-    .evamo-product-form-grid .form-control {
-        background: #0f172a !important;
-        border-color: #334155 !important;
-        color: #ffffff !important;
-    }
-
-    .evamo-product-form-grid input[type="date"] {
-        color-scheme: dark;
-    }
-
-    .evamo-product-form-grid input::placeholder,
-    .evamo-product-form-grid textarea::placeholder {
-        color: #cbd5e1 !important;
-        opacity: 1;
-    }
-
-    .evamo-product-form-grid input:-webkit-autofill,
-    .evamo-product-form-grid input:-webkit-autofill:hover,
-    .evamo-product-form-grid input:-webkit-autofill:focus,
-    .evamo-product-form-grid textarea:-webkit-autofill,
-    .evamo-product-form-grid select:-webkit-autofill {
-        -webkit-text-fill-color: #ffffff;
-        -webkit-box-shadow: 0 0 0px 1000px #0f172a inset;
-        transition: background-color 9999s ease-in-out 0s;
-    }
-
-    .evamo-product-form-grid .select2-container--default .select2-selection--single {
-        background: #0f172a !important;
-        border-color: #334155 !important;
-    }
-
-    .evamo-product-form-grid .select2-container--default .select2-selection--single .select2-selection__rendered {
-        color: #ffffff !important;
-        background: transparent !important;
-    }
-
-    .evamo-product-form-grid .select2-container--default .select2-selection--single .select2-selection__placeholder {
-        color: #cbd5e1 !important;
-    }
-
-    .evamo-product-form-grid .select2-container--default .select2-selection--single .select2-selection__arrow b {
-        border-color: #94a3b8 transparent transparent transparent;
-    }
-
-    .select2-dropdown {
-        background: #0f172a !important;
-        border-color: #334155 !important;
-    }
-
-    .select2-container--default .select2-search--dropdown .select2-search__field {
-        background: #0f172a !important;
-        border-color: #334155 !important;
-        color: #ffffff !important;
-    }
-
-    .select2-container--default .select2-results__option {
-        color: #e2e8f0 !important;
-        background: #0f172a !important;
-    }
-
-    .select2-container--default .select2-results__option[aria-selected=true] {
-        background-color: rgba(45, 212, 191, 0.2);
-        color: #99f6e4;
-    }
-
-    .select2-container--default .select2-results__option--highlighted[aria-selected] {
-        background-color: #0d9488;
-        color: #ffffff;
-    }
-}
-
 html.evamo-dark .evamo-product-form-grid .form-group {
     background: #111827 !important;
     border-color: #334155 !important;
@@ -314,10 +229,9 @@ html.evamo-dark .card .header h2 {
                 <span>Category <span class="text-danger">*</span></span>
             <select required name="category" class="form-control" style="width: 100%;">
                 <option value="">Select category</option>
-                <option value="Medicines" <?php echo set_select('category', 'Medicines'); ?>>Medicines</option>
-                <option value="Cosmetics" <?php echo set_select('category', 'Cosmetics'); ?>>Cosmetics</option>
-                <option value="Skin Care" <?php echo set_select('category', 'Skin Care'); ?>>Skin Care</option>
-                <option value="Medical Equipment" <?php echo set_select('category', 'Medical Equipment'); ?>>Medical Equipment</option>
+                <?php foreach ($categories as $category): ?>
+                <option value="<?php echo html_escape($category->category_name); ?>" <?php echo set_select('category', $category->category_name); ?>><?php echo html_escape($category->category_name); ?></option>
+                <?php endforeach; ?>
             </select>
             <?php echo form_error("category"); ?>
         </div>

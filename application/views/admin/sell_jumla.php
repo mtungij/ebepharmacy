@@ -254,6 +254,9 @@ function recalculateCartTotals(){
 /* Update item quantity */
 function updateCartItem(obj, rowid,item_id){
         var oldQty = Number(obj.getAttribute('data-old-qty') || obj.value || 1);
+        if (!Number.isFinite(Number(obj.value)) || Number(obj.value) < 1) {
+            obj.value = 1;
+        }
         recalculateCartTotals();
 
     $.get("<?php echo base_url('admin/updateItemQty/'); ?>",{rowid:rowid, qty:obj.value,item_id:item_id}, function(resp){
@@ -426,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function(){
               $cart_id = $item["rowid"];
               $item_id = $item["id"];
                  ?>
-            <input type="number" value="<?php echo $item["qty"]; ?>" data-old-qty="<?php echo $item["qty"]; ?>" data-price="<?php echo $item['ju_price']; ?>" data-buy-price="<?php echo $item['buy_price']; ?>" onchange="updateCartItem(this, '<?php echo $cart_id; ?>','<?php echo $item_id; ?>')" min="1" class="form-control evamo-qty-input" style="width: 80px">
+            <input type="number" value="<?php echo $item["qty"]; ?>" data-old-qty="<?php echo $item["qty"]; ?>" data-price="<?php echo $item['ju_price']; ?>" data-buy-price="<?php echo $item['buy_price']; ?>" onchange="updateCartItem(this, '<?php echo $cart_id; ?>','<?php echo $item_id; ?>')" onkeydown="return ['-', '+', 'e', 'E'].indexOf(event.key) === -1" min="1" class="form-control evamo-qty-input" style="width: 80px">
              <input type="hidden" name="quantity[]" value="<?php echo $item["qty"]; ?>" class="evamo-qty-hidden">
             </td> 
                                                 <td data-label="Total(Tsh)"><span class="evamo-row-total-text"><?php echo 'Tsh.'.number_format($item["sub"]).'/='; ?></span>

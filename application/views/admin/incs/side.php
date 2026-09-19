@@ -209,6 +209,7 @@ if ($_SESSION['role'] == 'admin') {
                             <ul>
                                 <li><a href="<?php echo base_url("admin/product") ?>">Add products</a></li>
                                 <li><a href="<?php echo base_url("admin/all_product") ?>">All products</a></li>
+                                <li><a href="<?php echo base_url("admin/categories") ?>">Categories</a></li>
                                 <li><a href="<?php echo base_url("admin/stock_balance_history") ?>">Stock Balance History</a></li>
                             </ul>
                         </li>
@@ -311,6 +312,7 @@ if ($_SESSION['role'] == 'admin') {
                         <ul>
                             <li><a href="<?php echo base_url("admin/product") ?>">Add products</a></li>
                             <li><a href="<?php echo base_url("admin/all_product") ?>">All products</a></li>
+                            <li><a href="<?php echo base_url("admin/categories") ?>">Categories</a></li>
                         </ul>
                     </li>
                     <?php } ?>

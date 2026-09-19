@@ -417,10 +417,21 @@ function recalculateCartTotals(){
   }
 }
 
+/* Block characters that allow negative / exponent numbers in quantity inputs */
+function evamoBlockQtyKeys(event){
+  return ['-', '+', 'e', 'E'].indexOf(event.key) === -1;
+}
+
 function scheduleCartItemUpdate(obj, rowid, item_id){
   var maxStock = Number(obj.getAttribute('data-max-stock') || 0);
   var rawQty = obj.value;
   var nextQty = Number(rawQty || 0);
+
+  if (rawQty !== '' && Number.isFinite(nextQty) && nextQty < 1) {
+    obj.value = 1;
+    rawQty = obj.value;
+    nextQty = 1;
+  }
 
   if (rawQty !== '' && maxStock > 0 && Number.isFinite(nextQty) && nextQty > maxStock) {
     obj.value = 1;
@@ -667,7 +678,7 @@ document.addEventListener('DOMContentLoaded', function(){
               $cart_id = $item["rowid"];
               $item_id = $item["id"];
                  ?>
-      <input type="number" value="<?php echo $item["qty"]; ?>" data-old-qty="<?php echo $item["qty"]; ?>" data-max-stock="<?php echo isset($item['stock_balance']) ? $item['stock_balance'] : ''; ?>" data-price="<?php echo $item['price']; ?>" data-buy-price="<?php echo $item['buy_price']; ?>" oninput="scheduleCartItemUpdate(this, '<?php echo $cart_id; ?>','<?php echo $item_id; ?>')" min="1" class="form-control evamo-qty-input" style="width: 80px">
+      <input type="number" value="<?php echo $item["qty"]; ?>" data-old-qty="<?php echo $item["qty"]; ?>" data-max-stock="<?php echo isset($item['stock_balance']) ? $item['stock_balance'] : ''; ?>" data-price="<?php echo $item['price']; ?>" data-buy-price="<?php echo $item['buy_price']; ?>" oninput="scheduleCartItemUpdate(this, '<?php echo $cart_id; ?>','<?php echo $item_id; ?>')" onkeydown="return evamoBlockQtyKeys(event)" min="1" class="form-control evamo-qty-input" style="width: 80px">
      <!-- <select type="number" class="form-control" id='cartp' onchange="updateCartItem(this, '<?php echo $cart_id; ?>','<?php echo $item_id; ?>')" style="width: 80px">
        <option value="<?php echo $item["qty"]; ?>"><?php echo $item["qty"]; ?></option>
        <option value="0.25">Robo</option>

@@ -36,11 +36,9 @@
         </p>
         <table>
           <tr>
-            
-            <td style="border: none;font-size: 12px;"></td>
+            <td style="border: none;font-size: 12px;">Receipt No: <?php echo !empty($orderDetails->order_id) ? $orderDetails->order_id : ''; ?></td>
             <td style="border: none;font-size: 12px;">Customer Name : <?php echo  $customer; ?></td>
-            <td style="border: none;font-size: 12px;">Total : <?php echo 'Tsh.'.number_format($this->cart->total()).'/='; ?></td>
-            
+            <td style="border: none;font-size: 12px;">Total : <?php echo 'Tsh.'.number_format($total->total_bill ?? 0).'/='; ?></td>
           </tr>
         </table>
         
@@ -80,7 +78,7 @@ tr:nth-child(even) {
     <th style="font-size:12px;border: none;">Price</th>
   </tr>
    <?php $no = 1; ?>
-     <?php if($this->cart->total_items() > 0): ?>          
+     <?php if (!empty($cartItems)): ?>          
             <?php foreach ($cartItems as $item):
                  
                 ?>
@@ -101,10 +99,7 @@ tr:nth-child(even) {
    <th style="border: none"></th>
    <th style="border: none;font-size:12px;"></th>
    <th style="border: none;font-size:12px;">Total</th>
-   <th style="border: none;font-size:12px;"><?php if($this->cart->total_items() > 0){ ?>
-                        <span><?php echo 'Tsh.'.number_format($this->cart->total()).'/='; ?>
-                    <?php } ?>
-</th>
+   <th style="border: none;font-size:12px;"><?php echo 'Tsh.'.number_format($total->total_bill ?? 0).'/='; ?></th>
  </tr>
 
 </table>

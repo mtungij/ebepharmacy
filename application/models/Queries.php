@@ -88,7 +88,7 @@
      public function get_sallesTodayData($branch_id = null){
       $date = date("Y-m-d");
       $branch_sql = $branch_id !== null ? " AND s.branch_id = " . (int) $branch_id : "";
-      $sales = $this->db->query("SELECT u.user_id,u.full_name,u.phone_number,u.img,u.role,s.sell_id,s.user_id,s.product_id,s.quantity as quanty,s.new_sell_price,s.total_sell_price,s.profit,s.sell_day,s.created_at,s.status,p.id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.ju_price,s.customer,b.branch_name FROM tbl_sell s JOIN tbl_user u ON u.user_id = s.user_id JOIN  product p ON p.id = s.product_id LEFT JOIN tbl_branch b ON b.branch_id = s.branch_id WHERE  s.sell_day >= DATE_SUB(now(), INTERVAL 7 DAY) $branch_sql ORDER BY s.sell_day = 'DESC'");
+      $sales = $this->db->query("SELECT u.user_id,u.full_name,u.phone_number,u.img,u.role,s.sell_id,s.order_id,s.user_id,s.product_id,s.quantity as quanty,s.new_sell_price,s.total_sell_price,s.profit,s.sell_day,s.created_at,s.status,p.id,p.name,p.price,p.quantity,p.buy_price,p.unit,p.ju_price,s.customer,b.branch_name FROM tbl_sell s JOIN tbl_user u ON u.user_id = s.user_id JOIN  product p ON p.id = s.product_id LEFT JOIN tbl_branch b ON b.branch_id = s.branch_id WHERE  s.sell_day >= DATE_SUB(now(), INTERVAL 7 DAY) $branch_sql ORDER BY s.sell_day = 'DESC'");
       return $sales->result();
     }
 
@@ -351,9 +351,88 @@
       return $map;
      }
 
-     public function get_product_categories(){
+     public function ensure_category_table(){
+      if ($this->db->table_exists('tbl_category')) {
+        return true;
+      }
+
+      $this->db->query("
+        CREATE TABLE IF NOT EXISTS `tbl_category` (
+          `category_id` int(11) NOT NULL AUTO_INCREMENT,
+          `category_name` varchar(50) NOT NULL,
+          `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+          PRIMARY KEY (`category_id`),
+          UNIQUE KEY `category_name` (`category_name`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+      ");
+
+      // Seed with the previously hardcoded categories plus any already used by products.
+      $names = ['Medicines', 'Cosmetics', 'Skin Care', 'Medical Equipment'];
+      if ($this->db->table_exists('product') && $this->db->field_exists('category', 'product')) {
+        $used = $this->db->query("SELECT DISTINCT category FROM product WHERE category IS NOT NULL AND category != ''")->result();
+        foreach ($used as $row) {
+          $names[] = $row->category;
+        }
+      }
+      foreach (array_unique($names) as $name) {
+        $this->db->query("INSERT IGNORE INTO `tbl_category` (`category_name`) VALUES (?)", [$name]);
+      }
+
+      return true;
+     }
+
+     public function get_categories(){
+      $this->ensure_category_table();
+      return $this->db->order_by('category_name', 'ASC')->get('tbl_category')->result();
+     }
+
+     public function get_category($category_id){
+      $this->ensure_category_table();
+      return $this->db->where('category_id', (int)$category_id)->get('tbl_category')->row();
+     }
+
+     public function get_category_by_name($name, $exclude_id = null){
+      $this->ensure_category_table();
+      $this->db->where('category_name', $name);
+      if ($exclude_id) {
+        $this->db->where('category_id !=', (int)$exclude_id);
+      }
+      return $this->db->get('tbl_category')->row();
+     }
+
+     public function get_category_names(){
+      return array_map(function($row){ return $row->category_name; }, $this->get_categories());
+     }
+
+     public function count_products_in_category($name){
       $this->ensure_branch_table();
-      $data = $this->db->query("SELECT DISTINCT category FROM product WHERE category IS NOT NULL AND category != '' ORDER BY category ASC");
+      return $this->db->where('category', $name)->count_all_results('product');
+     }
+
+     public function insert_category($name){
+      $this->ensure_category_table();
+      return $this->db->insert('tbl_category', ['category_name' => $name]);
+     }
+
+     public function rename_category($category_id, $old_name, $new_name){
+      $this->ensure_category_table();
+      $this->ensure_branch_table();
+      $this->db->trans_start();
+      $this->db->where('category_id', (int)$category_id)->update('tbl_category', ['category_name' => $new_name]);
+      $this->db->where('category', $old_name)->update('product', ['category' => $new_name]);
+      $this->db->where('category', $old_name)->update('tbl_discount_rules', ['category' => $new_name]);
+      $this->db->trans_complete();
+      return $this->db->trans_status();
+     }
+
+     public function delete_category($category_id){
+      $this->ensure_category_table();
+      return $this->db->where('category_id', (int)$category_id)->delete('tbl_category');
+     }
+
+     public function get_product_categories(){
+      $this->ensure_category_table();
+      $data = $this->db->query("SELECT category_name AS category FROM tbl_category ORDER BY category_name ASC");
       return $data->result();
      }
 
@@ -1673,7 +1752,12 @@ public function get_order_listitem($order_id){
 }
 
 public function get_order_listitem_total($order_id){
-  $data = $this->db->query("SELECT p.name,s.quantity,s.new_sell_price,s.total_sell_price,p.unit,SUM(s.total_sell_price) AS total_bill FROM tbl_sell s JOIN product p ON p.id = s.product_id WHERE s.order_id = '$order_id'");
+  $data = $this->db->query("SELECT SUM(s.total_sell_price) AS total_bill FROM tbl_sell s WHERE s.order_id = '$order_id'");
+  return $data->row();
+}
+
+public function get_order_details($order_id){
+  $data = $this->db->query("SELECT s.order_id,s.customer,s.sell_day,r.date_receipt,r.order_status,u.full_name AS seller,b.branch_name FROM tbl_sell s LEFT JOIN tbl_receipt r ON r.order_id = s.order_id LEFT JOIN tbl_user u ON u.user_id = s.user_id LEFT JOIN tbl_branch b ON b.branch_id = s.branch_id WHERE s.order_id = '$order_id' LIMIT 1");
   return $data->row();
 }
 

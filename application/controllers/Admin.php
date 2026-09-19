@@ -5,7 +5,80 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Admin extends CI_Controller {
   private function allowed_product_categories(){
-    return ['Medicines', 'Cosmetics', 'Skin Care', 'Medical Equipment'];
+    $this->load->model('queries');
+    return $this->queries->get_category_names();
+  }
+
+  public function categories(){
+    $this->load->model('queries');
+    $user_id = $this->session->userdata('user_id');
+    $my = $this->queries->get_mydata($user_id);
+    $categories = $this->queries->get_categories();
+    foreach ($categories as $category) {
+      $category->product_count = $this->queries->count_products_in_category($category->category_name);
+    }
+
+    $this->load->view('admin/categories', [
+      'my' => $my,
+      'categories' => $categories,
+    ]);
+  }
+
+  public function create_category(){
+    $this->load->model('queries');
+    $this->form_validation->set_rules('category_name', 'category name', 'required|trim|max_length[50]');
+    $this->form_validation->set_error_delimiters('<div class="text-danger">', '</div>');
+
+    if (!$this->form_validation->run()) {
+      return $this->categories();
+    }
+
+    $name = trim($this->input->post('category_name', true));
+    if ($this->queries->get_category_by_name($name)) {
+      $this->session->set_flashdata('error', 'Category "'.html_escape($name).'" already exists');
+    } elseif ($this->queries->insert_category($name)) {
+      $this->session->set_flashdata('massage', 'Category registered successfully');
+    } else {
+      $this->session->set_flashdata('error', 'Failed to register category');
+    }
+
+    return redirect('admin/categories');
+  }
+
+  public function update_category($category_id = null){
+    $this->load->model('queries');
+    $category = $this->queries->get_category($category_id);
+    $name = trim((string)$this->input->post('category_name', true));
+
+    if (!$category) {
+      $this->session->set_flashdata('error', 'Category not found');
+    } elseif ($name === '' || strlen($name) > 50) {
+      $this->session->set_flashdata('error', 'Category name is required (max 50 characters)');
+    } elseif ($this->queries->get_category_by_name($name, $category->category_id)) {
+      $this->session->set_flashdata('error', 'Category "'.html_escape($name).'" already exists');
+    } elseif ($name !== $category->category_name && !$this->queries->rename_category($category->category_id, $category->category_name, $name)) {
+      $this->session->set_flashdata('error', 'Failed to update category');
+    } else {
+      $this->session->set_flashdata('massage', 'Category updated successfully');
+    }
+
+    return redirect('admin/categories');
+  }
+
+  public function delete_category($category_id = null){
+    $this->load->model('queries');
+    $category = $this->queries->get_category($category_id);
+
+    if (!$category) {
+      $this->session->set_flashdata('error', 'Category not found');
+    } elseif ($this->queries->count_products_in_category($category->category_name) > 0) {
+      $this->session->set_flashdata('error', 'Cannot delete "'.html_escape($category->category_name).'" because products use it');
+    } else {
+      $this->queries->delete_category($category->category_id);
+      $this->session->set_flashdata('massage', 'Category deleted successfully');
+    }
+
+    return redirect('admin/categories');
   }
 
   private function current_admin_branch_id(){
@@ -342,7 +415,7 @@ class Admin extends CI_Controller {
 		  // print_r($product);
 		  // echo "</pre>";
 		  //      exit();
-		$this->load->view('admin/product',['product'=>$product,'my'=>$my,'privillage'=>$privillage,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
+		$this->load->view('admin/product',['product'=>$product,'my'=>$my,'privillage'=>$privillage,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id,'categories'=>$this->queries->get_categories()]);
 	}
 
 	public function create_product(){
@@ -529,7 +602,7 @@ class Admin extends CI_Controller {
       $privillage = $this->queries->get_userPrivillage($user_id);
         // print_r($productE);
         //    exit();
-      $this->load->view('admin/edit_product',['productE'=>$productE,'my'=>$my,'privillage'=>$privillage]);
+      $this->load->view('admin/edit_product',['productE'=>$productE,'my'=>$my,'privillage'=>$privillage,'categories'=>$this->queries->get_categories()]);
     }
 
     public function modify_product($id){
@@ -1210,6 +1283,36 @@ public function sales_today(){
       //           exit();
 
   $this->load->view('admin/today_sales',['all_salles'=>$all_salles,'total_sell'=>$total_sell,'total_profit'=>$total_profit,'my'=>$my,'data_employee'=>$data_employee,'branches'=>$branches,'selected_branch_id'=>$selected_branch_id]);
+}
+
+public function print_order_receipt($order_id = null){
+    $this->load->model('queries');
+    if ($order_id === null || !is_numeric($order_id) || (int)$order_id <= 0) {
+      show_404();
+      return;
+    }
+    $order_id = (int) $order_id;
+    $orderDetails = $this->queries->get_order_details($order_id);
+    if (!$orderDetails) {
+      show_404();
+      return;
+    }
+    $cartItems = $this->queries->get_order_listitem($order_id);
+    $total = $this->queries->get_order_listitem_total($order_id);
+    $shop = $this->queries->get_shop_infoData();
+    $data = [
+      'shop' => $shop,
+      'cartItems' => $cartItems,
+      'orderDetails' => $orderDetails,
+      'total' => $total,
+      'customer' => $orderDetails->customer,
+      'class' => 'new_window',
+    ];
+    $html = $this->load->view('admin/recept',$data,true);
+    $mpdf = new \Mpdf\Mpdf();
+    $mpdf->SetFooter('Generated By (0) 629364847 & (0) 748470181');
+    $mpdf->WriteHTML($html);
+    $mpdf->Output();
 }
 
 public function general_sells_product(){
@@ -2245,7 +2348,7 @@ public function password_check($oldpass)
           // print_r($rowid);
           //     exit();
         // Update item in the cart
-        if(!empty($rowid) && !empty($qty)){
+        if(!empty($rowid) && !empty($qty) && is_numeric($qty) && (float)$qty > 0){
             $data = array(
                 'rowid' => $rowid,
                 'qty'   => $qty
@@ -2267,6 +2370,23 @@ public function password_check($oldpass)
         
         // Return response
         // echo $update?'ok':'err';
+    }
+
+    /**
+     * True when every quantity is greater than zero and no price or discount is negative.
+     */
+    private function sale_amounts_are_valid($quantity, $prices, $discounts, $cart_discount){
+      foreach ((array)$quantity as $value) {
+        if (!is_numeric($value) || (float)$value <= 0) {
+          return false;
+        }
+      }
+      foreach (array_merge((array)$prices, (array)$discounts, [$cart_discount]) as $value) {
+        if ($value !== null && $value !== '' && (!is_numeric($value) || (float)$value < 0)) {
+          return false;
+        }
+      }
+      return true;
     }
 
     function checkForItemBalance($item_id,$qnty){
@@ -2317,6 +2437,10 @@ public function password_check($oldpass)
           $sell_day = date("Y-m-d");
           $date_recept = date("Y-m-d H:i:s");
           $branch_id = $this->current_admin_branch_id();
+          if (!$this->sale_amounts_are_valid($quantity, $new_sell_price, $discount_amount, $cart_discount_amount)) {
+            $this->session->set_flashdata('error', 'Quantity must be greater than zero and amounts cannot be negative.');
+            return redirect('admin_cart/');
+          }
           $discounted_total_price = 0;
           $original_cart_total = $this->discountservice->originalCartTotal($quantity, $new_sell_price);
           $sale_items = $this->discountservice->cartLineItems($product_id, $quantity, $new_sell_price);
@@ -2427,6 +2551,10 @@ public function password_check($oldpass)
           $total_price = $this->input->post('total_price');
           $sell_day = date("Y-m-d");
           $branch_id = $this->current_admin_branch_id();
+          if (!$this->sale_amounts_are_valid($quantity, $new_sell_price, $discount_amount, $cart_discount_amount)) {
+            $this->session->set_flashdata('error', 'Quantity must be greater than zero and amounts cannot be negative.');
+            return redirect('admin_cart_jumla/');
+          }
           $discounted_total_price = 0;
           $original_cart_total = $this->discountservice->originalCartTotal($quantity, $new_sell_price);
           $sale_items = $this->discountservice->cartLineItems($product_id, $quantity, $new_sell_price);

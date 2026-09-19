@@ -37,10 +37,9 @@
         <span>Category</span>
             <select required name="category" class="form-control">
                 <option value="">Select category</option>
-                <option value="Medicines" <?php echo (isset($productE->category) && $productE->category === 'Medicines') ? 'selected' : ''; ?>>Medicines</option>
-                <option value="Cosmetics" <?php echo (isset($productE->category) && $productE->category === 'Cosmetics') ? 'selected' : ''; ?>>Cosmetics</option>
-                <option value="Skin Care" <?php echo (isset($productE->category) && $productE->category === 'Skin Care') ? 'selected' : ''; ?>>Skin Care</option>
-                <option value="Medical Equipment" <?php echo (isset($productE->category) && $productE->category === 'Medical Equipment') ? 'selected' : ''; ?>>Medical Equipment</option>
+                <?php foreach ($categories as $category): ?>
+                <option value="<?php echo html_escape($category->category_name); ?>" <?php echo (isset($productE->category) && $productE->category === $category->category_name) ? 'selected' : ''; ?>><?php echo html_escape($category->category_name); ?></option>
+                <?php endforeach; ?>
             </select>
             <?php echo form_error("category"); ?>
         </div>

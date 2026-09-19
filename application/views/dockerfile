@@ -1,11 +1,11 @@
 docker run -it -d \
-  --label traefik.http.routers.vasajepharmacy.rule=Host\(\`vasajepharmacy.phamasoft.com\`\) \
-  --label traefik.http.routers.vasajepharmacy.tls.certresolver=lets-encrypt \
-  --label traefik.http.routers.vasajepharmacy.tls=true \
-  --label traefik.http.routers.vasajepharmacy.service=vasajepharmacy-credit-http \
-  --label traefik.http.services.vasajepharmacy-credit-http.loadbalancer.server.port=80 \
-  --name vasajepharmacy \
+  --label traefik.http.routers.greengalaxyinvestments.rule=Host\(\`greengalaxyinvestments.buildcore.site\`\) \
+  --label traefik.http.routers.greengalaxyinvestments.tls.certresolver=lets-encrypt \
+  --label traefik.http.routers.greengalaxyinvestments.tls=true \
+  --label traefik.http.routers.greengalaxyinvestments.service=greengalaxyinvestments-credit-http \
+  --label traefik.http.services.greengalaxyinvestments-credit-http.loadbalancer.server.port=80 \
+  --name greengalaxyinvestments \
   --network web \
   --restart always \
   --expose 80 \
-  mikoposoft/pharmacyci3:old
+  ubuntu:latest
